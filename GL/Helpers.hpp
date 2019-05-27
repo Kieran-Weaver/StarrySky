@@ -2,7 +2,7 @@
 #define STARRYSKY_HELPER_HPP
 #include <fstream>
 #include <limits>
-#include "../gl31.h"
+#include <gl.h>
 #include <iostream>
 std::string readWholeFile(const std::string& filename);
 template<typename T>

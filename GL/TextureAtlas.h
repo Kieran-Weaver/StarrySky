@@ -6,7 +6,7 @@
 #include <sparsehash/dense_hash_map>
 #include <cstring>
 #include <zlib.h>
-#include <gl31.h>
+#include <gl.h>
 #include <GL/Rect.hpp>
 #include "Texture.h"
 

@@ -1,8 +1,7 @@
 #ifndef STARRYSKY_SHADER_HPP
 #define STARRYSKY_SHADER_HPP
 #include <fstream>
-#include "../gl31.h"
-#include <GL/gl.h>
+#include <gl.h>
 #include "Helpers.hpp"
 class Shader
 {

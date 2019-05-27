@@ -40,14 +40,14 @@ int TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 		delete[] header;
 		switch(fourCC){
 			case 0x31545844: // DXT1
-				atlas.format = GL_COMPRESSED_RGBA_S3TC_DXT1_EXT;
+				atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
 				blockSize = 8;
 				break;
 			case 0x33545844: // DXT3
-				atlas.format = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+				atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
 				break;
 			case 0x35545844: // DXT5
-				atlas.format = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
 				break;
 			default:
 				return -1;
@@ -92,7 +92,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 		pos += 2;
 		m_atlas_list.emplace_back(Atlas());
 		m_atlas_list[textureIndex].m_texture = m_texture_handles + textureIndex;
-		loadDDSgz(textureName + ".dds.gz",m_atlas_list[textureIndex]);
+		loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex]);
 		for (int imageindex = 0; imageindex < num_images; imageindex++){
 			std::string img_name = getString(data,pos,length);
 			pos += img_name.size() + 1;

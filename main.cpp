@@ -1,4 +1,4 @@
-#include "gl31.h"
+#include "gl.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <zlib.h>
@@ -6,6 +6,9 @@
 #include "GL/Shader.hpp"
 #include "GL/Camera.hpp"
 #include "GL/TextureAtlas.h"
+#include "imgui/imgui.h"
+#include "imgui/examples/imgui_impl_glfw.h"
+#include "imgui/examples/imgui_impl_opengl3.h"
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
 		glfwSetWindowShouldClose(window,GLFW_TRUE);
@@ -29,7 +32,7 @@ int main(void){
 		return 1;
 	}
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f));
-//	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
@@ -38,13 +41,20 @@ int main(void){
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-	window = glfwCreateWindow(mode->width,mode->height,"Starry Sky", monitor, NULL);
+	window = glfwCreateWindow(1280,720,"Starry Sky", NULL, NULL);
 	if (!window){
 		glfwTerminate();
 		return 2;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);
 	glfwSetWindowUserPointer(window,&camera);
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window,true);
+	ImGui_ImplOpenGL3_Init("#version 150");
+	io.Fonts->AddFontFromFileTTF("data/fonts/boxfont_round.ttf",20.f);
 	float vertices[] = {
 		 0.f,0.f,0.0f,0.0f,
 		 2000.f,0.f,1.0f,0.0f,
@@ -58,13 +68,13 @@ int main(void){
 	GLuint vbo;
 	glGenBuffers(1,&vbo);
 	glBindBuffer(GL_ARRAY_BUFFER,vbo);
-	GLBuffer<uint8_t> ebo = genIndexBuffer<uint8_t>(20);
+	GLBuffer<uint8_t> ebo = genIndexBuffer<uint8_t>(250);
 
 	Shader vxShader(GL_VERTEX_SHADER);
-	vxShader.load("shaders/default.vert");
+	vxShader.load("data/shaders/default.vert");
 
 	Shader fgShader(GL_FRAGMENT_SHADER);
-	fgShader.load("shaders/default.frag");
+	fgShader.load("data/shaders/default.frag");
 
 	GLuint shaderProgram = CreateProgram(vxShader,fgShader,"outColor");
 	glUseProgram(shaderProgram);
@@ -80,7 +90,7 @@ int main(void){
 	glm::mat4 m(1.0f);
 	glActiveTexture(GL_TEXTURE0);
 	TextureAtlas atlas;
-	atlas.loadFromFile("atlas.bin");
+	atlas.loadFromFile("data/atlas.bin");
 	Texture t = atlas.findSubTexture("floor1");
 	glBindTexture(GL_TEXTURE_2D,*(t.m_texture));
 	vertices[2] = t.m_rect.left;
@@ -97,17 +107,29 @@ int main(void){
 	glfwSetKeyCallback(window,key_callback);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 	while (!glfwWindowShouldClose(window)){
-	/* Render here */
+		glfwPollEvents();
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::ShowDemoWindow();
+		ImGui::Render();
+
+		glfwMakeContextCurrent(window);
 		glUniformMatrix4fv(MatrixID,1,GL_FALSE,&camera.getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_BYTE,0);
-	/* Swap front and back buffers */
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		glfwMakeContextCurrent(window);
 		glfwSwapBuffers(window);
-	/* Poll for and process events */
-		glfwPollEvents();
 	}
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 	glDeleteProgram(shaderProgram);
 	glDeleteBuffers(1,&ebo.handle);
 	glDeleteBuffers(1,&vbo);
