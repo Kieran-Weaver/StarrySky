@@ -1,17 +1,6 @@
 #include "TextureAtlas.h"
 #define TRIM
 #define ROTATE
-static uint16_t getUint16_t(const uint8_t *data, int pos){
-	return data[pos] + (static_cast<uint16_t>(data[pos+1])<<8);
-}
-static std::string getString(const uint8_t *data,int start, int length){
-	int end=start;
-	const char* chardata = reinterpret_cast<const char*>(data);
-	while (end<length && (chardata[end] != 0)){
-		end++;
-	}
-	return std::string(chardata+start,end-start);
-}
 // Loads a recrunch-ed .dds.gz file, and populates the Atlas
 int TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glActiveTexture(GL_TEXTURE0);
@@ -21,20 +10,19 @@ int TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	gzFile gzhandle = gzopen(path.c_str(),"rb");
-	char * header = new char[129];
+	uint32_t * header = new uint32_t[32];
 	gzread(gzhandle, header, 128);
-	header[128] = '\0';
-	if (strncmp(header,"DDS ",4)!=0){
+	if (header[0] != 0x20534444){ // "DDS " as a uint32_t
 		delete[] header;
 		gzclose(gzhandle);
 		return -1;
 	}else{
-		atlas.height = *reinterpret_cast<uint32_t*>(header+12);
-		atlas.width = *reinterpret_cast<uint32_t*>(header+16);
+		atlas.height = header[3];
+		atlas.width = header[4];
 		uint32_t width = atlas.width;
 		uint32_t height = atlas.height;
-		uint32_t mipmapcount = *reinterpret_cast<uint32_t*>(header+28);
-		uint32_t fourCC = *reinterpret_cast<uint32_t*>(header+84);
+		uint32_t mipmapcount = header[7];
+		uint32_t fourCC = header[21];
 		uint32_t blockSize = 16;
 		uint32_t size = ((width + 3)/4)*((height + 3)/4)*blockSize;
 		delete[] header;
@@ -79,34 +67,34 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 	input_file.seekg(0,input_file.end);
 	int length = input_file.tellg();
 	input_file.seekg(0,input_file.beg);
-	uint8_t * data = new uint8_t[length];
-	input_file.read(reinterpret_cast<char*>(data),length);
-	num_textures = getUint16_t(data,0);
+	char * data = new char[length];
+	input_file.read(data,length);
+	num_textures = *reinterpret_cast<uint16_t*>(data);
 	m_num_textures = num_textures;
 	m_texture_handles = new GLuint[m_num_textures];
 	glGenTextures(m_num_textures,m_texture_handles);
 	for (int textureIndex = 0; textureIndex < num_textures; textureIndex++){
-		std::string textureName = getString(data,pos,length);
+		std::string textureName(data+pos);
 		pos += textureName.size() + 1;
-		num_images = getUint16_t(data,pos);
+		num_images = *reinterpret_cast<uint16_t*>(data+pos);
 		pos += 2;
 		m_atlas_list.emplace_back(Atlas());
 		m_atlas_list[textureIndex].m_texture = m_texture_handles + textureIndex;
 		loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex]);
 		for (int imageindex = 0; imageindex < num_images; imageindex++){
-			std::string img_name = getString(data,pos,length);
+			std::string img_name(data+pos);
 			pos += img_name.size() + 1;
 #ifdef TRIM
 			pos += 8;
 #endif
 			Rect<uint16_t> tmp;
-			tmp.left = getUint16_t(data,pos);
+			tmp.left = *reinterpret_cast<uint16_t*>(data+pos);
 			pos += 2;
-			tmp.top = getUint16_t(data,pos);
+			tmp.top = *reinterpret_cast<uint16_t*>(data+pos);
 			pos += 2;
-			tmp.width = getUint16_t(data,pos);
+			tmp.width = *reinterpret_cast<uint16_t*>(data+pos);
 			pos += 2;
-			tmp.height = getUint16_t(data,pos);
+			tmp.height = *reinterpret_cast<uint16_t*>(data+pos);
 			pos += 2;
 			float width = static_cast<float>(m_atlas_list[textureIndex].width);
 			float height = static_cast<float>(m_atlas_list[textureIndex].height);
@@ -116,6 +104,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 				static_cast<float>(tmp.width)/width,
 				static_cast<float>(tmp.height)/height);
 #ifdef ROTATE
+			m_atlas_list[textureIndex].rotated = data[pos];
 			pos++;
 #endif
 		}

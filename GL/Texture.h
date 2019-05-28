@@ -8,6 +8,7 @@ struct Texture{
 	Texture(GLuint *texture = nullptr, Rect<float> rect = Rect<float>(0.f,0.f,0.f,0.f)) : m_texture(texture), m_rect(rect){}
 	GLuint* m_texture;
 	Rect<float> m_rect;
+	char rotated = 0;
 };
 
 #endif

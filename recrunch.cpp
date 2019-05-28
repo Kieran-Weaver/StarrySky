@@ -4,25 +4,6 @@
 #include <iostream>
 #include <Magick++.h>
 #include <zlib.h>
-std::fstream::pos_type getFSize(const std::string& path){
-	std::ifstream handle(path,std::ios::binary|std::ios::in|std::ios::ate);
-	if (handle){
-		return handle.tellg();
-	}else{
-		return 0;
-	}
-}
-uint16_t getUint16_t(const uint8_t *data, int pos){
-	return data[pos] + (static_cast<uint16_t>(data[pos+1])<<8);
-}
-std::string getString(const uint8_t *data,int start, int length){
-	int end=start;
-	const char* chardata = reinterpret_cast<const char*>(data);
-	while (end<length && (chardata[end] != 0)){
-		end++;
-	}
-	return std::string(chardata+start,end-start);
-}
 void recrunch(const std::string& atlasname){
 	std::ifstream atlashandle(atlasname + ".bin", std::ios::binary|std::ios::in);
 	std::ofstream temphandle;
@@ -32,18 +13,18 @@ void recrunch(const std::string& atlasname){
 		atlashandle.seekg(0,atlashandle.end);
 		int length = atlashandle.tellg();
 		atlashandle.seekg(0,atlashandle.beg);
-		uint8_t * data = new uint8_t[length];
-		atlashandle.read(reinterpret_cast<char*>(data),length);
-		num_textures = getUint16_t(data,0);
+		char * data = new char[length];
+		atlashandle.read(data,length);
+		num_textures = *reinterpret_cast<uint16_t*>(data);
 		std::cout << num_textures << std::endl;
 		for (int i=0;i<num_textures;i++){
-			std::string name = getString(data,pos,length);
+			std::string name(data+pos);
 			std::cout << name << std::endl;
 			pos += name.size() + 1;
-			num_images = getUint16_t(data,pos);
+			num_images = *reinterpret_cast<uint16_t*>(data+pos);
 			pos += 2;
 			for (int j=0;j<num_images;j++){
-				std::string img_name = getString(data,pos,length);
+				std::string img_name(data+pos);
 				pos += img_name.size() + 9;
 #ifdef TRIM
 				pos += 8;
@@ -67,6 +48,7 @@ void recrunch(const std::string& atlasname){
 				std::cout << "Caught Exception: " << error_.what() << std::endl;
 			}
 		}
+		delete[] data;
 	}
 	atlashandle.close();
 }
