@@ -6,6 +6,8 @@
 #include "GL/Shader.hpp"
 #include "GL/Camera.hpp"
 #include "GL/TextureAtlas.h"
+#include "GL/SpriteBatch.h"
+#include "GL/WindowState.h"
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"
 #include "imgui/examples/imgui_impl_opengl3.h"
@@ -13,16 +15,16 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
 		glfwSetWindowShouldClose(window,GLFW_TRUE);
 	}
-	Camera * c = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+	WindowState * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
 	if (action == GLFW_PRESS){
 		if (key == GLFW_KEY_LEFT){
-			c->Scroll(glm::vec2(-50.f,0.f));
+			ws->camera->Scroll(glm::vec2(-50.f,0.f));
 		}else if (key == GLFW_KEY_RIGHT){
-			c->Scroll(glm::vec2(50.f,0.f));
+			ws->camera->Scroll(glm::vec2(50.f,0.f));
 		}else if (key == GLFW_KEY_UP){
-			c->Scroll(glm::vec2(0.f,50.f));
+			ws->camera->Scroll(glm::vec2(0.f,50.f));
 		}else if (key == GLFW_KEY_DOWN){
-			c->Scroll(glm::vec2(0.f,-50.f));
+			ws->camera->Scroll(glm::vec2(0.f,-50.f));
 		}
 	}
 }
@@ -32,6 +34,8 @@ int main(void){
 		return 1;
 	}
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f));
+	WindowState ws;
+	ws.camera = &camera;
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
@@ -48,7 +52,7 @@ int main(void){
 	}
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
-	glfwSetWindowUserPointer(window,&camera);
+	glfwSetWindowUserPointer(window,&ws);
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::StyleColorsDark();
@@ -68,7 +72,7 @@ int main(void){
 	GLuint vbo;
 	glGenBuffers(1,&vbo);
 	glBindBuffer(GL_ARRAY_BUFFER,vbo);
-	GLBuffer<uint8_t> ebo = genIndexBuffer<uint8_t>(250);
+	GLBuffer<uint16_t> ebo = genIndexBuffer<uint16_t>(0xffff);
 
 	Shader vxShader(GL_VERTEX_SHADER);
 	vxShader.load("data/shaders/default.vert");
@@ -91,19 +95,17 @@ int main(void){
 	glActiveTexture(GL_TEXTURE0);
 	TextureAtlas atlas;
 	atlas.loadFromFile("data/atlas.bin");
-	Texture t = atlas.findSubTexture("floor1");
+	Texture t = atlas.findSubTexture("shield");
+	Texture t2 = atlas.findSubTexture("floor1");
+	Sprite s(&t);
+	Sprite s2(&t2);
+	s.setPosition(glm::vec2(0.f,0.f));
+	s2.setPosition(glm::vec2(200.f,200.f));
+	SpriteBatch batch;
 	glBindTexture(GL_TEXTURE_2D,*(t.m_texture));
-	vertices[2] = t.m_rect.left;
-	vertices[3] = t.m_rect.top;
-	vertices[6] = t.m_rect.left + t.m_rect.width;
-	vertices[7] = t.m_rect.top;
-	vertices[10]= t.m_rect.left + t.m_rect.width;
-	vertices[11]= t.m_rect.top + t.m_rect.height;
-	vertices[14]= t.m_rect.left;
-	vertices[15]= t.m_rect.top + t.m_rect.height;
 	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
 	glUniform1i(glGetUniformLocation(shaderProgram,"tex"),0);
-	GLuint MatrixID = glGetUniformLocation(shaderProgram,"VP");
+	ws.MatrixID = glGetUniformLocation(shaderProgram,"VP");
 	glfwSetKeyCallback(window,key_callback);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -118,10 +120,12 @@ int main(void){
 		ImGui::Render();
 
 		glfwMakeContextCurrent(window);
-		glUniformMatrix4fv(MatrixID,1,GL_FALSE,&camera.getVP()[0][0]);
+		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_BYTE,0);
+		batch.Draw(&s);
+		batch.Draw(&s2);
+		batch.Draw(window);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwMakeContextCurrent(window);

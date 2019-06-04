@@ -15,12 +15,13 @@ struct GLBuffer{
 template<typename T>
 GLBuffer<T> genIndexBuffer(T max_sprites){
 	static_assert(std::is_integral<T>::value, "Integral type required");
+	max_sprites -= (max_sprites & 0x03);
 	GLBuffer<T> buffer;
 	glGenBuffers(1,&buffer.handle);
-	buffer.data = new T[max_sprites*6];
-	buffer.size = max_sprites*6;
+	buffer.data = new T[(max_sprites*3 + 1)/2];
+	buffer.size = (max_sprites*3 + 1)/2;
 	size_t index = 0;
-	for (T sprite = 0; sprite < max_sprites; sprite++){
+	for (T sprite = 0; sprite < max_sprites; sprite+=4){
 		buffer.data[index++] = sprite;
 		buffer.data[index++] = sprite+1;
 		buffer.data[index++] = sprite+2;
