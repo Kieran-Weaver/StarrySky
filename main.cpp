@@ -8,6 +8,7 @@
 #include "GL/TextureAtlas.h"
 #include "GL/SpriteBatch.h"
 #include "GL/WindowState.h"
+#include "core/Map.hpp"
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"
 #include "imgui/examples/imgui_impl_opengl3.h"
@@ -95,14 +96,12 @@ int main(void){
 	glActiveTexture(GL_TEXTURE0);
 	TextureAtlas atlas;
 	atlas.loadFromFile("data/atlas.bin");
-	Texture t = atlas.findSubTexture("shield");
-	Texture t2 = atlas.findSubTexture("floor1");
-	Sprite s(&t);
-	Sprite s2(&t2);
-	s.setPosition(glm::vec2(0.f,0.f));
-	s2.setPosition(glm::vec2(200.f,200.f));
+	ObjMap map("map2.txt",atlas);
+	Texture t = atlas.findSubTexture("bookshelf");
+	Texture t2 = atlas.findSubTexture("shield");
+	Sprite s(t);
+	Sprite s2(t2);
 	SpriteBatch batch;
-	glBindTexture(GL_TEXTURE_2D,*(t.m_texture));
 	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
 	glUniform1i(glGetUniformLocation(shaderProgram,"tex"),0);
 	ws.MatrixID = glGetUniformLocation(shaderProgram,"VP");
@@ -123,6 +122,7 @@ int main(void){
 		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+		map.Draw(batch);
 		batch.Draw(&s);
 		batch.Draw(&s2);
 		batch.Draw(window);

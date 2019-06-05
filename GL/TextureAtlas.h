@@ -28,11 +28,10 @@ public:
 		Atlas() : m_texture(nullptr){
 			m_texture_table.set_empty_key("");
 		}
-		google::dense_hash_map<std::string, Rect<float>> m_texture_table;
+		google::dense_hash_map<std::string, Texture> m_texture_table;
 		GLuint* m_texture = nullptr;
 		GLuint format;
 		uint16_t width=0, height=0;
-		uint8_t rotated = 0;
 	};
 	int loadDDSgz(const std::string& path, Atlas& atlas);
 	GLuint* m_texture_handles = nullptr;

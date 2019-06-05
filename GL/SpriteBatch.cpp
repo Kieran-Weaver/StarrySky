@@ -1,17 +1,16 @@
 #include "SpriteBatch.h"
-#include <iostream>
 SpriteBatch::SpriteBatch(){
 	spriteData.set_empty_key(nullptr);
 	vertexData.set_empty_key(nullptr);
 }
 void SpriteBatch::Draw(Sprite* spr){
 	spr->render();
-	if (spriteData.find(spr->m_subtexture->m_texture) == spriteData.end()){
-		spriteData[spr->m_subtexture->m_texture] = std::vector<Sprite*>();
-		vertexData[spr->m_subtexture->m_texture] = std::vector<float>();
-	}else if (std::find(spriteData[spr->m_subtexture->m_texture].begin(),spriteData[spr->m_subtexture->m_texture].end(),spr) == spriteData[spr->m_subtexture->m_texture].end()){
-		spriteData[spr->m_subtexture->m_texture].emplace_back(spr);
-		vertexData[spr->m_subtexture->m_texture].insert(vertexData[spr->m_subtexture->m_texture].end(),spr->cached_vtx_data,spr->cached_vtx_data+16);
+	if (spriteData.find(spr->m_subtexture.m_texture) == spriteData.end()){
+		spriteData[spr->m_subtexture.m_texture] = std::vector<Sprite*>();
+		vertexData[spr->m_subtexture.m_texture] = std::vector<float>();
+	}else if (std::find(spriteData[spr->m_subtexture.m_texture].begin(),spriteData[spr->m_subtexture.m_texture].end(),spr) == spriteData[spr->m_subtexture.m_texture].end()){
+		spriteData[spr->m_subtexture.m_texture].emplace_back(spr);
+		vertexData[spr->m_subtexture.m_texture].insert(vertexData[spr->m_subtexture.m_texture].end(),spr->cached_vtx_data,spr->cached_vtx_data+16);
 	}
 }
 void SpriteBatch::Draw(GLFWwindow* target){
@@ -27,7 +26,7 @@ void SpriteBatch::Draw(GLFWwindow* target){
 			spriteIndex++;
 			dataIndex++;
 		}
-		vertexData[texturepair.first].reserve(spriteVector.size()*16);
+		size_t unchanged_sprites = dataIndex;
 		for (;spriteIndex < num_sprites;spriteIndex++){
 			if (!spriteVector[spriteIndex]->m_drawn){
 				continue;
@@ -39,6 +38,7 @@ void SpriteBatch::Draw(GLFWwindow* target){
 		}
 		glBindTexture(GL_TEXTURE_2D,*texturepair.first);
 		glBufferData(GL_ARRAY_BUFFER,vertexData[texturepair.first].size()*sizeof(float),vertexData[texturepair.first].data(),GL_DYNAMIC_DRAW);
-		glDrawElements(GL_TRIANGLES,6*(vertexData[texturepair.first].size()/16),GL_UNSIGNED_SHORT,0);
+		glDrawElements(GL_TRIANGLES,6*dataIndex,GL_UNSIGNED_SHORT,0);
+		vertexData[texturepair.first].erase(vertexData[texturepair.first].begin()+(unchanged_sprites*16),vertexData[texturepair.first].end());
 	}
 }

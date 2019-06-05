@@ -90,16 +90,25 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 			input_file.read(reinterpret_cast<char*>(&tmp.left),8);
 			float width = static_cast<float>(m_atlas_list[textureIndex].width);
 			float height = static_cast<float>(m_atlas_list[textureIndex].height);
-			m_atlas_list[textureIndex].m_texture_table[img_name] = Rect<float>(
+			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<float>(
 				static_cast<float>(tmp.left)/width,
 				static_cast<float>(tmp.top)/height,
 				static_cast<float>(tmp.width)/width,
 				static_cast<float>(tmp.height)/height);
+			m_atlas_list[textureIndex].m_texture_table[img_name].width = tmp.width;
+			m_atlas_list[textureIndex].m_texture_table[img_name].height = tmp.height;
 #ifdef TRIM
 			input_file.seekg(8,ios::cur);
 #endif
 #ifdef ROTATE
-			input_file.read(reinterpret_cast<char*>(&m_atlas_list[textureIndex].rotated),1);
+			input_file.read(reinterpret_cast<char*>(&m_atlas_list[textureIndex].m_texture_table[img_name].rotated),1);
+			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated){
+				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<float>(
+				static_cast<float>(tmp.left)/width,
+				static_cast<float>(tmp.top)/height,
+				static_cast<float>(tmp.height)/width,
+				static_cast<float>(tmp.width)/height);
+			}
 #endif
 		}
 	}
@@ -116,9 +125,10 @@ const Texture TextureAtlas::findSubTexture(const std::string& name){
 	Texture texture;
 	for(auto& atlas : m_atlas_list){
 		if(atlas.m_texture_table.find(name) != atlas.m_texture_table.end()){
-			texture = Texture(atlas.m_texture, atlas.m_texture_table[name]);
-			texture.width = texture.m_rect.width * atlas.width;
-			texture.height = texture.m_rect.height * atlas.height;
+			texture = Texture(atlas.m_texture, atlas.m_texture_table[name].m_rect);
+			texture.width = atlas.m_texture_table[name].width;
+			texture.height = atlas.m_texture_table[name].height;
+			texture.rotated = atlas.m_texture_table[name].rotated;
 			break;
 		}
 	}
