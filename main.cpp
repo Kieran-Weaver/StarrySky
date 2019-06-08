@@ -101,6 +101,10 @@ int main(void){
 	Texture t2 = atlas.findSubTexture("shield");
 	Sprite s(t);
 	Sprite s2(t2);
+	Sprite sprites[256];
+	for (int i=0;i<256;i++){
+		sprites[i].setTexture(t2);
+	}
 	SpriteBatch batch;
 	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
 	glUniform1i(glGetUniformLocation(shaderProgram,"tex"),0);
