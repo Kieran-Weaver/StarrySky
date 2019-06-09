@@ -7,6 +7,7 @@ class Shader
 {
 public:
 	Shader(GLenum type);
+	Shader();
 	~Shader();
 	void load(const std::string& filename);
 	GLenum m_type;

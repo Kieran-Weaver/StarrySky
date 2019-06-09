@@ -1,5 +1,6 @@
 #include "Shader.hpp"
 Shader::Shader(GLenum type) : m_type(type){}
+Shader::Shader(){}
 Shader::~Shader(){
 	glDeleteShader(m_handle);
 }

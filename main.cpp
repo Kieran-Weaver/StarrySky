@@ -28,6 +28,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			ws->camera->Scroll(glm::vec2(0.f,-50.f));
 		}
 	}
+	ImGui_ImplGlfw_KeyCallback(window,key,scancode,action,mods);
 }
 int main(void){
 	GLFWwindow* window;
@@ -53,47 +54,13 @@ int main(void){
 	}
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
-	glfwSetWindowUserPointer(window,&ws);
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window,true);
 	ImGui_ImplOpenGL3_Init("#version 150");
 	io.Fonts->AddFontFromFileTTF("data/fonts/boxfont_round.ttf",20.f);
-	float vertices[] = {
-		 0.f,0.f,0.0f,0.0f,
-		 2000.f,0.f,1.0f,0.0f,
-		 2000.f,1000.f,1.0f,1.0f,
-		 0.f,1000.f,0.0f,1.0f
-	};
-	GLuint vao;
-	glGenVertexArrays(1,&vao);
-	glBindVertexArray(vao);
-
-	GLuint vbo;
-	glGenBuffers(1,&vbo);
-	glBindBuffer(GL_ARRAY_BUFFER,vbo);
-	GLBuffer<uint16_t> ebo = genIndexBuffer<uint16_t>(0xffff);
-
-	Shader vxShader(GL_VERTEX_SHADER);
-	vxShader.load("data/shaders/default.vert");
-
-	Shader fgShader(GL_FRAGMENT_SHADER);
-	fgShader.load("data/shaders/default.frag");
-
-	GLuint shaderProgram = CreateProgram(vxShader,fgShader,"outColor");
-	glUseProgram(shaderProgram);
-	
-	GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
-	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib,2,GL_FLOAT,GL_FALSE,4*sizeof(float),0);
-
-	GLint texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
-	glEnableVertexAttribArray(texAttrib);
-	glVertexAttribPointer(texAttrib,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
-
 	glm::mat4 m(1.0f);
-	glActiveTexture(GL_TEXTURE0);
 	TextureAtlas atlas;
 	atlas.loadFromFile("data/atlas.bin");
 	ObjMap map("map2.txt",atlas);
@@ -101,27 +68,19 @@ int main(void){
 	Texture t2 = atlas.findSubTexture("shield");
 	Sprite s(t);
 	Sprite s2(t2);
-	Sprite sprites[256];
-	for (int i=0;i<256;i++){
-		sprites[i].setTexture(t2);
-	}
-	SpriteBatch batch;
-	glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
-	glUniform1i(glGetUniformLocation(shaderProgram,"tex"),0);
-	ws.MatrixID = glGetUniformLocation(shaderProgram,"VP");
+	SpriteBatch batch(atlas,ws);
+	glfwSetWindowUserPointer(window,&ws);
 	glfwSetKeyCallback(window,key_callback);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	while (!glfwWindowShouldClose(window)){
 		glfwPollEvents();
-
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 		ImGui::ShowDemoWindow();
 		ImGui::Render();
-
 		glfwMakeContextCurrent(window);
 		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
@@ -138,10 +97,6 @@ int main(void){
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
-	glDeleteProgram(shaderProgram);
-	glDeleteBuffers(1,&ebo.handle);
-	glDeleteBuffers(1,&vbo);
-	glDeleteVertexArrays(1,&vao);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;

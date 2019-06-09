@@ -22,6 +22,8 @@ public:
 			delete[] m_texture_handles;
 		}
 	}
+	GLuint* m_texture_handles = nullptr;
+	int m_num_textures;
 	private:
 	struct Atlas
 	{
@@ -34,8 +36,6 @@ public:
 		uint16_t width=0, height=0;
 	};
 	int loadDDSgz(const std::string& path, Atlas& atlas);
-	GLuint* m_texture_handles = nullptr;
-	int m_num_textures;
 	std::vector<Atlas> m_atlas_list;
 };
 

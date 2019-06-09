@@ -7,16 +7,20 @@
 std::string readWholeFile(const std::string& filename);
 template<typename T>
 struct GLBuffer{
-	~GLBuffer(){delete[] data;}
+	~GLBuffer(){
+		if (data != nullptr){
+			delete[] data;
+			data = nullptr;
+		}
+	}
 	GLuint handle;
 	size_t size;
-	T * data;
+	T * data = nullptr;
 };
 template<typename T>
-GLBuffer<T> genIndexBuffer(T max_sprites){
+void genIndexBuffer(T max_sprites, GLBuffer<T>& buffer){
 	static_assert(std::is_integral<T>::value, "Integral type required");
 	max_sprites -= (max_sprites & 0x03);
-	GLBuffer<T> buffer;
 	glGenBuffers(1,&buffer.handle);
 	buffer.data = new T[(max_sprites*3 + 1)/2];
 	buffer.size = (max_sprites*3 + 1)/2;
@@ -31,6 +35,5 @@ GLBuffer<T> genIndexBuffer(T max_sprites){
 	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.handle);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.size*sizeof(T), buffer.data, GL_STATIC_DRAW);
-	return buffer;
 }
 #endif

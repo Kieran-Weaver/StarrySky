@@ -1,19 +1,58 @@
 #include "SpriteBatch.h"
-#include <iostream>
-SpriteBatch::SpriteBatch(){
-	spriteData.set_empty_key(nullptr);
-	vertexData.set_empty_key(nullptr);
+SpriteBatch::SpriteBatch(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
+	m_texData.set_empty_key(nullptr);
+	glGenVertexArrays(1,&VAO);
+	glBindVertexArray(VAO);
+
+	GLuint* vbo_handles = new GLuint[m_atlas.m_num_textures];
+	glGenBuffers(m_atlas.m_num_textures,vbo_handles);
+	glBindBuffer(GL_ARRAY_BUFFER,vbo_handles[0]);
+
+	genIndexBuffer<uint16_t>(0xffff,ebo);
+	
+	vxShader = Shader(GL_VERTEX_SHADER);
+	vxShader.load("data/shaders/default.vert");
+
+	fgShader = Shader(GL_FRAGMENT_SHADER);
+	fgShader.load("data/shaders/default.frag");
+
+	shaderProgram = CreateProgram(vxShader,fgShader,"outColor");
+	glUseProgram(shaderProgram);
+	
+	posAttrib = glGetAttribLocation(shaderProgram, "position");
+	glEnableVertexAttribArray(posAttrib);
+	glVertexAttribPointer(posAttrib,2,GL_FLOAT,GL_FALSE,4*sizeof(float),0);
+
+	texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
+	glEnableVertexAttribArray(texAttrib);
+	glVertexAttribPointer(texAttrib,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(2*sizeof(float)));
+
+	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
+		this->m_texData[m_atlas.m_texture_handles+textureIndex] = TextureData();
+		this->m_texData[m_atlas.m_texture_handles+textureIndex].VBO = vbo_handles[textureIndex];
+	}
+	delete[] vbo_handles;
+	glUniform1i(glGetUniformLocation(shaderProgram,"tex"),0);
+	ws.MatrixID = glGetUniformLocation(shaderProgram,"VP");
+}
+SpriteBatch::~SpriteBatch(){
+	for (auto& i : m_texData){
+		glDeleteBuffers(1,&i.second.VBO);
+	}
+	glDeleteProgram(shaderProgram);
+	glDeleteBuffers(1,&ebo.handle);
+	glDeleteVertexArrays(1,&VAO);
 }
 void SpriteBatch::Draw(Sprite* spr){
 	spr->render();
-	if (spriteData.find(spr->m_subtexture.m_texture) == spriteData.end()){
-		spriteData[spr->m_subtexture.m_texture] = std::vector<Sprite*>();
-		vertexData[spr->m_subtexture.m_texture] = std::vector<float>();
-		spriteData[spr->m_subtexture.m_texture].emplace_back(spr);
-		vertexData[spr->m_subtexture.m_texture].insert(vertexData[spr->m_subtexture.m_texture].end(),spr->cached_vtx_data,spr->cached_vtx_data+16);
-	}else if (std::find(spriteData[spr->m_subtexture.m_texture].begin(),spriteData[spr->m_subtexture.m_texture].end(),spr) == spriteData[spr->m_subtexture.m_texture].end()){
-		spriteData[spr->m_subtexture.m_texture].emplace_back(spr);
-		vertexData[spr->m_subtexture.m_texture].insert(vertexData[spr->m_subtexture.m_texture].end(),spr->cached_vtx_data,spr->cached_vtx_data+16);
+	GLuint* m_tex = spr->m_subtexture.m_texture;
+	if (m_texData.find(m_tex) == m_texData.end()){
+		m_texData[m_tex] = TextureData();
+		glGenBuffers(1,&m_texData[m_tex].VBO);
+	}
+	if (std::find(m_texData[m_tex].sprites.begin(),m_texData[m_tex].sprites.end(),spr) == m_texData[m_tex].sprites.end()){
+		m_texData[m_tex].sprites.emplace_back(spr);
+		m_texData[m_tex].vertices.insert(m_texData[m_tex].vertices.end(),spr->cached_vtx_data,spr->cached_vtx_data+16);
 	}
 }
 bool SpriteCMP(const Sprite* a, const Sprite* b){
@@ -35,29 +74,30 @@ void SpriteBatch::Draw(GLFWwindow* target){
 	glfwMakeContextCurrent(target);
 	WindowState * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
 	glUniformMatrix4fv(ws->MatrixID,1,GL_FALSE,&ws->camera->getVP()[0][0]);
-	for (auto& texturepair : spriteData){
-		auto& spriteVector = texturepair.second;
+	for (auto& texturepair : m_texData){
+		auto& currentTexData = texturepair.second;
 		size_t spriteIndex = 0;
-		size_t num_sprites = spriteVector.size();
-		while ((spriteIndex<spriteVector.size())&&(spriteVector[spriteIndex]->m_drawn)&&(!spriteVector[spriteIndex]->m_changed)){
+		size_t num_sprites = currentTexData.sprites.size();
+		while ((spriteIndex<currentTexData.sprites.size())&&(currentTexData.sprites[spriteIndex]->m_drawn)&&(!currentTexData.sprites[spriteIndex]->m_changed)){
 			spriteIndex++;
 		}
-		std::sort(spriteVector.begin()+spriteIndex,spriteVector.end(),SpriteCMP);
-		if (vertexData[texturepair.first].size() > spriteIndex*16){
-			vertexData[texturepair.first].erase(vertexData[texturepair.first].begin() + (spriteIndex*16),vertexData[texturepair.first].end());
+		std::sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(),SpriteCMP);
+		if (currentTexData.vertices.size() > spriteIndex*16){
+			currentTexData.vertices.erase(currentTexData.vertices.begin() + (spriteIndex*16),currentTexData.vertices.end());
 		}
 		for (;spriteIndex < num_sprites;spriteIndex++){
-			if (!spriteVector[spriteIndex]->m_drawn){
-				spriteVector[spriteIndex]->m_changed = false;
+			if (!currentTexData.sprites[spriteIndex]->m_drawn){
+				currentTexData.sprites[spriteIndex]->m_changed = false;
 				continue;
 			}else{
-				vertexData[texturepair.first].insert(vertexData[texturepair.first].end(),spriteVector[spriteIndex]->cached_vtx_data,spriteVector[spriteIndex]->cached_vtx_data+16);
-				spriteVector[spriteIndex]->m_drawn = false;
-				spriteVector[spriteIndex]->m_changed = false;
+				currentTexData.vertices.insert(currentTexData.vertices.end(),currentTexData.sprites[spriteIndex]->cached_vtx_data,currentTexData.sprites[spriteIndex]->cached_vtx_data+16);
+				currentTexData.sprites[spriteIndex]->m_drawn = false;
+				currentTexData.sprites[spriteIndex]->m_changed = false;
 			}
 		}
 		glBindTexture(GL_TEXTURE_2D,*texturepair.first);
-		glBufferData(GL_ARRAY_BUFFER,vertexData[texturepair.first].size()*sizeof(float),vertexData[texturepair.first].data(),GL_DYNAMIC_DRAW);
-		glDrawElements(GL_TRIANGLES,6*(vertexData[texturepair.first].size()/16),GL_UNSIGNED_SHORT,0);
+		glBindBuffer(GL_ARRAY_BUFFER,currentTexData.VBO);
+		glBufferData(GL_ARRAY_BUFFER,currentTexData.vertices.size()*sizeof(float),currentTexData.vertices.data(),GL_DYNAMIC_DRAW);
+		glDrawElements(GL_TRIANGLES,6*(currentTexData.vertices.size()/16),GL_UNSIGNED_SHORT,0);
 	}
 }
