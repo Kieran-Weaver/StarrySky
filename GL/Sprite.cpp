@@ -58,3 +58,19 @@ void Sprite::render(){
 		}
 	}
 }
+bool compareX(const glm::vec4& lhs,const glm::vec4& rhs){
+	return lhs.x < rhs.x;
+}
+bool compareY(const glm::vec4& lhs,const glm::vec4& rhs){
+	return lhs.y < rhs.y;
+}
+Rect<float> Sprite::getAABB() const{
+	glm::vec4 vertices[4];
+	vertices[0] = (this->m_model * glm::vec4(0.f,0.f,0.f,1.f))+glm::vec4(this->topleft,0.f,0.f);
+	vertices[1] = (this->m_model * glm::vec4(1.f,0.f,0.f,1.f))+glm::vec4(this->topleft,0.f,0.f);
+	vertices[2] = (this->m_model * glm::vec4(1.f,1.f,0.f,1.f))+glm::vec4(this->topleft,0.f,0.f);
+	vertices[3] = (this->m_model * glm::vec4(0.f,1.f,0.f,1.f))+glm::vec4(this->topleft,0.f,0.f);
+	auto xExtremes = std::minmax_element(vertices,vertices+4,compareX);
+	auto yExtremes = std::minmax_element(vertices,vertices+4,compareY);
+	return Rect<float>(xExtremes.first->x,yExtremes.first->y,xExtremes.second->x-xExtremes.first->x,yExtremes.second->y-yExtremes.first->y);
+}

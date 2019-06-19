@@ -17,28 +17,29 @@ struct Rect{
 	T top;
 	T width;
 	T height;
-	bool Contains(glm::vec2 point){
+	bool Contains(glm::vec2 point) const{
 		return (((left - point.x)*(left + width - point.x) <= 0.f)&&((top - point.y)*(top + height - point.y) <= 0.f));
 	}
-	bool Contains(Rect<T> r){
+	bool Contains(const Rect<T>& r) const{
 		return (((r.left + r.width)<=(left+width))&&((r.top+r.height)<=(top+height))&&(r.left >= left) && (r.top >= top));
 	}
-	bool Intersects(Rect<T> r){
+	bool Intersects(const Rect<T>& r) const{
 		T iLeft = std::max(left, r.left);
 		T iTop = std::max(top, r.top);
 		T iRight = std::min(left + width,r.left + r.width);
 		T iBottom = std::min(top + height, r.top + r.height);
 		return ((iLeft < iRight) && (iTop < iBottom));
 	}
-	Rect<T> RIntersects(Rect<T> r){
+	bool RIntersects(const Rect<T>& r, Rect<T>& intersection) const{
 		T iLeft = std::max(left, r.left);
 		T iTop = std::max(top, r.top);
 		T iRight = std::min(left + width,r.left + r.width);
 		T iBottom = std::min(top + height, r.top + r.height);
 		if ((iLeft < iRight) && (iTop < iBottom)){
-			return Rect<T>(iLeft,iTop,iRight - iLeft, iBottom-iTop);
+			intersection = Rect<T>(iLeft,iTop,iRight - iLeft, iBottom-iTop);
+			return true;
 		}else{
-			return Rect<T>(0,0,0,0);
+			return false;
 		}
 	}
 };

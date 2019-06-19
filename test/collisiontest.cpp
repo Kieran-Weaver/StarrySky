@@ -7,33 +7,11 @@
 #include "GL/Camera.hpp"
 #include "GL/TextureAtlas.h"
 #include "GL/SpriteBatch.h"
-#include "GL/WindowState.h"
-#include "core/Map.hpp"
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"
 #include "imgui/examples/imgui_impl_opengl3.h"
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
-		glfwSetWindowShouldClose(window,GLFW_TRUE);
-	}
-	WindowState * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
-	if (action == GLFW_PRESS){
-		if (key == GLFW_KEY_LEFT){
-			ws->camera->Scroll(glm::vec2(-50.f,0.f));
-		}else if (key == GLFW_KEY_RIGHT){
-			ws->camera->Scroll(glm::vec2(50.f,0.f));
-		}else if (key == GLFW_KEY_UP){
-			ws->camera->Scroll(glm::vec2(0.f,50.f));
-		}else if (key == GLFW_KEY_DOWN){
-			ws->camera->Scroll(glm::vec2(0.f,-50.f));
-		}
-		ws->keyboardState[key] = true;
-	}else if (action == GLFW_RELEASE){
-		ws->keyboardState[key] = false;
-	}
-	ImGui_ImplGlfw_KeyCallback(window,key,scancode,action,mods);
-}
-int main(void){
+int main(int, char const**) {
+	float x1=0.0,x2=0.0,y1=0.0,y2=0.0;
 	GLFWwindow* window;
 	if (!glfwInit()){
 		return 1;
@@ -50,7 +28,7 @@ int main(void){
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-	window = glfwCreateWindow(1280,720,"Starry Sky", NULL, NULL);
+	window = glfwCreateWindow(1280,720,"Collision Test", NULL, NULL);
 	if (!window){
 		glfwTerminate();
 		return 2;
@@ -58,37 +36,43 @@ int main(void){
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(window,true);
 	ImGui_ImplOpenGL3_Init("#version 150");
-	io.Fonts->AddFontFromFileTTF("data/fonts/boxfont_round.ttf",20.f);
-	glm::mat4 m(1.0f);
 	TextureAtlas atlas;
-	atlas.loadFromFile("data/atlas.bin");
-	ObjMap map("map2.txt",atlas);
-	Texture t = atlas.findSubTexture("bookshelf");
-	Texture t2 = atlas.findSubTexture("shield");
-	Sprite s(t);
-	Sprite s2(t2);
+	atlas.loadFromFile("../data/atlas.bin");
 	SpriteBatch batch(atlas,ws);
-	glfwSetWindowUserPointer(window,&ws);
-	glfwSetKeyCallback(window,key_callback);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
+	glfwSetWindowUserPointer(window,&ws);
+	Texture t = atlas.findSubTexture("test1");
+	Texture t2 = atlas.findSubTexture("test2");
+	Sprite s(t);
+	Sprite s2(t2);
 	while (!glfwWindowShouldClose(window)){
 		glfwPollEvents();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGui::ShowDemoWindow();
+		ImGui::Begin("Collision Test");
+		ImGui::SliderFloat("Object 1 x-pos",&x1,0.0f,1280.0f);
+		ImGui::SliderFloat("Object 1 y-pos",&y1,0.0f,800.0f);
+		ImGui::SliderFloat("Object 2 x-pos",&x2,0.0f,1280.0f);
+		ImGui::SliderFloat("Object 2 y-pos",&y2,0.0f,800.0f);
+		s.setPosition(x1,y1);
+		s2.setPosition(x2,y2);
+		bool collided = atlas.PixelPerfectTest(s,s2);
+		std::string colstr = "no";
+		if (collided){
+			colstr = "yes";
+		}
+		ImGui::Text("%s",colstr.c_str());
+		ImGui::End();
 		ImGui::Render();
 		glfwMakeContextCurrent(window);
 		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		map.Draw(batch);
 		batch.Draw(&s);
 		batch.Draw(&s2);
 		batch.Draw(window);

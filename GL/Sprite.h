@@ -3,12 +3,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Texture.h"
+#define WH_EPSILON 0.01
 struct Sprite{
 	Sprite();
 	Sprite(Texture tex);
 	void setTexture(Texture tex);
 	void setPosition(const float& x, const float& y);
 	void setPosition(const glm::vec2& pos);
+	Rect<float> getAABB() const;
 	void render();
 
 	Texture m_subtexture;
