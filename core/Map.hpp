@@ -37,7 +37,7 @@ public:
 	std::vector<glm::vec2> iposs; //initial positions
 	std::vector<std::string> texfilenames;
 	std::vector<Surface> surfaces;
-	std::vector<glm::vec2> ledges;
+	std::vector<glm::vec2> ledges; // top left corners
 	TextureAtlas& m_atlas;
 };
 #endif

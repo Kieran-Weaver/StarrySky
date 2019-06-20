@@ -1,6 +1,5 @@
 #include "TextureAtlas.h"
 #include <iostream>
-#include <glm/gtx/string_cast.hpp>
 #define ROTATE
 // Loads a recrunch-ed .dds.gz file, and populates the Atlas
 TextureAtlas::TextureAtlas(){
@@ -14,11 +13,18 @@ bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	gzFile gzhandle = gzopen(path.c_str(),"rb");
+	if (!gzhandle){
+		return false;
+	}
 	uint32_t * header = new uint32_t[32];
-	gzread(gzhandle, header, 128);
+	if (gzread(gzhandle, header, 128) == -1){
+		delete[] header;
+		gzclose_r(gzhandle);
+		return false;
+	}
 	if (header[0] != 0x20534444){ // "DDS " as a uint32_t
 		delete[] header;
-		gzclose(gzhandle);
+		gzclose_r(gzhandle);
 		return false;
 	}else{
 		atlas.height = header[3];
@@ -48,7 +54,11 @@ bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 		}
 		uint8_t *data = new uint8_t[size];
 		for (uint32_t level=0;level<mipmapcount;level++){
-			gzread(gzhandle,data,size);
+			if (gzread(gzhandle,data,size) == -1){
+				gzclose_r(gzhandle);
+				delete[] data;
+				return false;
+			}
 			glCompressedTexImage2D(GL_TEXTURE_2D,level,atlas.format,width,height,0,size,data);
 			width = std::max(width/2, 1U);
 			height = std::max(height/2,1U);
@@ -64,9 +74,16 @@ bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
 	maskwrapper.mask = boost::dynamic_bitset<>(atlas.width*atlas.height);
 	maskwrapper.width = atlas.width;
 	maskwrapper.height = atlas.height;
-	boost::dynamic_bitset<>::block_type *data = new boost::dynamic_bitset<>::block_type[atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type))];
 	gzFile gzhandle = gzopen(path.c_str(),"rb");
-	gzread(gzhandle,data,atlas.width*atlas.height/8);
+	if (!gzhandle){
+		return false;
+	}
+	boost::dynamic_bitset<>::block_type *data = new boost::dynamic_bitset<>::block_type[atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type))];
+	if (gzread(gzhandle,data,atlas.width*atlas.height/8) == -1){
+		delete[] data;
+		gzclose_r(gzhandle);
+		return false;
+	}
 	gzclose_r(gzhandle);
 	boost::from_block_range(data,data+atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type)),maskwrapper.mask);
 	Bitmasks.insert(std::make_pair(*atlas.m_texture,maskwrapper));
@@ -102,8 +119,12 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 		input_file.read(reinterpret_cast<char*>(&num_images),2);
 		m_atlas_list.emplace_back(Atlas());
 		m_atlas_list[textureIndex].m_texture = m_texture_handles + textureIndex;
-		loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex]);
-		loadBINgz(path + textureName + ".bin.gz",m_atlas_list[textureIndex]);
+		if (!loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex])){
+			return false;
+		}
+		if (!loadBINgz(path + textureName + ".bin.gz",m_atlas_list[textureIndex])){
+			return false;
+		}
 		for (int imageindex = 0; imageindex < num_images; imageindex++){
 			std::string img_name = getString(input_file);
 			Rect<uint16_t> tmp;
@@ -191,8 +212,8 @@ bool TextureAtlas::PixelPerfectTest(const Sprite& Object1, const Sprite& Object2
 		for (int i = static_cast<int>(Intersection.left); i < static_cast<int>(Intersection.left+Intersection.width); i++) {
 			for (int j = static_cast<int>(Intersection.top); j < static_cast<int>(Intersection.top+Intersection.height); j++) {
 
-				glm::vec4 o1v = o1t*glm::vec4(i-Object1.topleft.x, j-Object1.topleft.y,0.f,1.f);
-				glm::vec4 o2v = o2t*glm::vec4(i-Object2.topleft.x, j-Object2.topleft.y,0.f,1.f);
+				glm::vec4 o1v = o1t*glm::vec4(i-Object1.center.x, j-Object1.center.y,0.f,1.f);
+				glm::vec4 o2v = o2t*glm::vec4(i-Object2.center.x, j-Object2.center.y,0.f,1.f);
 
 			// Make sure pixels fall within the sprite's subrect
 				if (o1v.x > 0.f && o1v.y > 0.f && o2v.x > 0.f && o2v.y > 0.f &&

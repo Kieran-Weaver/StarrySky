@@ -89,27 +89,27 @@ void ObjMap::SetPosition(float x, float y) {
 }
 void ObjMap::WriteToFile(std::string filename){
 	std::ofstream ofs(filename);
-	ofs << surfaces.size() << " " << iposs.size() << " " << ledges.size() << std::endl;
+	ofs << surfaces.size() << " " << iposs.size() << " " << ledges.size() << "\n";
 	for (auto& i : surfaces){
 		ofs << i.x << " " << i.y << " " << i.length << " ";
 		switch (i.type){
 		case LWALL:
-			ofs << "L" << std::endl;
+			ofs << "L\n";
 			break;
 		case RWALL:
-			ofs << "R" << std::endl;
+			ofs << "R\n";
 			break;
 		case FLOOR:
-			ofs << "F" << std::endl;
+			ofs << "F\n";
 			break;
 		case CEIL:
-			ofs << "C" << std::endl;
+			ofs << "C\n";
 			break;
 		case ONEWAY:
-			ofs << "O" << std::endl;
+			ofs << "O\n";
 			break;
 		default:
-			std::cout << "Unknown type" << std::endl;
+			std::cout << "Unknown type\n";
 			break;
 		}
 	}
@@ -118,11 +118,12 @@ void ObjMap::WriteToFile(std::string filename){
 	glm::vec4 perspective;
 	for (int i = (iposs.size()-1);i>=0;i--){
 		glm::decompose(sprs[i].m_model,scale,orientation,translation,skew,perspective);
-		ofs << iposs[i].x << " " << iposs[i].y << " " << scale.x << " " << scale.y << " " << texfilenames[i] << std::endl;
+		ofs << iposs[i].x << " " << iposs[i].y << " " << scale.x << " " << scale.y << " " << texfilenames[i] << "\n";
 	}
 	for (auto& i : ledges){
-		ofs << i.x << " " << i.y << std::endl;
+		ofs << i.x << " " << i.y << "\n";
 	}
+	ofs << std::endl;
 }
 void ObjMap::Draw(SpriteBatch& frame) {
 	for (auto& i : sprs){

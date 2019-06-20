@@ -13,6 +13,13 @@ struct Rect{
 	Rect(T l, T t, T w, T h) : left(l), top(t), width(w), height(h) {
 		static_assert(std::is_arithmetic<T>::value, "Integral required.");
 	}
+	Rect<T>& operator=(const Rect<T>& r){
+		left = r.left;
+		top = r.top;
+		width = r.width;
+		height = r.height;
+		return *this;
+	}
 	T left;
 	T top;
 	T width;

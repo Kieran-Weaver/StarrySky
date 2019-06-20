@@ -65,7 +65,10 @@ int main(void){
 	io.Fonts->AddFontFromFileTTF("data/fonts/boxfont_round.ttf",20.f);
 	glm::mat4 m(1.0f);
 	TextureAtlas atlas;
-	atlas.loadFromFile("data/atlas.bin");
+	if (!atlas.loadFromFile("data/atlas.bin")){
+		std::cout << "Could not load atlas from data/atlas.bin" << std::endl;
+		return 3;
+	}
 	ObjMap map("map2.txt",atlas);
 	Texture t = atlas.findSubTexture("bookshelf");
 	Texture t2 = atlas.findSubTexture("shield");

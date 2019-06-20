@@ -60,7 +60,9 @@ int main(int, char const**) {
 		ImGui::SliderFloat("Object 2 x-pos",&x2,0.0f,1280.0f);
 		ImGui::SliderFloat("Object 2 y-pos",&y2,0.0f,800.0f);
 		s.setPosition(x1,y1);
+		s.rotate(0.1f);
 		s2.setPosition(x2,y2);
+		s2.rotate(-0.1f);
 		bool collided = atlas.PixelPerfectTest(s,s2);
 		std::string colstr = "no";
 		if (collided){

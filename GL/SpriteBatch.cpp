@@ -30,6 +30,8 @@ SpriteBatch::SpriteBatch(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
 		this->m_texData[m_atlas.m_texture_handles+textureIndex] = TextureData();
 		this->m_texData[m_atlas.m_texture_handles+textureIndex].VBO = vbo_handles[textureIndex];
+		glBindBuffer(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles+textureIndex].VBO);
+		glBufferData(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles+textureIndex].vertices.size()*sizeof(float),m_texData[m_atlas.m_texture_handles+textureIndex].vertices.data(),GL_DYNAMIC_DRAW);
 	}
 	delete[] vbo_handles;
 	glUniform1i(glGetUniformLocation(shaderProgram,"tex"),0);
@@ -53,6 +55,8 @@ void SpriteBatch::Draw(Sprite* spr){
 	if (std::find(m_texData[m_tex].sprites.begin(),m_texData[m_tex].sprites.end(),spr) == m_texData[m_tex].sprites.end()){
 		m_texData[m_tex].sprites.emplace_back(spr);
 		m_texData[m_tex].vertices.insert(m_texData[m_tex].vertices.end(),spr->cached_vtx_data,spr->cached_vtx_data+16);
+		glBindBuffer(GL_ARRAY_BUFFER,m_texData[m_tex].VBO);
+		glBufferData(GL_ARRAY_BUFFER,m_texData[m_tex].vertices.size()*sizeof(float),m_texData[m_tex].vertices.data(),GL_DYNAMIC_DRAW);
 	}
 }
 bool SpriteCMP(const Sprite* a, const Sprite* b){
@@ -81,6 +85,7 @@ void SpriteBatch::Draw(GLFWwindow* target){
 		while ((spriteIndex<currentTexData.sprites.size())&&(currentTexData.sprites[spriteIndex]->m_drawn)&&(!currentTexData.sprites[spriteIndex]->m_changed)){
 			spriteIndex++;
 		}
+		size_t skippedSprites = spriteIndex;
 		std::sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(),SpriteCMP);
 		if (currentTexData.vertices.size() > spriteIndex*16){
 			currentTexData.vertices.erase(currentTexData.vertices.begin() + (spriteIndex*16),currentTexData.vertices.end());
@@ -97,7 +102,7 @@ void SpriteBatch::Draw(GLFWwindow* target){
 		}
 		glBindTexture(GL_TEXTURE_2D,*texturepair.first);
 		glBindBuffer(GL_ARRAY_BUFFER,currentTexData.VBO);
-		glBufferData(GL_ARRAY_BUFFER,currentTexData.vertices.size()*sizeof(float),currentTexData.vertices.data(),GL_DYNAMIC_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER,skippedSprites*16*sizeof(float),(currentTexData.vertices.size()-skippedSprites*16)*sizeof(float),currentTexData.vertices.data()+(skippedSprites*16));
 		glDrawElements(GL_TRIANGLES,6*(currentTexData.vertices.size()/16),GL_UNSIGNED_SHORT,0);
 	}
 }
