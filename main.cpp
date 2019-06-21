@@ -3,6 +3,7 @@
 #include <iostream>
 #include <zlib.h>
 #include <cstring>
+#include "game/Character.hpp"
 #include "GL/Shader.hpp"
 #include "GL/Camera.hpp"
 #include "GL/TextureAtlas.h"
@@ -18,15 +19,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	WindowState * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
 	if (action == GLFW_PRESS){
-		if (key == GLFW_KEY_LEFT){
-			ws->camera->Scroll(glm::vec2(-50.f,0.f));
-		}else if (key == GLFW_KEY_RIGHT){
-			ws->camera->Scroll(glm::vec2(50.f,0.f));
-		}else if (key == GLFW_KEY_UP){
-			ws->camera->Scroll(glm::vec2(0.f,50.f));
-		}else if (key == GLFW_KEY_DOWN){
-			ws->camera->Scroll(glm::vec2(0.f,-50.f));
-		}
 		ws->keyboardState[key] = true;
 	}else if (action == GLFW_RELEASE){
 		ws->keyboardState[key] = false;
@@ -34,11 +26,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	ImGui_ImplGlfw_KeyCallback(window,key,scancode,action,mods);
 }
 int main(void){
+	const float frametime = 1.f/60.f;
 	GLFWwindow* window;
 	if (!glfwInit()){
 		return 1;
 	}
-	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f));
+	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f));
 	WindowState ws;
 	ws.camera = &camera;
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -70,10 +63,10 @@ int main(void){
 		return 3;
 	}
 	ObjMap map("map2.txt",atlas);
-	Texture t = atlas.findSubTexture("bookshelf");
-	Texture t2 = atlas.findSubTexture("shield");
-	Sprite s(t);
-	Sprite s2(t2);
+	Character player(300, 300, map, "lesserdog", "sword2", "sword", atlas);
+	Enemy testEnemy(900, 300, map, "birdo1", "birdo3", 10, atlas);
+	std::vector<MovingEntity*> objects;
+	objects.push_back(&testEnemy);
 	SpriteBatch batch(atlas,ws);
 	glfwSetWindowUserPointer(window,&ws);
 	glfwSetKeyCallback(window,key_callback);
@@ -92,8 +85,22 @@ int main(void){
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		map.Draw(batch);
-		batch.Draw(&s);
-		batch.Draw(&s2);
+		player.Update(frametime,objects,window);
+		testEnemy.Update(frametime,&player);
+		player.Draw(batch);
+		testEnemy.Draw(batch);
+		if (player.dead){
+			player.dead = false;
+			player.warpto(300.f,300.f);
+			testEnemy.warpto(900.f,300.f);
+			testEnemy.reset();
+			camera.reset();
+			player.shieldmeter = player.shieldmax;
+		}else if (testEnemy.dead){
+			objects.clear();
+			std::cout << "You Win" << std::endl;
+			glfwSetWindowShouldClose(window,GLFW_TRUE);
+		}
 		batch.Draw(window);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

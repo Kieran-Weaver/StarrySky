@@ -11,6 +11,7 @@ struct Sprite{
 	void setPosition(const float& x, const float& y);
 	void setPosition(const glm::vec2& pos);
 	void rotate(const float& degrees);
+	void transform(const glm::mat4& matrix);
 	Rect<float> getAABB() const;
 	void render();
 

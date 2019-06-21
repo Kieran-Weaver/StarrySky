@@ -12,6 +12,9 @@ void Sprite::setTexture(const Texture& tex){
 	this->m_subtexture = tex;
 	this->m_changed = true;
 	this->m_model = glm::translate(glm::mat4(1.f),glm::vec3(-0.5f,-0.5f,0.f));
+	if (tex.rotated){
+		this->m_model = glm::rotate(glm::mat4(1.f),glm::radians(-90.f),glm::vec3(0.f,0.f,1.f)) * this->m_model;
+	}
 	this->m_model = glm::scale(glm::mat4(1.f),glm::vec3(tex.width,tex.height,1))*this->m_model;
 }
 void Sprite::setPosition(const float& x, const float& y){
@@ -28,6 +31,10 @@ void Sprite::rotate(const float& degrees){
 	this->m_model = glm::rotate(glm::mat4(1.f),degrees,glm::vec3(0.f,0.f,1.f))*this->m_model;
 	this->m_changed = true;
 }
+void Sprite::transform(const glm::mat4& matrix){
+	this->m_model = matrix*this->m_model;
+	this->m_changed = true;
+}
 void Sprite::render(){
 	this->m_drawn = true;
 	if (m_changed){
@@ -37,31 +44,20 @@ void Sprite::render(){
 		glm::vec4 botleft_vtx = (this->m_model * glm::vec4(0.f,1.f,0.f,1.f))+glm::vec4(this->center,0.f,0.f);
 		this->cached_vtx_data[0] = topleft_vtx.x;
 		this->cached_vtx_data[1] = topleft_vtx.y;
+		this->cached_vtx_data[2] = this->m_subtexture.m_rect.left;
+		this->cached_vtx_data[3] = this->m_subtexture.m_rect.top;
 		this->cached_vtx_data[4] = topright_vtx.x;
 		this->cached_vtx_data[5] = topright_vtx.y;
+		this->cached_vtx_data[6] = this->m_subtexture.m_rect.left + this->m_subtexture.m_rect.width;
+		this->cached_vtx_data[7] = this->m_subtexture.m_rect.top;
 		this->cached_vtx_data[8] = botright_vtx.x;
 		this->cached_vtx_data[9] = botright_vtx.y;
+		this->cached_vtx_data[10]= this->m_subtexture.m_rect.left + this->m_subtexture.m_rect.width;
+		this->cached_vtx_data[11]= this->m_subtexture.m_rect.top + this->m_subtexture.m_rect.height;
 		this->cached_vtx_data[12]= botleft_vtx.x;
 		this->cached_vtx_data[13]= botleft_vtx.y;
-		if (this->m_subtexture.rotated == 0){
-			this->cached_vtx_data[2] = this->m_subtexture.m_rect.left; // 1
-			this->cached_vtx_data[3] = this->m_subtexture.m_rect.top;
-			this->cached_vtx_data[6] = this->m_subtexture.m_rect.left + this->m_subtexture.m_rect.width; // 2
-			this->cached_vtx_data[7] = this->m_subtexture.m_rect.top;
-			this->cached_vtx_data[10]= this->m_subtexture.m_rect.left + this->m_subtexture.m_rect.width; // 3
-			this->cached_vtx_data[11]= this->m_subtexture.m_rect.top + this->m_subtexture.m_rect.height;
-			this->cached_vtx_data[14]= this->m_subtexture.m_rect.left;
-			this->cached_vtx_data[15]= this->m_subtexture.m_rect.top + this->m_subtexture.m_rect.height; // 4
-		}else{
-			this->cached_vtx_data[6] = this->m_subtexture.m_rect.left; // 2
-			this->cached_vtx_data[7] = this->m_subtexture.m_rect.top;
-			this->cached_vtx_data[10] = this->m_subtexture.m_rect.left + this->m_subtexture.m_rect.width; // 3
-			this->cached_vtx_data[11] = this->m_subtexture.m_rect.top;
-			this->cached_vtx_data[14]= this->m_subtexture.m_rect.left + this->m_subtexture.m_rect.width; // 4
-			this->cached_vtx_data[15]= this->m_subtexture.m_rect.top + this->m_subtexture.m_rect.height;
-			this->cached_vtx_data[2]= this->m_subtexture.m_rect.left;
-			this->cached_vtx_data[3]= this->m_subtexture.m_rect.top + this->m_subtexture.m_rect.height; // 1
-		}
+		this->cached_vtx_data[14]= this->m_subtexture.m_rect.left;
+		this->cached_vtx_data[15]= this->m_subtexture.m_rect.top + this->m_subtexture.m_rect.height;
 	}
 }
 bool compareX(const glm::vec4& lhs,const glm::vec4& rhs){
