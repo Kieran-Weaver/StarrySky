@@ -4,6 +4,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "Texture.h"
 #define WH_EPSILON 0.01
+struct Vertex{
+	float posX;
+	float posY;
+	uint16_t texX;
+	uint16_t texY;
+};
 struct Sprite{
 	Sprite();
 	Sprite(const Texture& tex);
@@ -16,7 +22,7 @@ struct Sprite{
 	void render();
 
 	Texture m_subtexture;
-	float cached_vtx_data[16]; // used for opengl's drawelements
+	Vertex cached_vtx_data[4]; // used for opengl's drawelements
 	bool m_drawn = false;
 	bool m_changed = true;
 	glm::vec2 center; // world coordinates

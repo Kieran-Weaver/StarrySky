@@ -131,11 +131,11 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 			input_file.read(reinterpret_cast<char*>(&tmp.left),8);
 			float width = static_cast<float>(m_atlas_list[textureIndex].width);
 			float height = static_cast<float>(m_atlas_list[textureIndex].height);
-			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<float>(
-				static_cast<float>(tmp.left)/width,
-				static_cast<float>(tmp.top)/height,
-				static_cast<float>(tmp.width)/width,
-				static_cast<float>(tmp.height)/height);
+			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
+				static_cast<uint16_t>(tmp.left/width*65536.f),
+				static_cast<uint16_t>(tmp.top/height*65536.f),
+				static_cast<uint16_t>(tmp.width/width*65536.f),
+				static_cast<uint16_t>(tmp.height/height*65536.f));
 			m_atlas_list[textureIndex].m_texture_table[img_name].width = tmp.width;
 			m_atlas_list[textureIndex].m_texture_table[img_name].height = tmp.height;
 #ifdef TRIM
@@ -144,11 +144,11 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 #ifdef ROTATE
 			input_file.read(reinterpret_cast<char*>(&m_atlas_list[textureIndex].m_texture_table[img_name].rotated),1);
 			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated){
-				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<float>(
-				static_cast<float>(tmp.left)/width,
-				static_cast<float>(tmp.top)/height,
-				static_cast<float>(tmp.height)/width,
-				static_cast<float>(tmp.width)/height);
+				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
+				static_cast<uint16_t>(tmp.left/width*65536.f),
+				static_cast<uint16_t>(tmp.top/height*65536.f),
+				static_cast<uint16_t>(tmp.height/width*65536.f),
+				static_cast<uint16_t>(tmp.width/height*65536.f));
 			}
 #endif
 		}
@@ -188,7 +188,9 @@ std::vector<std::string> TextureAtlas::getSubTextureNames(){
 	}
 	return names;
 }
-
+Rect<float> Normalize(const Rect<uint16_t>& texrect){
+	return Rect<float>(texrect.left/65536.f,texrect.top/65536.f,texrect.width/65536.f,texrect.height/65536.f);
+}
 bool TextureAtlas::PixelPerfectTest(const Sprite& Object1, const Sprite& Object2){
 	Rect<float> Intersection; 
 	const Rect<float> o1globalbounds = Object1.getAABB();
@@ -196,6 +198,8 @@ bool TextureAtlas::PixelPerfectTest(const Sprite& Object1, const Sprite& Object2
 	if (o1globalbounds.RIntersects(o2globalbounds, Intersection)) {
 		auto& mask1 = Bitmasks[*Object1.m_subtexture.m_texture];
 		auto& mask2 = Bitmasks[*Object2.m_subtexture.m_texture];
+		const Rect<float> o1m_rect = Normalize(Object1.m_subtexture.m_rect);
+		const Rect<float> o2m_rect = Normalize(Object2.m_subtexture.m_rect);
 		// Loop through our pixels
 		glm::mat4 o1t = glm::inverse(Object1.m_model);
 		glm::mat4 o2t = glm::inverse(Object2.m_model);
@@ -203,12 +207,12 @@ bool TextureAtlas::PixelPerfectTest(const Sprite& Object1, const Sprite& Object2
 			Object1.m_subtexture.width,0,
 			0,Object1.m_subtexture.height,
 			0,0,
-			Object1.m_subtexture.m_rect.left*mask1.width,Object1.m_subtexture.m_rect.top*mask1.height);
+			o1m_rect.left*mask1.width,o1m_rect.top*mask1.height);
 		glm::mat4x2 o2t_subrect_to_pixel(
 			Object2.m_subtexture.width,0,
 			0,Object2.m_subtexture.height,
 			0,0,
-			Object2.m_subtexture.m_rect.left*mask2.width,Object2.m_subtexture.m_rect.top*mask2.height);
+			o2m_rect.left*mask2.width,o2m_rect.top*mask2.height);
 		for (int i = static_cast<int>(Intersection.left); i < static_cast<int>(Intersection.left+Intersection.width); i++) {
 			for (int j = static_cast<int>(Intersection.top); j < static_cast<int>(Intersection.top+Intersection.height); j++) {
 

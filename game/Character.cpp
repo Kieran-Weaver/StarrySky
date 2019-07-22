@@ -5,7 +5,7 @@
 #define LASERH 10
 Character::Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas): MovingEntity(x, y, map), m_atlas(atlas) {
 	this->texs.reserve(4);
-	std::string fnames[] = {mainsprite, swordsprite, sword2sprite, "shield.png"}; 
+	std::string fnames[] = {mainsprite, swordsprite, sword2sprite, "shield"}; 
 	for (int i=0;i<4;i++){
 		this->texs[i] = atlas.findSubTexture(fnames[i]);
 	}
@@ -197,7 +197,7 @@ void Character::Draw(SpriteBatch& mframe) {
 	mframe.Draw(&spr);
 	mframe.Draw(&spr2);
 	if ((shieldout)&&(!shieldbroken)){
-		shieldspr.rotate(1.0f);
+		shieldspr.rotate(0.1f);
 		mframe.Draw(&shieldspr);
 	}
 /*	ImGui::SetNextWindowPos(ImVec2(0.f,0.f),ImGuiCond_Always);

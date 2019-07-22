@@ -17,7 +17,7 @@ class SpriteBatch{
 	struct TextureData{
 		GLuint VBO;
 		std::vector<Sprite*> sprites;
-		std::vector<float> vertices;
+		std::vector<Vertex> vertices;
 	};
 	GLuint VAO;
 	Shader vxShader;
