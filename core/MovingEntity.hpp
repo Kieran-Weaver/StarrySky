@@ -5,28 +5,29 @@
 #include "Map.hpp"
 class MovingEntity {
 public:
-	glm::vec2 lastPosition;
-	glm::vec2 position;
-	glm::vec2 lastSpeed;
-	glm::vec2 speed;
-	int width;
-	int height;
+	glm::vec2 m_position;
+	glm::vec2 m_speed;
+	int m_width;
+	int m_height;
+	float maxFallSpeed = 600.0f;
+	bool dead=false;
+	Sprite m_spr;
+public:
+	MovingEntity(float x, float y, ObjMap& map);
+	MovingEntity(float x, float y, int w, int h, ObjMap& map);
+	void Update(float dt);
+	void warpto(float x, float y);
+protected:
 	bool pushedRightWall=false, pushesRightWall=false;
 	bool pushedLeftWall=false, pushesLeftWall=false;
 	bool wasOnGround=false, isOnGround=false;
 	bool wasAtCeiling=false, isAtCeiling=false;
 	bool onOneWayPlatform = false;
 	bool dropFromOneWay = false;
-	bool dead=false;
-	Sprite spr;
-	ObjMap& map;
-	float maxFallSpeed = 600.0f;
-public:
-	MovingEntity(float x, float y, ObjMap& map);
-	MovingEntity(float x, float y, float w, float h, ObjMap& map);
-	void Update(float dt);
-	void warpto(float x, float y);
-	void warpto(float x, float y, ObjMap& newmap);
+	glm::vec2 m_lastSpeed;
+	glm::vec2 m_lastPosition;
+	ObjMap& m_map;
+	const glm::mat4 flipped_mat = glm::scale(glm::mat4(1.f),glm::vec3(-1.f,1.f,1.f));
 };
 
 #endif

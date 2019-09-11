@@ -20,24 +20,26 @@ struct Surface{
 };
 class ObjMap {
 public:
-	int width = 1280;
-	int height = 800;
-	float ledgewidth = 8.f;
-	float ledgeheight = 8.f;
-	glm::vec2 position;
-public:
 	ObjMap(const std::string& filename, TextureAtlas& atlas);
 	void loadFromFile(const std::string& filename);
 	void SetPosition(float x, float y);
 	void Draw(SpriteBatch& frame);
 	void addSurface(const Surface& wall);
 	void addBGTexture(const glm::vec2& thisposition, const glm::vec2& toscale, const std::string& fname);
-	void WriteToFile(std::string filename);
+	void WriteToFile(const std::string& filename);
+	glm::vec2 position;
+	std::vector<Surface> surfaces;
+	std::vector<glm::vec2> ledges; // top left corners
+	int width = 1280;
+	int height = 800;
+	float ledgewidth = 8.f;
+	float ledgeheight = 8.f;
+	
+private:
+	TextureAtlas& m_atlas;
 	std::vector<Sprite> sprs;
 	std::vector<glm::vec2> iposs; //initial positions
 	std::vector<std::string> texfilenames;
-	std::vector<Surface> surfaces;
-	std::vector<glm::vec2> ledges; // top left corners
-	TextureAtlas& m_atlas;
+
 };
 #endif

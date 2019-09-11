@@ -12,88 +12,86 @@ bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	gzFile gzhandle = gzopen(path.c_str(),"rb");
-	if (!gzhandle){
-		return false;
-	}
-	uint32_t * header = new uint32_t[32];
-	if (gzread(gzhandle, header, 128) == -1){
-		delete[] header;
-		gzclose_r(gzhandle);
-		return false;
-	}
-	if (header[0] != 0x20534444){ // "DDS " as a uint32_t
-		delete[] header;
-		gzclose_r(gzhandle);
-		return false;
-	}else{
-		atlas.height = header[3];
-		atlas.width = header[4];
-		uint32_t width = atlas.width;
-		uint32_t height = atlas.height;
-		uint32_t mipmapcount = header[7];
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAX_LEVEL, mipmapcount-1);
-		uint32_t fourCC = header[21];
-		uint32_t blockSize = 16;
-		uint32_t size = ((width + 3)/4)*((height + 3)/4)*blockSize;
-		delete[] header;
-		switch(fourCC){
-			case 0x31545844: // DXT1
-				atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
-				blockSize = 8;
-				break;
-			case 0x33545844: // DXT3
-				atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
-				break;
-			case 0x35545844: // DXT5
-				atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
-				break;
-			default:
-				return false;
-				break;
-		}
-		uint8_t *data = new uint8_t[size];
-		for (uint32_t level=0;level<mipmapcount;level++){
-			if (gzread(gzhandle,data,size) == -1){
-				gzclose_r(gzhandle);
-				delete[] data;
-				return false;
+	gzFile gzhandle = nullptr;
+	gzhandle = gzopen(path.c_str(),"rb");
+	bool return_code = true;
+	if (gzhandle != nullptr){
+		auto header = new uint32_t[32];
+		if ((gzread(gzhandle, header, 128) != -1) && (header[0] == 0x20534444)){
+			atlas.height = header[3];
+			atlas.width = header[4];
+			uint32_t width = atlas.width;
+			uint32_t height = atlas.height;
+			uint32_t mipmapcount = header[7];
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAX_LEVEL, mipmapcount-1);
+			uint32_t fourCC = header[21];
+			uint32_t blockSize = 16;
+			uint32_t size = ((width + 3)/4)*((height + 3)/4)*blockSize;
+			switch(fourCC){
+				case 0x31545844: // DXT1
+					atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
+					blockSize = 8;
+					break;
+				case 0x33545844: // DXT3
+					atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
+					break;
+				case 0x35545844: // DXT5
+					atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+					break;
+				default:
+					atlas.format = 0;
+					return_code = false;
+					break;
 			}
-			glCompressedTexImage2D(GL_TEXTURE_2D,level,atlas.format,width,height,0,size,data);
-			width = std::max(width/2, 1U);
-			height = std::max(height/2,1U);
-			size = ((width + 3)/4)*((height + 3)/4)*blockSize;
+			if (atlas.format != 0){
+				auto data = new uint8_t[size];
+				for (uint32_t level=0;level<mipmapcount;level++){
+					if (gzread(gzhandle,data,size) == -1){
+						return_code = false;
+						break;
+					}else{
+						glCompressedTexImage2D(GL_TEXTURE_2D,level,atlas.format,width,height,0,size,data);
+						width = std::max(width/2, 1U);
+						height = std::max(height/2,1U);
+						size = ((width + 3)/4)*((height + 3)/4)*blockSize;
+					}
+				}
+				delete[] data;
+			}
+		}else{
+			return_code = false;
 		}
 		gzclose_r(gzhandle);
-		delete[] data;
+		delete[] header;
+	}else{
+		return_code = false;
 	}
-	return true;
+	return return_code;
 }
 bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
 	Bitmask maskwrapper;
 	maskwrapper.mask = boost::dynamic_bitset<>(atlas.width*atlas.height);
 	maskwrapper.width = atlas.width;
 	maskwrapper.height = atlas.height;
-	gzFile gzhandle = gzopen(path.c_str(),"rb");
-	if (!gzhandle){
-		return false;
-	}
-	boost::dynamic_bitset<>::block_type *data = new boost::dynamic_bitset<>::block_type[atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type))];
-	if (gzread(gzhandle,data,atlas.width*atlas.height/8) == -1){
-		delete[] data;
+	gzFile gzhandle = nullptr;
+	gzhandle = gzopen(path.c_str(),"rb");
+	bool return_code = false;
+	if (gzhandle != nullptr){
+		auto *data = new boost::dynamic_bitset<>::block_type[atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type))];
+		if (gzread(gzhandle,data,atlas.width*atlas.height/8) != -1){
+			boost::from_block_range(data,data+atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type)),maskwrapper.mask);
+			Bitmasks.insert(std::make_pair(*atlas.m_texture,maskwrapper));
+			return_code = true;
+		}
 		gzclose_r(gzhandle);
-		return false;
+		delete[] data;
 	}
-	gzclose_r(gzhandle);
-	boost::from_block_range(data,data+atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type)),maskwrapper.mask);
-	Bitmasks.insert(std::make_pair(*atlas.m_texture,maskwrapper));
-	delete[] data;
-	return true;
+	return return_code;
 }
 // Loads a Crunch Texture Pack (.bin) to populate the atlas table. These files are generated by crunch.
 // Returns false if failed to load the file, otherwise returns true.
 std::string getString(std::ifstream& input_file){
-	std::string value = "";
+	std::string value;
 	char chr = 0;
 	do{
 		input_file.read(&chr,1);
@@ -109,7 +107,8 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 		return false;
 	}
 	std::string path = file_path.substr(0, file_path.find_last_of("\\/") + 1);
-	uint16_t num_textures=0,num_images=0;
+	uint16_t num_textures=0;
+	uint16_t num_images=0;
 	input_file.read(reinterpret_cast<char*>(&num_textures),2);
 	m_num_textures = num_textures;
 	m_texture_handles = new GLuint[m_num_textures];
@@ -129,8 +128,8 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 			std::string img_name = getString(input_file);
 			Rect<uint16_t> tmp;
 			input_file.read(reinterpret_cast<char*>(&tmp.left),8);
-			float width = static_cast<float>(m_atlas_list[textureIndex].width);
-			float height = static_cast<float>(m_atlas_list[textureIndex].height);
+			auto width = static_cast<float>(m_atlas_list[textureIndex].width);
+			auto height = static_cast<float>(m_atlas_list[textureIndex].height);
 			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
 				static_cast<uint16_t>(tmp.left/width*65536.f),
 				static_cast<uint16_t>(tmp.top/height*65536.f),
@@ -143,7 +142,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 #endif
 #ifdef ROTATE
 			input_file.read(reinterpret_cast<char*>(&m_atlas_list[textureIndex].m_texture_table[img_name].rotated),1);
-			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated){
+			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated != 0){
 				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
 				static_cast<uint16_t>(tmp.left/width*65536.f),
 				static_cast<uint16_t>(tmp.top/height*65536.f),
@@ -154,10 +153,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 		}
 	}
 	input_file.close();
-	if(!m_atlas_list.size()){
-		return false;
-	}
-	return true;
+	return !m_atlas_list.empty();
 }
 
 // Finds a Moony Texture inside the atlas table.

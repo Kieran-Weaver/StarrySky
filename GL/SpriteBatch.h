@@ -9,11 +9,12 @@
 #include <vector>
 #include <sparsehash/dense_hash_map>
 class SpriteBatch{
-	public:
+public:
 	SpriteBatch(TextureAtlas& atlas, WindowState& ws);
 	~SpriteBatch();
 	void Draw(Sprite* spr);
 	void Draw(GLFWwindow* target);
+private:
 	struct TextureData{
 		GLuint VBO;
 		std::vector<Sprite*> sprites;

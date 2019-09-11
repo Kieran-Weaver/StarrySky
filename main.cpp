@@ -17,7 +17,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
 		glfwSetWindowShouldClose(window,GLFW_TRUE);
 	}
-	WindowState * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+	auto * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
 	if (action == GLFW_PRESS){
 		ws->keyboardState[key] = true;
 	}else if (action == GLFW_RELEASE){
@@ -25,10 +25,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}
 	ImGui_ImplGlfw_KeyCallback(window,key,scancode,action,mods);
 }
-int main(void){
+int main(){
 	const float frametime = 1.f/60.f;
-	GLFWwindow* window;
-	if (!glfwInit()){
+	GLFWwindow* window = nullptr;
+	if (glfwInit() != GLFW_TRUE){
 		return 1;
 	}
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f));
@@ -43,8 +43,8 @@ int main(void){
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-	window = glfwCreateWindow(1280,720,"Starry Sky", NULL, NULL);
-	if (!window){
+	window = glfwCreateWindow(1280,720,"Starry Sky", nullptr, nullptr);
+	if (window == nullptr){
 		glfwTerminate();
 		return 2;
 	}
@@ -73,7 +73,7 @@ int main(void){
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
-	while (!glfwWindowShouldClose(window)){
+	while (glfwWindowShouldClose(window) == GLFW_FALSE){
 		glfwPollEvents();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -95,7 +95,6 @@ int main(void){
 			testEnemy.warpto(900.f,300.f);
 			testEnemy.reset();
 			camera.reset();
-			player.shieldmeter = player.shieldmax;
 		}else if (testEnemy.dead){
 			objects.clear();
 			std::cout << "You Win" << std::endl;

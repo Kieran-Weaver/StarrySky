@@ -50,13 +50,13 @@ void ObjMap::loadFromFile(const std::string& filename){
 	for (int i=0;i<sprssize;i++){
 		std::getline(mapfile,line);
 		std::istringstream iss(line);
-		glm::vec2 scale;
-		glm::vec2 position;
+		glm::vec2 sprscale;
+		glm::vec2 sprposition;
 		std::string fname;
-		iss >> position.x >> position.y >> scale.x >> scale.y;
+		iss >> sprposition.x >> sprposition.y >> sprscale.x >> sprscale.y;
 		std::getline(iss,fname);
-		iposs.emplace_back(position);
-		addBGTexture(position,scale,fname);
+		iposs.emplace_back(sprposition);
+		addBGTexture(sprposition,sprscale,fname);
 	}
 	for (int i=0;i<ledgesize;i++){
 		std::getline(mapfile,line);
@@ -65,6 +65,7 @@ void ObjMap::loadFromFile(const std::string& filename){
 		iss >> ledge.x >> ledge.y;
 		ledges.emplace_back(ledge);
 	}
+	mapfile.close();
 }
 void ObjMap::addBGTexture(const glm::vec2& thisposition, const glm::vec2& toscale, const std::string& fname){
 	int i = sprs.size();
@@ -87,7 +88,7 @@ void ObjMap::SetPosition(float x, float y) {
 		sprs[i].setPosition(iposs[i].x + x, iposs[i].y + y);
 	}
 }
-void ObjMap::WriteToFile(std::string filename){
+void ObjMap::WriteToFile(const std::string& filename){
 	std::ofstream ofs(filename);
 	ofs << surfaces.size() << " " << iposs.size() << " " << ledges.size() << "\n";
 	for (auto& i : surfaces){
@@ -113,9 +114,9 @@ void ObjMap::WriteToFile(std::string filename){
 			break;
 		}
 	}
-	glm::quat orientation;
-	glm::vec3 scale, translation, skew;
-	glm::vec4 perspective;
+	glm::quat orientation = glm::quat();
+	glm::vec3 scale = glm::vec3(), translation = glm::vec3(), skew = glm::vec3();
+	glm::vec4 perspective = glm::vec4();
 	for (int i = (iposs.size()-1);i>=0;i--){
 		glm::decompose(sprs[i].m_model,scale,orientation,translation,skew,perspective);
 		ofs << iposs[i].x << " " << iposs[i].y << " " << scale.x << " " << scale.y << " " << texfilenames[i] << "\n";
@@ -124,6 +125,7 @@ void ObjMap::WriteToFile(std::string filename){
 		ofs << i.x << " " << i.y << "\n";
 	}
 	ofs << std::endl;
+	ofs.close();
 }
 void ObjMap::Draw(SpriteBatch& frame) {
 	for (auto& i : sprs){

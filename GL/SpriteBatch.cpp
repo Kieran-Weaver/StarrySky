@@ -4,7 +4,7 @@ SpriteBatch::SpriteBatch(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 	glGenVertexArrays(1,&VAO);
 	glBindVertexArray(VAO);
 
-	GLuint* vbo_handles = new GLuint[m_atlas.m_num_textures];
+	auto vbo_handles = new GLuint[m_atlas.m_num_textures];
 	glGenBuffers(m_atlas.m_num_textures,vbo_handles);
 	glBindBuffer(GL_ARRAY_BUFFER,vbo_handles[0]);
 
@@ -21,11 +21,11 @@ SpriteBatch::SpriteBatch(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 	
 	posAttrib = glGetAttribLocation(shaderProgram, "position");
 	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib,2,GL_FLOAT,GL_FALSE,sizeof(Vertex),0);
+	glVertexAttribPointer(posAttrib,2,GL_FLOAT,GL_FALSE,sizeof(Vertex),nullptr);
 
 	texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
 	glEnableVertexAttribArray(texAttrib);
-	glVertexAttribPointer(texAttrib,2,GL_UNSIGNED_SHORT,GL_TRUE,sizeof(Vertex),(void*)(2*sizeof(float)));
+	glVertexAttribPointer(texAttrib,2,GL_UNSIGNED_SHORT,GL_TRUE,sizeof(Vertex),reinterpret_cast<void*>((2*sizeof(float))));
 
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
 		this->m_texData[m_atlas.m_texture_handles+textureIndex] = TextureData();
@@ -61,22 +61,14 @@ void SpriteBatch::Draw(Sprite* spr){
 }
 bool SpriteCMP(const Sprite* a, const Sprite* b){
 	if (a->m_drawn && b->m_drawn){
-		if (!a->m_changed && b->m_changed){
-			return true;
-		}else{
-			return false;
-		}
+		return (!a->m_changed && b->m_changed);
 	}else{
-		if (a->m_drawn){
-			return true;
-		}else{
-			return false;
-		}
+		return (a->m_drawn);
 	}
 }
 void SpriteBatch::Draw(GLFWwindow* target){
 	glfwMakeContextCurrent(target);
-	WindowState * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
+	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
 	glUniformMatrix4fv(ws->MatrixID,1,GL_FALSE,&ws->camera->getVP()[0][0]);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
@@ -103,6 +95,6 @@ void SpriteBatch::Draw(GLFWwindow* target){
 		glBindTexture(GL_TEXTURE_2D,*texturepair.first);
 		glBindBuffer(GL_ARRAY_BUFFER,currentTexData.VBO);
 		glBufferSubData(GL_ARRAY_BUFFER,skippedSprites*4*sizeof(Vertex),(currentTexData.vertices.size()-skippedSprites*4)*sizeof(Vertex),currentTexData.vertices.data()+(skippedSprites*4));
-		glDrawElements(GL_TRIANGLES,6*(currentTexData.vertices.size()/4),GL_UNSIGNED_SHORT,0);
+		glDrawElements(GL_TRIANGLES,6*(currentTexData.vertices.size()/4),GL_UNSIGNED_SHORT,nullptr);
 	}
 }

@@ -1,6 +1,6 @@
 #include "Camera.hpp"
 #include <iostream>
-void Camera::Scroll(glm::vec2 direction){
+void Camera::Scroll(const glm::vec2& direction){
 	Rect<float> newbounds = current_bounds;
 	newbounds.left += direction.x;
 	newbounds.top += direction.y;

@@ -1,18 +1,20 @@
 #include "Shader.hpp"
-Shader::Shader(GLenum type) : m_type(type){}
-Shader::Shader(){}
+Shader::Shader(GLenum type) : m_handle(0), m_type(type) {}
 Shader::~Shader(){
-	glDeleteShader(m_handle);
+	if (loaded){
+		glDeleteShader(m_handle);
+	}
 }
 void Shader::load(const std::string& filename){
 	m_handle = glCreateShader(this->m_type);
 	std::string contents = readWholeFile(filename);
 	const char* shader_contents = contents.c_str();
-	glShaderSource(m_handle,1,&shader_contents,0);
+	glShaderSource(m_handle,1,&shader_contents,nullptr);
 	glCompileShader(m_handle);
+	loaded = true;
 }
 GLuint CreateProgram(const std::string& VertexShader, const std::string& FragShader, const std::string& OutputLocation){
-	Shader shaders[2] = {Shader(GL_VERTEX_SHADER), Shader(GL_FRAGMENT_SHADER)};
+	std::array<Shader,2> shaders = {GL_VERTEX_SHADER,GL_FRAGMENT_SHADER};
 	shaders[0].load(VertexShader);
 	shaders[1].load(FragShader);
 	return CreateProgram(shaders[0],shaders[1],OutputLocation);

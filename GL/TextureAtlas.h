@@ -28,10 +28,11 @@ public:
 	}
 	GLuint* m_texture_handles = nullptr;
 	int m_num_textures;
-	private:
+
+private:
 	struct Atlas
 	{
-		Atlas() : m_texture(nullptr){
+		Atlas(){
 			m_texture_table.set_empty_key("");
 		}
 		google::dense_hash_map<std::string, Texture> m_texture_table;
