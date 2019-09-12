@@ -18,6 +18,12 @@ struct Surface{
 	float length;
 	WallType type;
 };
+struct MapSprite{
+	MapSprite(const glm::vec2& iPos, const std::string& fname, const Sprite& sprite) : iPosition(iPos), filename(fname), spr(sprite){}
+	glm::vec2 iPosition;
+	std::string filename;
+	Sprite spr;
+};
 class ObjMap {
 public:
 	ObjMap(const std::string& filename, TextureAtlas& atlas);
@@ -37,9 +43,6 @@ public:
 	
 private:
 	TextureAtlas& m_atlas;
-	std::vector<Sprite> sprs;
-	std::vector<glm::vec2> iposs; //initial positions
-	std::vector<std::string> texfilenames;
-
+	std::vector<MapSprite> sprs;
 };
 #endif

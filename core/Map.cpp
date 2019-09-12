@@ -12,8 +12,6 @@ void ObjMap::loadFromFile(const std::string& filename){
 	ledges.clear();
 	surfaces.clear();
 	sprs.clear();
-	iposs.clear();
-	texfilenames.clear();
 	std::ifstream mapfile(filename);
 	std::string line;
 	std::getline(mapfile,line);
@@ -55,8 +53,7 @@ void ObjMap::loadFromFile(const std::string& filename){
 		std::string fname;
 		iss >> sprposition.x >> sprposition.y >> sprscale.x >> sprscale.y;
 		std::getline(iss,fname);
-		iposs.emplace_back(sprposition);
-		addBGTexture(sprposition,sprscale,fname);
+		this->addBGTexture(sprposition,sprscale,fname);
 	}
 	for (int i=0;i<ledgesize;i++){
 		std::getline(mapfile,line);
@@ -67,16 +64,15 @@ void ObjMap::loadFromFile(const std::string& filename){
 	}
 	mapfile.close();
 }
-void ObjMap::addBGTexture(const glm::vec2& thisposition, const glm::vec2& toscale, const std::string& fname){
+void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::vec2& sprScale, const std::string& fname){
 	int i = sprs.size();
 	std::string filename(fname);
 	auto end_pos = std::remove(filename.begin(),filename.end(),' ');
 	filename.erase(end_pos,filename.end());
-	sprs.emplace_back(Sprite());
-	texfilenames.push_back(filename);
-	sprs[i].setTexture(m_atlas.findSubTexture(filename));
-	sprs[i].setPosition(thisposition);
-	sprs[i].m_model = glm::scale(sprs[i].m_model,glm::vec3(toscale,1.f));
+	sprs.emplace_back(sprPosition,filename,Sprite());
+	sprs[i].spr.setTexture(m_atlas.findSubTexture(filename));
+	sprs[i].spr.setPosition(sprPosition);
+	sprs[i].spr.m_model = glm::scale(sprs[i].spr.m_model,glm::vec3(sprScale,1.f));
 }
 void ObjMap::addSurface(const Surface& wall){
 	surfaces.emplace_back(wall);
@@ -85,12 +81,12 @@ void ObjMap::SetPosition(float x, float y) {
 	this->position.x = x;
 	this->position.y = y;
 	for (unsigned int i=0;i<sprs.size();i++){
-		sprs[i].setPosition(iposs[i].x + x, iposs[i].y + y);
+		sprs[i].spr.setPosition(sprs[i].iPosition.x + x, sprs[i].iPosition.y + y);
 	}
 }
 void ObjMap::WriteToFile(const std::string& filename){
 	std::ofstream ofs(filename);
-	ofs << surfaces.size() << " " << iposs.size() << " " << ledges.size() << "\n";
+	ofs << surfaces.size() << " " << sprs.size() << " " << ledges.size() << "\n";
 	for (auto& i : surfaces){
 		ofs << i.x << " " << i.y << " " << i.length << " ";
 		switch (i.type){
@@ -117,9 +113,9 @@ void ObjMap::WriteToFile(const std::string& filename){
 	glm::quat orientation = glm::quat();
 	glm::vec3 scale = glm::vec3(), translation = glm::vec3(), skew = glm::vec3();
 	glm::vec4 perspective = glm::vec4();
-	for (int i = (iposs.size()-1);i>=0;i--){
-		glm::decompose(sprs[i].m_model,scale,orientation,translation,skew,perspective);
-		ofs << iposs[i].x << " " << iposs[i].y << " " << scale.x << " " << scale.y << " " << texfilenames[i] << "\n";
+	for (int i = (sprs.size()-1);i>=0;i--){
+		glm::decompose(sprs[i].spr.m_model,scale,orientation,translation,skew,perspective);
+		ofs << sprs[i].iPosition.x << " " << sprs[i].iPosition.y << " " << scale.x << " " << scale.y << " " << sprs[i].filename << "\n";
 	}
 	for (auto& i : ledges){
 		ofs << i.x << " " << i.y << "\n";
@@ -129,6 +125,6 @@ void ObjMap::WriteToFile(const std::string& filename){
 }
 void ObjMap::Draw(SpriteBatch& frame) {
 	for (auto& i : sprs){
-		frame.Draw(&i);
+		frame.Draw(&(i.spr));
 	}
 }
