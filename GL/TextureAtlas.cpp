@@ -1,5 +1,7 @@
-#include "TextureAtlas.h"
-#include <iostream>
+#include "TextureAtlas.hpp"
+#include <fstream>
+#include <zlib.h>
+#include <iosfwd>
 #define ROTATE
 // Loads a recrunch-ed .dds.gz file, and populates the Atlas
 TextureAtlas::TextureAtlas(){
@@ -158,14 +160,14 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 
 // Finds a Moony Texture inside the atlas table.
 // Returns a valid Texture if found in the TextureAtlas, otherwise returns a null Texture.
-const Texture TextureAtlas::findSubTexture(const std::string& name){
-	Texture texture;
+const Texture * TextureAtlas::findSubTexture(const std::string& name){
+	Texture *texture = nullptr;
 	for(auto& atlas : m_atlas_list){
 		if(atlas.m_texture_table.find(name) != atlas.m_texture_table.end()){
-			texture = Texture(atlas.m_texture, atlas.m_texture_table[name].m_rect);
-			texture.width = atlas.m_texture_table[name].width;
-			texture.height = atlas.m_texture_table[name].height;
-			texture.rotated = atlas.m_texture_table[name].rotated;
+			texture = new Texture(atlas.m_texture, atlas.m_texture_table[name].m_rect);
+			texture->width = atlas.m_texture_table[name].width;
+			texture->height = atlas.m_texture_table[name].height;
+			texture->rotated = atlas.m_texture_table[name].rotated;
 			break;
 		}
 	}
@@ -192,21 +194,21 @@ bool TextureAtlas::PixelPerfectTest(const Sprite& Object1, const Sprite& Object2
 	const Rect<float> o1globalbounds = Object1.getAABB();
 	const Rect<float> o2globalbounds = Object2.getAABB();
 	if (o1globalbounds.RIntersects(o2globalbounds, Intersection)) {
-		auto& mask1 = Bitmasks[*Object1.m_subtexture.m_texture];
-		auto& mask2 = Bitmasks[*Object2.m_subtexture.m_texture];
-		const Rect<float> o1m_rect = Normalize(Object1.m_subtexture.m_rect);
-		const Rect<float> o2m_rect = Normalize(Object2.m_subtexture.m_rect);
+		auto& mask1 = Bitmasks[*Object1.m_subtexture->m_texture];
+		auto& mask2 = Bitmasks[*Object2.m_subtexture->m_texture];
+		const Rect<float> o1m_rect = Normalize(Object1.m_subtexture->m_rect);
+		const Rect<float> o2m_rect = Normalize(Object2.m_subtexture->m_rect);
 		// Loop through our pixels
 		glm::mat4 o1t = glm::inverse(Object1.m_model);
 		glm::mat4 o2t = glm::inverse(Object2.m_model);
 		glm::mat4x2 o1t_subrect_to_pixel(
-			Object1.m_subtexture.width,0,
-			0,Object1.m_subtexture.height,
+			Object1.m_subtexture->width,0,
+			0,Object1.m_subtexture->height,
 			0,0,
 			o1m_rect.left*mask1.width,o1m_rect.top*mask1.height);
 		glm::mat4x2 o2t_subrect_to_pixel(
-			Object2.m_subtexture.width,0,
-			0,Object2.m_subtexture.height,
+			Object2.m_subtexture->width,0,
+			0,Object2.m_subtexture->height,
 			0,0,
 			o2m_rect.left*mask2.width,o2m_rect.top*mask2.height);
 		for (int i = static_cast<int>(Intersection.left); i < static_cast<int>(Intersection.left+Intersection.width); i++) {

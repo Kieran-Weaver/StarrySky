@@ -1,13 +1,21 @@
+CC=gcc
 CXX=g++
-#CXXFLAGS=-DUSE_ZLIB -Og -g -fsanitize=address,undefined -march=native -std=c++11
-CXXFLAGS=-DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -O2 -Wall -Wextra -pedantic -march=native -std=c++11 -I. -iquote imgui
-OBJS=main.o gl.o GL/Helpers.o GL/Shader.o GL/Camera.o GL/TextureAtlas.o imgui/imgui.o imgui/imgui_draw.o imgui/imgui_widgets.o imgui/imgui_demo.o imgui/examples/imgui_impl_glfw.o imgui/examples/imgui_impl_opengl3.o GL/Sprite.o GL/SpriteBatch.o core/ImGuiHelper.o core/Map.o core/MovingEntity.o game/Character.o game/Enemy.o
-LDFLAGS=-lGL -lglfw -ldl -lz
-all: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o Platformer $(LDFLAGS)
+LD=g++
+TARGET=Platformer
+CFLAGS := -O2 -Wall -Wextra -pedantic -march=native -I. -iquote imgui
+CXXFLAGS := -O2 -Wall -Wextra -pedantic -march=native -std=c++11 -I. -iquote imgui
+CPPFLAGS := $(INC_FLAGS) -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -MMD -MP
+IMGUI_SRCS := imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp imgui/imgui_demo.cpp imgui/examples/imgui_impl_glfw.cpp imgui/examples/imgui_impl_opengl3.cpp
+SRCS := $(shell find . -path "./GL/*.cpp" -o -path "./core/*.cpp" -o -path "./game/*.cpp" ) main.cpp gl.c $(IMGUI_SRCS)
+OBJS := $(addsuffix .o,$(basename $(SRCS)))
+DEPS := $(OBJS:.o=.d)
+LDFLAGS=-lopengl32 -lglfw3 -lz -Wl,-O1
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(LD) $(OBJS) -o $(TARGET) $(LDFLAGS)
+
 clean:
-	rm -fr $(OBJS) Platformer
-%.o : %.cpp
-	$(CXX) $(CXXFLAGS) -o $@ -c $<
-%.o : %.c
-	$(CXX) $(CXXFLAGS) -o $@ -c $<
+	rm -fr $(OBJS) $(TARGET) $(DEPS)
+	
+-include $(DEPS)

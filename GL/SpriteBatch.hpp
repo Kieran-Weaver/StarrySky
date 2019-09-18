@@ -1,13 +1,13 @@
 #ifndef SPRITEBATCH_H
 #define SPRITEBATCH_H
-#include "Sprite.h"
 #include "Shader.hpp"
+#include "Helpers.hpp"
 #include "WindowState.h"
-#include "TextureAtlas.h"
+#include "TextureAtlas.hpp"
 #include <gl.h>
 #include <GLFW/glfw3.h>
-#include <vector>
 #include <sparsehash/dense_hash_map>
+struct Sprite;
 class SpriteBatch{
 public:
 	SpriteBatch(TextureAtlas& atlas, WindowState& ws);

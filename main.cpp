@@ -2,12 +2,11 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <zlib.h>
-#include <cstring>
 #include "game/Character.hpp"
 #include "GL/Shader.hpp"
 #include "GL/Camera.hpp"
-#include "GL/TextureAtlas.h"
-#include "GL/SpriteBatch.h"
+#include "GL/TextureAtlas.hpp"
+#include "GL/SpriteBatch.hpp"
 #include "GL/WindowState.h"
 #include "core/Map.hpp"
 #include "imgui/imgui.h"
@@ -78,8 +77,6 @@ int main(){
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGui::ShowDemoWindow();
-		ImGui::Render();
 		glfwMakeContextCurrent(window);
 		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
@@ -101,6 +98,7 @@ int main(){
 			glfwSetWindowShouldClose(window,GLFW_TRUE);
 		}
 		batch.Draw(window);
+		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		glfwMakeContextCurrent(window);

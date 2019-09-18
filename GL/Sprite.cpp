@@ -1,29 +1,31 @@
-#include "Sprite.h"
+#include "Sprite.hpp"
+#include "Texture.hpp"
+#include <glm/gtc/matrix_transform.hpp>
 Sprite::Sprite() noexcept{
 	this->m_subtexture = nullptr;
 	this->center = glm::vec2(0,0);
 	this->m_model = glm::mat4(1.0f);
 }
-Sprite::Sprite(const Texture& tex) noexcept{
+Sprite::Sprite(const Texture* tex) noexcept{
 	this->center = glm::vec2(0,0);
 	this->setTexture(tex);
 }
-void Sprite::setTexture(const Texture& tex){
-	this->m_subtexture = tex;
+void Sprite::setTexture(const Texture* tex){
+	this->m_subtexture = new Texture(tex);
 	this->m_changed = true;
 	this->m_model = glm::translate(glm::mat4(1.f),glm::vec3(-0.5f,-0.5f,0.f));
-	if (tex.rotated != 0){
+	if (tex->rotated != 0){
 		this->m_model = glm::rotate(glm::mat4(1.f),glm::radians(-90.f),glm::vec3(0.f,0.f,1.f)) * this->m_model;
 	}
-	this->m_model = glm::scale(glm::mat4(1.f),glm::vec3(tex.width,tex.height,1))*this->m_model;
+	this->m_model = glm::scale(glm::mat4(1.f),glm::vec3(tex->width,tex->height,1))*this->m_model;
 	for (int8_t i = 0; i < 4; i++){
-		this->cached_vtx_data[i].texX = this->m_subtexture.m_rect.left;
-		this->cached_vtx_data[i].texY = this->m_subtexture.m_rect.top;
+		this->cached_vtx_data[i].texX = this->m_subtexture->m_rect.left;
+		this->cached_vtx_data[i].texY = this->m_subtexture->m_rect.top;
 		if (((i+1) & 0x02) != 0){ // 0 1 1 0
-			this->cached_vtx_data[i].texX += this->m_subtexture.m_rect.width;
+			this->cached_vtx_data[i].texX += this->m_subtexture->m_rect.width;
 		}
 		if (i >= 2){ // 0 0 1 1
-			this->cached_vtx_data[i].texY += this->m_subtexture.m_rect.height;
+			this->cached_vtx_data[i].texY += this->m_subtexture->m_rect.height;
 		}
 	}
 }

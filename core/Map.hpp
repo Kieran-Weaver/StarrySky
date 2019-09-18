@@ -1,13 +1,12 @@
-#ifndef Map_hpp
-#define Map_hpp
-#include <fstream>
+#ifndef STARRYSKY_MAP_HPP
+#define STARRYSKY_MAP_HPP
 #include <vector>
-#include <sstream>
+#include <string>
 #include <gl.h>
 #include <sparsehash/dense_hash_map>
-#include <GL/TextureAtlas.h>
-#include <GL/Sprite.h>
-#include <GL/SpriteBatch.h>
+#include <GL/TextureAtlas.hpp>
+#include <GL/Sprite.hpp>
+#include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 enum WallType { LWALL, RWALL, CEIL, FLOOR, ONEWAY  };

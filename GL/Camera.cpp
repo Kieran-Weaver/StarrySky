@@ -1,5 +1,7 @@
 #include "Camera.hpp"
-#include <iostream>
+#include <algorithm>
+#include <iosfwd>
+#include "Rect.hpp"
 void Camera::Scroll(const glm::vec2& direction){
 	Rect<float> newbounds = current_bounds;
 	newbounds.left += direction.x;

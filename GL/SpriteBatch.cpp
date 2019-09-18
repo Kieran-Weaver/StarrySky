@@ -1,4 +1,7 @@
-#include "SpriteBatch.h"
+#include "SpriteBatch.hpp"
+#include "Camera.hpp"
+#include "Sprite.hpp"
+// TODO: Add tilemap functionality
 SpriteBatch::SpriteBatch(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 	m_texData.set_empty_key(nullptr);
 	glGenVertexArrays(1,&VAO);
@@ -47,14 +50,14 @@ SpriteBatch::~SpriteBatch(){
 }
 void SpriteBatch::Draw(Sprite* spr){
 	spr->render();
-	GLuint* m_tex = spr->m_subtexture.m_texture;
+	GLuint* m_tex = spr->m_subtexture->m_texture;
 	if (m_texData.find(m_tex) == m_texData.end()){
 		m_texData[m_tex] = TextureData();
 		glGenBuffers(1,&m_texData[m_tex].VBO);
 	}
 	if (std::find(m_texData[m_tex].sprites.begin(),m_texData[m_tex].sprites.end(),spr) == m_texData[m_tex].sprites.end()){
 		m_texData[m_tex].sprites.emplace_back(spr);
-		m_texData[m_tex].vertices.insert(m_texData[m_tex].vertices.end(),spr->cached_vtx_data,spr->cached_vtx_data+4);
+		m_texData[m_tex].vertices.insert(m_texData[m_tex].vertices.end(),spr->cached_vtx_data.data(),spr->cached_vtx_data.data()+4);
 		glBindBuffer(GL_ARRAY_BUFFER,m_texData[m_tex].VBO);
 		glBufferData(GL_ARRAY_BUFFER,m_texData[m_tex].vertices.size()*sizeof(Vertex),m_texData[m_tex].vertices.data(),GL_DYNAMIC_DRAW);
 	}
@@ -87,7 +90,7 @@ void SpriteBatch::Draw(GLFWwindow* target){
 				currentTexData.sprites[spriteIndex]->m_changed = false;
 				continue;
 			}else{
-				currentTexData.vertices.insert(currentTexData.vertices.end(),currentTexData.sprites[spriteIndex]->cached_vtx_data,currentTexData.sprites[spriteIndex]->cached_vtx_data+4);
+				currentTexData.vertices.insert(currentTexData.vertices.end(),currentTexData.sprites[spriteIndex]->cached_vtx_data.data(),currentTexData.sprites[spriteIndex]->cached_vtx_data.data()+4);
 				currentTexData.sprites[spriteIndex]->m_drawn = false;
 				currentTexData.sprites[spriteIndex]->m_changed = false;
 			}

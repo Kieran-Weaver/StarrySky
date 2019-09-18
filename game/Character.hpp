@@ -1,11 +1,14 @@
 #ifndef CHARACTER_HPP
 #define CHARACTER_HPP
 #include <core/MovingEntity.hpp>
-#include <GL/Sprite.h>
-#include <GL/SpriteBatch.h>
-#include <GL/TextureAtlas.h>
+#include <GL/Sprite.hpp>
+#include <GL/SpriteBatch.hpp>
+#include <GL/TextureAtlas.hpp>
 #include <core/Map.hpp>
 #include "Enemy.hpp"
+#include <imgui/imgui.h>
+#include <cmath>
+#include <array>
 #include <vector>
 struct Controls{
 	int upkey = GLFW_KEY_UP;
@@ -39,7 +42,7 @@ private:
 	float maxFallSpeed = 1300.0f;
 	const float shieldmax = 600.f;
 	TextureAtlas& m_atlas;
-	std::vector<Texture> texs; //1,2,3,shield
+	std::vector<const Texture*> texs; //1,2,3,shield
 	bool isOnLedge = false;
 	bool jumped = false;
 	int swordtimer = 0;

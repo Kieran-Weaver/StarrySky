@@ -1,9 +1,9 @@
 #ifndef WINDOWSTATE_H
 #define WINDOWSTATE_H
 #include <gl.h>
+#include <glfw/glfw3.h>
 #include <bitset>
-#include <GLFW/glfw3.h>
-#include "Camera.hpp"
+class Camera;
 struct WindowState{
 	Camera* camera;
 	std::bitset<GLFW_KEY_LAST+1> keyboardState;

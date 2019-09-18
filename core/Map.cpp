@@ -1,9 +1,9 @@
+#include <fstream>
+#include <iostream>
 #include "Map.hpp"
 #include "../imgui/imgui.h"
 #include "ImGuiHelper.hpp"
-#include <vector>
-#include <iostream>
-#include <cstring>
+#include <sstream>
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->loadFromFile(filename);
 	this->SetPosition(0,0);

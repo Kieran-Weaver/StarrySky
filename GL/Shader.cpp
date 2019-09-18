@@ -1,4 +1,6 @@
 #include "Shader.hpp"
+#include <fstream>
+#include <array>
 Shader::Shader(GLenum type) : m_handle(0), m_type(type) {}
 Shader::~Shader(){
 	if (loaded){

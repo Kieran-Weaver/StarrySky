@@ -1,7 +1,5 @@
 #include "Character.hpp"
-#include <cmath>
-#include <array>
-#include <glm/gtx/string_cast.hpp>
+#include <GL/Camera.hpp>
 #define LASERW 25
 #define LASERH 10
 Character::Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas): MovingEntity(x, y, map), m_atlas(atlas) {
@@ -161,7 +159,7 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 	for (auto& i : objects){
 		if (m_atlas.PixelPerfectTest(this->m_spr,i->m_spr)){
 			if (shieldout && !shieldbroken){
-				if (invltimer > 0){
+				if (invltimer == 0){
 					shieldmeter = shieldmeter - 200.f;
 					if (shieldmeter < 0.0f){
 						shieldbroken = true;
@@ -201,8 +199,8 @@ void Character::Draw(SpriteBatch& mframe) {
 		m_shieldspr.rotate(0.1f);
 		mframe.Draw(&m_shieldspr);
 	}
-/*	ImGui::SetNextWindowPos(ImVec2(0.f,0.f),ImGuiCond_Always);
+	ImGui::SetNextWindowPos(ImVec2(0.f,0.f),ImGuiCond_Always);
 	ImGui::Begin("Shield");
 	ImGui::ProgressBar(shieldmeter/shieldmax);
-	ImGui::End();*/
+	ImGui::End();
 }

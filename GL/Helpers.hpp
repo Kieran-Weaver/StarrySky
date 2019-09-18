@@ -1,9 +1,7 @@
 #ifndef STARRYSKY_HELPER_HPP
 #define STARRYSKY_HELPER_HPP
-#include <fstream>
-#include <limits>
 #include <gl.h>
-#include <iostream>
+#include <string>
 std::string readWholeFile(const std::string& filename);
 template<typename T>
 struct GLBuffer{
@@ -36,4 +34,10 @@ void genIndexBuffer(T max_sprites, GLBuffer<T>& buffer){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.handle);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, buffer.size*sizeof(T), buffer.data, GL_STATIC_DRAW);
 }
+struct Vertex{
+	float posX;
+	float posY;
+	uint16_t texX;
+	uint16_t texY;
+};
 #endif

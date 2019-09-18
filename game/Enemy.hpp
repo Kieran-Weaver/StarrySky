@@ -1,9 +1,9 @@
 #ifndef ENEMY_HPP
 #define ENEMY_HPP
-#include "../core/MovingEntity.hpp"
-#include "../GL/Sprite.h"
-#include "../GL/SpriteBatch.h"
-#include "../GL/TextureAtlas.h"
+#include <core/MovingEntity.hpp>
+#include <GL/Sprite.hpp>
+#include <GL/SpriteBatch.hpp>
+#include <GL/TextureAtlas.hpp>
 class Character;
 class Enemy : public MovingEntity {
 public:
@@ -23,6 +23,6 @@ public:
 private:
 	int ihealth;
 	TextureAtlas& m_atlas;
-	std::vector<Texture> texs; //1, 2, 3
+	std::vector<const Texture*> texs; //1, 2, 3
 };
 #endif
