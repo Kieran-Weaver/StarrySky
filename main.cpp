@@ -3,6 +3,7 @@
 #include <iostream>
 #include <zlib.h>
 #include "game/Character.hpp"
+#include "game/Enemy.hpp"
 #include "GL/Shader.hpp"
 #include "GL/Camera.hpp"
 #include "GL/TextureAtlas.hpp"

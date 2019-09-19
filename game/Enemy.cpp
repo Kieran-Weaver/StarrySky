@@ -28,7 +28,7 @@ void Enemy::Update(float dt, Character* player) {
 	if (invltimer == 0){
 		bool hit = false;
 		if (player->swordout){
-			if (m_atlas.PixelPerfectTest(player->m_spr2,m_spr)){
+			if (this->m_spr.PPCollidesWith(player->m_spr2)){
 				hit = true;
 			}
 		}

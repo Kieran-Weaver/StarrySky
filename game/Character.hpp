@@ -5,7 +5,6 @@
 #include <GL/SpriteBatch.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <core/Map.hpp>
-#include "Enemy.hpp"
 #include <imgui/imgui.h>
 #include <cmath>
 #include <array>

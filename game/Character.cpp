@@ -157,7 +157,7 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 		invltimer--;
 	}
 	for (auto& i : objects){
-		if (m_atlas.PixelPerfectTest(this->m_spr,i->m_spr)){
+		if (this->m_spr.PPCollidesWith(i->m_spr)){
 			if (shieldout && !shieldbroken){
 				if (invltimer == 0){
 					shieldmeter = shieldmeter - 200.f;

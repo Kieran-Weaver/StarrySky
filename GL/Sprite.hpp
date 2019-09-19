@@ -14,6 +14,7 @@ struct Sprite{
 	void setPosition(const glm::vec2& pos);
 	void rotate(const float& degrees);
 	void transform(const glm::mat4& matrix);
+	bool PPCollidesWith(const Sprite& Object2);
 	Rect<float> getAABB() const;
 	void render();
 
@@ -25,6 +26,6 @@ struct Sprite{
 	glm::mat4 m_model; // used for transforming the sprite beyond position: initially converts from [0,1],[0,1] to world coordinates
 
 private:
-	std::array<glm::vec4,4> rectCorners = {glm::vec4(0.f,0.f,0.f,1.f), glm::vec4(1.f,0.f,0.f,1.f), glm::vec4(1.f,1.f,0.f,1.f), glm::vec4(0.f,1.f,0.f,1.f)}; 
+	const std::array<glm::vec4,4> rectCorners = {glm::vec4(0.f,0.f,0.f,1.f), glm::vec4(1.f,0.f,0.f,1.f), glm::vec4(1.f,1.f,0.f,1.f), glm::vec4(0.f,1.f,0.f,1.f)}; 
 };
 #endif
