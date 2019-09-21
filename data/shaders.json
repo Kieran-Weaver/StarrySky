@@ -1,0 +1,28 @@
+{
+  "shaders.len" : 1,
+  "shaders": [
+    {
+      "vxFile" : "data/shaders/default.vert",
+      "fgFile" : "data/shaders/default.frag",
+      "layout" : [
+        {
+          "name" : "position",
+          "components" : 2,
+          "type" : 0,
+          "norm" : false,
+          "stride" : 12,
+          "start" : 0
+        },
+        {
+          "name" : "texcoord",
+          "components" : 2,
+          "type" : 1,
+          "norm" : true,
+          "stride" : 12,
+          "start" : 8
+        }
+      ],
+      "output" : "outColor"
+    }
+  ]
+}

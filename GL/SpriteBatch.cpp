@@ -1,35 +1,27 @@
 #include "SpriteBatch.hpp"
 #include "Camera.hpp"
 #include "Sprite.hpp"
+#include <simdjson/singleheader/simdjson.h>
+#include <iosfwd>
 // TODO: Add tilemap functionality
 SpriteBatch::SpriteBatch(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 	m_texData.set_empty_key(nullptr);
-	glGenVertexArrays(1,&VAO);
-	glBindVertexArray(VAO);
+	int num_shaders = 1;
+	GLuint* VAOs = new GLuint[num_shaders];
+	glGenVertexArrays(num_shaders,VAOs);
+	glBindVertexArray(VAOs[0]);
 
 	auto vbo_handles = new GLuint[m_atlas.m_num_textures];
 	glGenBuffers(m_atlas.m_num_textures,vbo_handles);
 	glBindBuffer(GL_ARRAY_BUFFER,vbo_handles[0]);
-
-	genIndexBuffer<uint16_t>(0xffff,ebo);
-	
-	vxShader = Shader(GL_VERTEX_SHADER);
-	vxShader.load("data/shaders/default.vert");
-
-	fgShader = Shader(GL_FRAGMENT_SHADER);
-	fgShader.load("data/shaders/default.frag");
-
-	shaderProgram = CreateProgram(vxShader,fgShader,"outColor");
-	glUseProgram(shaderProgram);
-	
-	posAttrib = glGetAttribLocation(shaderProgram, "position");
-	glEnableVertexAttribArray(posAttrib);
-	glVertexAttribPointer(posAttrib,2,GL_FLOAT,GL_FALSE,sizeof(Vertex),nullptr);
-
-	texAttrib = glGetAttribLocation(shaderProgram, "texcoord");
-	glEnableVertexAttribArray(texAttrib);
-	glVertexAttribPointer(texAttrib,2,GL_UNSIGNED_SHORT,GL_TRUE,sizeof(Vertex),reinterpret_cast<void*>((2*sizeof(float))));
-
+	if (this->loadPrograms("data/shaders.json",num_shaders,VAOs) == -1){
+		std::cout << "Not valid JSON" << std::endl;
+		return;
+	}
+	glUseProgram(glPrograms[0].programHandle);
+	for (auto& i : glPrograms){
+		genIndexBuffer<uint16_t>(0xffff,i.ebo);
+	}
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
 		this->m_texData[m_atlas.m_texture_handles+textureIndex] = TextureData();
 		this->m_texData[m_atlas.m_texture_handles+textureIndex].VBO = vbo_handles[textureIndex];
@@ -37,16 +29,20 @@ SpriteBatch::SpriteBatch(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 		glBufferData(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles+textureIndex].vertices.size()*sizeof(Vertex),m_texData[m_atlas.m_texture_handles+textureIndex].vertices.data(),GL_DYNAMIC_DRAW);
 	}
 	delete[] vbo_handles;
-	glUniform1i(glGetUniformLocation(shaderProgram,"tex"),0);
-	ws.MatrixID = glGetUniformLocation(shaderProgram,"VP");
+	for (auto& i : glPrograms){
+		glUniform1i(glGetUniformLocation(i.programHandle,"tex"),0);
+	}
+	ws.MatrixID = glGetUniformLocation(glPrograms[0].programHandle,"VP");
 }
 SpriteBatch::~SpriteBatch(){
 	for (auto& i : m_texData){
 		glDeleteBuffers(1,&i.second.VBO);
 	}
-	glDeleteProgram(shaderProgram);
-	glDeleteBuffers(1,&ebo.handle);
-	glDeleteVertexArrays(1,&VAO);
+	for (auto& i : glPrograms){
+		glDeleteVertexArrays(1,&i.VAO);
+		glDeleteProgram(i.programHandle);
+		glDeleteBuffers(1,&i.ebo.handle);
+	}
 }
 void SpriteBatch::Draw(Sprite* spr){
 	spr->render();
@@ -69,10 +65,117 @@ bool SpriteCMP(const Sprite* a, const Sprite* b){
 		return (a->m_drawn);
 	}
 }
+int SpriteBatch::loadPrograms(const std::string& filename, int num_shaders, GLuint* VAOs){
+	simdjson::padded_string filedata = simdjson::get_corpus(filename);
+	simdjson::ParsedJson pj = simdjson::build_parsed_json(filedata);
+	if (!pj.is_valid()){
+		return -1;
+	}else{
+		simdjson::ParsedJson::Iterator i(pj);
+		if (i.move_to_key("shaders",7) && i.is_array()){
+			for (int ind = 0; ind < num_shaders; ind++){
+				i.down();
+				if (i.is_object()){
+					glPrograms.emplace_back();
+					glPrograms.back().VAO = VAOs[ind];
+					glBindVertexArray(glPrograms.back().VAO);
+					if (i.move_to_key("vxFile",6)){
+						glPrograms.back().vxShader.load(i.get_string());
+						i.up();
+					}else{
+						throw std::invalid_argument("vxFile not found");
+					}
+					if (i.move_to_key("fgFile",6)){
+						glPrograms.back().fgShader.load(i.get_string());
+						i.up();
+					}else{
+						throw std::invalid_argument("fgFile not found");
+					}
+					if (i.move_to_key("output",6)){
+						glPrograms.back().programHandle = CreateProgram(glPrograms.back().fgShader,glPrograms.back().vxShader,i.get_string());
+						i.up();
+					}else{
+						throw std::invalid_argument("output not found");
+					}
+					if (i.move_to_key("layout",6)){
+						i.down();
+						do{
+							std::string input_name = "";
+							GLuint components = 2;
+							GLuint type = GL_FLOAT;
+							GLboolean normalized = false;
+							GLuint stride = 0;
+							GLuint start = 0;
+							if (i.move_to_key("name",4)){
+								input_name = i.get_string();
+								i.up();
+							}else{
+								throw std::invalid_argument("name not found" + input_name);
+							}
+							if (i.move_to_key("components",10)){
+								components = i.get_integer();
+								i.up();
+							}else{
+								throw std::invalid_argument("components not found");
+							}
+							if (i.move_to_key("type",4)){
+								switch(i.get_integer()){
+								case 0:
+									type = GL_FLOAT;
+									break;
+								case 1:
+									type = GL_UNSIGNED_SHORT;
+									break;
+								default:
+									type = GL_FLOAT;
+									break;
+								}
+								i.up();
+							}else{
+								throw std::invalid_argument("type not found");
+							}
+							if (i.move_to_key("norm",4)){
+								normalized = i.is_true();
+								i.up();
+							}else{
+								throw std::invalid_argument("norm not found");
+							}
+							if (i.move_to_key("stride",6)){
+								stride = i.get_integer();
+								i.up();
+							}else{
+								throw std::invalid_argument("stride not found");
+							}
+							if (i.move_to_key("start",5)){
+								start = i.get_integer();
+								i.up();
+							}else{
+								throw std::invalid_argument("start not found");
+							}
+							GLint inputHandle = glGetAttribLocation(glPrograms.back().programHandle, input_name.c_str());
+							glEnableVertexAttribArray(inputHandle);
+							if (start == 0){
+								glVertexAttribPointer(inputHandle,components,type,normalized,stride,nullptr);
+							}else{
+								glVertexAttribPointer(inputHandle,components,type,normalized,stride,reinterpret_cast<void*>(start));
+							}
+						}while (i.next());
+						i.up();
+					}
+					i.up();
+					i.up();
+				}
+			}
+			i.up();
+		}
+	}
+	return glPrograms.size();
+}
 void SpriteBatch::Draw(GLFWwindow* target){
 	glfwMakeContextCurrent(target);
 	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
 	glUniformMatrix4fv(ws->MatrixID,1,GL_FALSE,&ws->camera->getVP()[0][0]);
+	glBindVertexArray(glPrograms[0].VAO);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
 		size_t spriteIndex = 0;
