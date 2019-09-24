@@ -7,3 +7,6 @@
 [submodule "simdjson"]
 	path = simdjson
 	url = git@github.com:lemire/simdjson.git
+[submodule "galogen"]
+	path = galogen
+	url = git@github.com:google/galogen.git
