@@ -1,6 +1,7 @@
 #ifndef STARRYSKY_TILEMAP_H
 #define STARRYSKY_TILEMAP_H
 #include <vector>
+#include <cstdint>
 struct Sprite;
 struct TileMap{
 	Sprite * palette = nullptr;

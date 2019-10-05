@@ -43,6 +43,8 @@ int main(){
 	glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
+	glfwWindowHint(GLFW_STENCIL_BITS, 8);
 	window = glfwCreateWindow(1280,720,"Starry Sky", nullptr, nullptr);
 	if (window == nullptr){
 		glfwTerminate();
@@ -81,7 +83,7 @@ int main(){
 		glfwMakeContextCurrent(window);
 		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		map.Draw(batch);
 		player.Update(frametime,objects,window);
 		testEnemy.Update(frametime,&player);

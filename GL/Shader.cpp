@@ -2,10 +2,20 @@
 #include <fstream>
 #include <array>
 Shader::Shader(GLenum type) : m_handle(0), m_type(type) {}
-Shader::~Shader(){
-	if (loaded){
+Shader::Shader(Shader&& other) : m_handle(other.m_handle), m_type(other.m_type){
+	other.m_handle = 0;
+}
+Shader& Shader::operator=(Shader&& other){
+	if (this != &other){
 		glDeleteShader(m_handle);
+		this->m_handle = other.m_handle;
+		this->m_type = other.m_type;
+		other.m_handle = 0;
 	}
+	return *this;
+}
+Shader::~Shader(){
+	glDeleteShader(m_handle);
 }
 void Shader::load(const std::string& filename){
 	m_handle = glCreateShader(this->m_type);

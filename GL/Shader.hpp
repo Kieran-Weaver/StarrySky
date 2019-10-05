@@ -6,7 +6,11 @@ class Shader
 {
 public:
 	Shader(GLenum type);
-	Shader() = default;
+	Shader() : m_handle(0), m_type(0){}
+	Shader(const Shader&) = delete;
+	Shader& operator=(const Shader&) = delete;
+	Shader(Shader&& other);
+	Shader& operator=(Shader&& other);
 	~Shader();
 	void load(const std::string& filename);
 	GLuint m_handle;
