@@ -8,7 +8,13 @@ IMGUI_SRCS := imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp imgui
 SRCS := $(shell find . -path "./GL/*.cpp" -o -path "./core/*.cpp" -o -path "./JSON/*.cpp" -o -path "./game/*.cpp" ) main.cpp simdjson/singleheader/simdjson.cpp gl.c $(IMGUI_SRCS)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
-LDFLAGS=-lopengl32 -lglfw3 -lz -Wl,-O1 -mwindows -static-libstdc++ -static-libgcc -static
+ifdef OS
+	LDFLAGS=-lopengl32 -lglfw3 -lz -Wl,-O1 -mwindows -static-libstdc++ -static-libgcc -static
+	CPPFLAGS += -I/usr/include/glfw
+else
+	LDFLAGS=-lGL -lglfw -lz -Wl,-O1
+	CPPFLAGS += -I/usr/include/GLFW
+endif
 all: gl.h $(TARGET)
 
 $(TARGET): $(OBJS)
