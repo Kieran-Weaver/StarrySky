@@ -4,9 +4,9 @@
 [submodule "imgui"]
 	path = imgui
 	url = git@github.com:ocornut/imgui.git
-[submodule "simdjson"]
-	path = simdjson
-	url = git@github.com:lemire/simdjson.git
 [submodule "galogen"]
 	path = galogen
 	url = git@github.com:google/galogen.git
+[submodule "sajson"]
+	path = sajson
+	url = git@github.com:chadaustin/sajson.git

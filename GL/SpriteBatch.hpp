@@ -22,7 +22,7 @@ public:
 	SpriteBatch& operator=(SpriteBatch &&) noexcept;
 	SpriteBatch(const SpriteBatch& rhs) = delete;
 	SpriteBatch& operator=(const SpriteBatch& rhs) = delete;
-	int loadPrograms(const std::string& filename,int num_shaders,GLuint* VAOs);
+	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void Draw(Sprite* spr);
 	void ChangeMap(TileMap* tm);
 	void Draw(GLFWwindow* target);

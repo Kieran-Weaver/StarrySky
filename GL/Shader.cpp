@@ -39,3 +39,12 @@ GLuint CreateProgram(const Shader& VertexShader, const Shader& FragShader, const
 	glLinkProgram(shaderProgram);
 	return shaderProgram;
 }
+GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const Shader& FragShader, const std::string& OutputLocation){
+	GLuint shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, VertexShader.m_handle);
+	glAttachShader(shaderProgram, GeomShader.m_handle);
+	glAttachShader(shaderProgram, FragShader.m_handle);
+	glBindFragDataLocation(shaderProgram,0,OutputLocation.c_str());
+	glLinkProgram(shaderProgram);
+	return shaderProgram;
+}

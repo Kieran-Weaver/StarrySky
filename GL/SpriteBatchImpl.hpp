@@ -8,6 +8,7 @@
 #include "WindowState.h"
 #include "TextureAtlas.hpp"
 #include <GLFW/glfw3.h>
+#include <sajson.h>
 // Rendering Modes
 #define SPRITE2D 0
 #define TILEMAP 1
@@ -21,7 +22,7 @@ class SpriteBatchImpl{
 public:
 	SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws);
 	~SpriteBatchImpl();
-	int loadPrograms(const std::string& filename,int num_shaders,GLuint* VAOs);
+	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void Draw(Sprite* spr);
 	void ChangeMap(TileMap* tm);
 	void Draw(GLFWwindow* target);
@@ -35,9 +36,11 @@ private:
 		GLProgram(){
 			this->vxShader = Shader(GL_VERTEX_SHADER);
 			this->fgShader = Shader(GL_FRAGMENT_SHADER);
+			this->gsShader = Shader(GL_GEOMETRY_SHADER);
 		}
 		Shader vxShader;
 		Shader fgShader;
+		Shader gsShader;
 		GLuint programHandle;
 		GLBuffer<uint16_t> ebo;
 		GLuint VAO;
@@ -46,5 +49,6 @@ private:
 	std::unique_ptr<TileMap,TileMapDeleter> m_currentMap;
 	google::dense_hash_map<GLuint*,TextureData> m_texData;
 	TextureAtlas& m_atlas;
+	sajson::document *document;
 };
 #endif

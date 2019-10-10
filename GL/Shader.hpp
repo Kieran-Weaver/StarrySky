@@ -20,4 +20,5 @@ private:
 };
 GLuint CreateProgram(const std::string& VertexShader, const std::string& FragShader, const std::string& OutputLocation);
 GLuint CreateProgram(const Shader& VertexShader, const Shader& FragShader, const std::string& OutputLocation);
+GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const Shader& FragShader, const std::string& OutputLocation);
 #endif

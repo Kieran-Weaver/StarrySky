@@ -4,6 +4,7 @@
     {
       "vxFile" : "data/shaders/default.vert",
       "fgFile" : "data/shaders/default.frag",
+	  "usesGS" : false,
       "layout" : [
         {
           "name" : "position",
@@ -23,6 +24,23 @@
         }
       ],
       "output" : "outColor"
-    }
+    },
+	{
+	  "vxFile" : "data/shaders/tilemap.vert",
+	  "gsFile" : "data/shaders/tilemap.geom",
+	  "fgFile" : "data/shaders/tilemap.frag",
+	  "usesGS" : true,
+	  "layout" : [
+	    {
+          "name" : "position",
+		  "components" : 2,
+		  "type" : 0,
+		  "norm" : false,
+		  "stride" : 0,
+		  "start" : 0
+		}
+	  ],
+	  "output" : "outColor"
+	}
   ]
 }

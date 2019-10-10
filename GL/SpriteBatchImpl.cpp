@@ -1,14 +1,31 @@
 #include "SpriteBatchImpl.hpp"
 #include "Camera.hpp"
 #include "Sprite.hpp"
-#include <simdjson/singleheader/simdjson.h>
-#include <iosfwd>
+#include <iostream>
+#include <string>
 // TODO: Add tilemap functionality
+std::string get_string(const sajson::value& node, std::string key){
+	return node.get_value_of_key(sajson::string(key.c_str(), key.length())).as_string();
+}
+int get_int(const sajson::value& node, std::string key){
+	return node.get_value_of_key(sajson::string(key.c_str(), key.length())).get_integer_value();
+}
+bool get_bool(const sajson::value& node, std::string key){
+	return (node.get_value_of_key(sajson::string(key.c_str(), key.length())).get_type() == sajson::TYPE_TRUE);
+}
+sajson::value get_node(const sajson::value& node, std::string key){
+	return node.get_value_of_key(sajson::string(key.c_str(), key.length()));
+}
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
+	std::string shaderdata = readWholeFile("data/shaders.json");
+	char *sdata = new char[shaderdata.length()];
+	std::strcpy(sdata, shaderdata.c_str());
+	document = new sajson::document(sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(shaderdata.length(), sdata)));
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	m_texData.set_empty_key(nullptr);
-	int num_shaders = 1;
+	sajson::value node = document->get_root();
+	int num_shaders = get_int(node, "shaders.len");
 	GLuint* VAOs = new GLuint[num_shaders];
 	glGenVertexArrays(num_shaders,VAOs);
 	glBindVertexArray(VAOs[0]);
@@ -16,7 +33,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws) : m_atlas
 	auto vbo_handles = new GLuint[m_atlas.m_num_textures];
 	glGenBuffers(m_atlas.m_num_textures,vbo_handles);
 	glBindBuffer(GL_ARRAY_BUFFER,vbo_handles[0]);
-	if (this->loadPrograms("data/shaders.json",num_shaders,VAOs) == -1){
+	if (this->loadPrograms(num_shaders,VAOs) == -1){
 		std::cout << "Not valid JSON" << std::endl;
 		return;
 	}
@@ -67,100 +84,60 @@ bool SpriteCMP(const Sprite* a, const Sprite* b){
 		return (a->m_drawn);
 	}
 }
-int SpriteBatchImpl::loadPrograms(const std::string& filename, int num_shaders, GLuint* VAOs){
-	simdjson::padded_string filedata = simdjson::get_corpus(filename);
-	simdjson::ParsedJson pj = simdjson::build_parsed_json(filedata);
-	if (!pj.is_valid()){
-		return -1;
-	}else{
-		simdjson::ParsedJson::Iterator i(pj);
-		if (i.move_to_key("shaders",7) && i.is_array()){
-			for (int ind = 0; ind < num_shaders; ind++){
-				i.down();
-				if (i.is_object()){
-					glPrograms.emplace_back();
-					glPrograms.back().VAO = VAOs[ind];
-					glBindVertexArray(glPrograms.back().VAO);
-					if (i.move_to_key("vxFile",6)){
-						glPrograms.back().vxShader.load(i.get_string());
-						i.up();
-					}else{
-						throw std::invalid_argument("vxFile not found");
-					}
-					if (i.move_to_key("fgFile",6)){
-						glPrograms.back().fgShader.load(i.get_string());
-						i.up();
-					}else{
-						throw std::invalid_argument("fgFile not found");
-					}
-					if (i.move_to_key("output",6)){
-						glPrograms.back().programHandle = CreateProgram(glPrograms.back().fgShader,glPrograms.back().vxShader,i.get_string());
-						i.up();
-					}else{
-						throw std::invalid_argument("output not found");
-					}
-					if (i.move_to_key("layout",6)){
-						i.down();
-						do{
-							std::string input_name = "";
-							GLuint components = 2;
-							GLuint type = GL_FLOAT;
-							GLboolean normalized = false;
-							GLuint stride = 0;
-							GLuint start = 0;
-							if (i.move_to_key("name",4)){
-								input_name = i.get_string();
-								i.up();
-							}else{
-								throw std::invalid_argument("name not found" + input_name);
-							}
-							if (i.move_to_key("components",10)){
-								components = i.get_integer();
-								i.up();
-							}else{
-								throw std::invalid_argument("components not found");
-							}
-							if (i.move_to_key("type",4)){
-								switch(i.get_integer()){
-								case 0:
-									type = GL_FLOAT;
-									break;
-								case 1:
-									type = GL_UNSIGNED_SHORT;
-									break;
-								default:
-									type = GL_FLOAT;
-									break;
-								}
-								i.up();
-							}
-							if (i.move_to_key("norm",4)){
-								normalized = i.is_true();
-								i.up();
-							}
-							if (i.move_to_key("stride",6)){
-								stride = i.get_integer();
-								i.up();
-							}
-							if (i.move_to_key("start",5)){
-								start = i.get_integer();
-								i.up();
-							}
-							GLint inputHandle = glGetAttribLocation(glPrograms.back().programHandle, input_name.c_str());
-							glEnableVertexAttribArray(inputHandle);
-							if (start == 0){
-								glVertexAttribPointer(inputHandle,components,type,normalized,stride,nullptr);
-							}else{
-								glVertexAttribPointer(inputHandle,components,type,normalized,stride,reinterpret_cast<void*>(start));
-							}
-						}while (i.next());
-						i.up();
-					}
-					i.up();
-					i.up();
-				}
+int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
+	sajson::value node = get_node(document->get_root(),"shaders");
+	for (int ind = 0; ind < num_shaders; ind++){
+		glPrograms.emplace_back();
+		GLProgram& currentProgram = glPrograms.back();
+		currentProgram.VAO = VAOs[ind];
+		glBindVertexArray(currentProgram.VAO);
+		sajson::value shaderNode = node.get_array_element(ind);
+
+		currentProgram.fgShader.load(get_string(shaderNode, "fgFile"));
+		currentProgram.vxShader.load(get_string(shaderNode, "vxFile"));
+		bool usesGS = get_bool(shaderNode, "usesGS");
+		if (usesGS){
+			currentProgram.gsShader.load(get_string(shaderNode, "gsFile"));
+			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.gsShader,currentProgram.fgShader,get_string(shaderNode, "output"));
+		}else{
+			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.fgShader,get_string(shaderNode, "output"));
+		}
+		sajson::value layoutNode = get_node(shaderNode,"layout");
+		int arrayLength = layoutNode.get_length();
+		for (int i = 0; i < arrayLength; i++){
+			sajson::value parameterNode = layoutNode.get_array_element(i);
+			std::string input_name = "";
+			GLuint components = 2;
+			GLuint type = GL_FLOAT;
+			GLboolean normalized = false;
+			GLuint stride = 0;
+			GLuint start = 0;
+			input_name = get_string(parameterNode, "name");
+			
+			components = get_int(parameterNode,"components");	
+			
+			switch (get_int(parameterNode, "type")){
+			case 0:
+				type = GL_FLOAT;
+				break;
+			case 1:
+				type = GL_UNSIGNED_SHORT;
+				break;
+			default:
+				type = GL_FLOAT;
+				break;
 			}
-			i.up();
+			
+			normalized = get_bool(parameterNode, "norm");
+			stride = get_int(parameterNode, "stride");
+			start = get_int(parameterNode, "start");
+			GLint inputHandle = glGetAttribLocation(glPrograms.back().programHandle, input_name.c_str());
+			glEnableVertexAttribArray(inputHandle);
+			if (start == 0){
+				glVertexAttribPointer(inputHandle,components,type,normalized,stride,nullptr);
+			}else{
+				glVertexAttribPointer(inputHandle,components,type,normalized,stride,reinterpret_cast<void*>(start));
+			}
 		}
 	}
 	return glPrograms.size();
@@ -171,6 +148,7 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
 	glUniformMatrix4fv(ws->MatrixID,1,GL_FALSE,&ws->camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
+	glActiveTexture(GL_TEXTURE0);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
 		size_t spriteIndex = 0;

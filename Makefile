@@ -1,16 +1,16 @@
 CC=gcc
 CXX=g++
 TARGET=Platformer
-CFLAGS := -O2 -march=x86-64 -I. -iquote imgui
-CXXFLAGS := -O2 -march=x86-64 -fno-rtti -std=c++17 -I. -iquote imgui
+CFLAGS := -O0 -g -march=native -I. -iquote imgui
+CXXFLAGS := -O0 -g -march=native -fno-rtti -std=c++17 -I. -iquote imgui -Isajson/include
 CPPFLAGS := $(INC_FLAGS) -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -MMD -MP
 IMGUI_SRCS := imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp imgui/imgui_demo.cpp imgui/examples/imgui_impl_glfw.cpp imgui/examples/imgui_impl_opengl3.cpp
-SRCS := $(shell find . -path "./GL/*.cpp" -o -path "./core/*.cpp" -o -path "./JSON/*.cpp" -o -path "./game/*.cpp" ) main.cpp simdjson/singleheader/simdjson.cpp gl.c $(IMGUI_SRCS)
+SRCS := gl.c $(shell find . -path "./GL/*.cpp" -o -path "./core/*.cpp" -o -path "./game/*.cpp" ) main.cpp $(IMGUI_SRCS)
 OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
 ifdef OS
 	LDFLAGS=-lopengl32 -lglfw3 -lz -Wl,-O1 -mwindows -static-libstdc++ -static-libgcc -static
-	CPPFLAGS += -I/usr/include/glfw
+	CPPFLAGS += -I/mingw64/include/GLFW
 else
 	LDFLAGS=-lGL -lglfw -lz -Wl,-O1
 	CPPFLAGS += -I/usr/include/GLFW
