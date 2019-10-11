@@ -38,9 +38,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws) : m_atlas
 		return;
 	}
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
-	for (auto& i : glPrograms){
-		genIndexBuffer<uint16_t>(0xffff,i.ebo);
-	}
+	genIndexBuffer<uint16_t>(0xffff,glPrograms[0].ebo);
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
 		this->m_texData[m_atlas.m_texture_handles+textureIndex] = TextureData();
 		this->m_texData[m_atlas.m_texture_handles+textureIndex].VBO = vbo_handles[textureIndex];
@@ -149,6 +147,7 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glUniformMatrix4fv(ws->MatrixID,1,GL_FALSE,&ws->camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
 	glActiveTexture(GL_TEXTURE0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glPrograms[SPRITE2D].ebo.m_handle);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
 		size_t spriteIndex = 0;

@@ -1,6 +1,7 @@
 #include "Shader.hpp"
 #include <fstream>
 #include <array>
+#include <iostream>
 Shader::Shader(GLenum type) : m_handle(0), m_type(type) {}
 Shader::Shader(Shader&& other) : m_handle(other.m_handle), m_type(other.m_type){
 	other.m_handle = 0;
@@ -23,7 +24,21 @@ void Shader::load(const std::string& filename){
 	const char* shader_contents = contents.c_str();
 	glShaderSource(m_handle,1,&shader_contents,nullptr);
 	glCompileShader(m_handle);
-	loaded = true;
+	GLint success = 0;
+	glGetShaderiv(m_handle, GL_COMPILE_STATUS, &success);
+	if (success == GL_FALSE){
+		std::cerr << "Shader compilation failed: " << filename << std::endl;
+		GLint maxLength = 0;
+		glGetShaderiv(m_handle, GL_INFO_LOG_LENGTH, &maxLength);
+		std::vector<GLchar> errorLog(maxLength);
+		glGetShaderInfoLog(m_handle, maxLength, &maxLength, &errorLog[0]);
+		std::string errorMessage(errorLog.data(), errorLog.size());
+		std::cerr << "Message: " << errorMessage << std::endl;
+		glDeleteShader(m_handle);
+		loaded = false;
+	}else{
+		loaded = true;
+	}
 }
 GLuint CreateProgram(const std::string& VertexShader, const std::string& FragShader, const std::string& OutputLocation){
 	std::array<Shader,2> shaders = {GL_VERTEX_SHADER,GL_FRAGMENT_SHADER};
@@ -37,7 +52,24 @@ GLuint CreateProgram(const Shader& VertexShader, const Shader& FragShader, const
 	glAttachShader(shaderProgram, FragShader.m_handle);
 	glBindFragDataLocation(shaderProgram,0,OutputLocation.c_str());
 	glLinkProgram(shaderProgram);
-	return shaderProgram;
+	GLint isLinked = 0;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
+	if (isLinked == GL_FALSE){
+		GLint maxLength = 0;
+		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
+
+		glDeleteProgram(shaderProgram);
+		std::string errorMessage(infoLog.data(), infoLog.size());
+		std::cerr << "Message: " << errorMessage << std::endl;
+		return 0;
+	// Provide the infolog in whatever manner you deem best.
+	// Exit with failure.
+	}else{
+		return shaderProgram;
+	}
 }
 GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const Shader& FragShader, const std::string& OutputLocation){
 	GLuint shaderProgram = glCreateProgram();
