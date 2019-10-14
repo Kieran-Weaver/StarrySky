@@ -1,7 +1,9 @@
 #version 330
 in vec2 position;
 in vec2 Index;
-uniform mat4 globalVP;
+layout (std140) uniform VP{
+	mat4 globalVP;
+};
 out vec2 index;
 void main(){
 	index = Index;

@@ -46,8 +46,9 @@ private:
 		GLuint VAO;
 	};
 	std::vector<GLProgram> glPrograms;
+	std::vector<GLBuffer<float>> ubos;
 	std::unique_ptr<TileMap,TileMapDeleter> m_currentMap;
-	google::dense_hash_map<GLuint*,TextureData> m_texData;
+	google::dense_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;
 	sajson::document *document;
 };

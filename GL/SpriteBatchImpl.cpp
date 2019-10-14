@@ -18,12 +18,12 @@ sajson::value get_node(const sajson::value& node, std::string key){
 }
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile("data/shaders.json");
-	char *sdata = new char[shaderdata.length()];
-	std::strcpy(sdata, shaderdata.c_str());
+	char *sdata = new char[shaderdata.length()+1];
+	std::strncpy(sdata, shaderdata.c_str(), shaderdata.length());
 	document = new sajson::document(sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(shaderdata.length(), sdata)));
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	m_texData.set_empty_key(nullptr);
+	m_texData.set_empty_key(std::numeric_limits<GLuint>::max());
 	sajson::value node = document->get_root();
 	int num_shaders = get_int(node, "shaders.len");
 	GLuint* VAOs = new GLuint[num_shaders];
@@ -40,16 +40,22 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws) : m_atlas
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
 	genIndexBuffer<uint16_t>(0xffff,glPrograms[0].ebo);
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
-		this->m_texData[m_atlas.m_texture_handles+textureIndex] = TextureData();
-		this->m_texData[m_atlas.m_texture_handles+textureIndex].VBO = vbo_handles[textureIndex];
-		glBindBuffer(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles+textureIndex].VBO);
-		glBufferData(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles+textureIndex].vertices.size()*sizeof(Vertex),m_texData[m_atlas.m_texture_handles+textureIndex].vertices.data(),GL_DYNAMIC_DRAW);
+		this->m_texData[m_atlas.m_texture_handles[textureIndex]] = TextureData();
+		this->m_texData[m_atlas.m_texture_handles[textureIndex]].VBO = vbo_handles[textureIndex];
+		glBindBuffer(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles[textureIndex]].VBO);
+		glBufferData(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles[textureIndex]].vertices.size()*sizeof(Vertex),m_texData[m_atlas.m_texture_handles[textureIndex]].vertices.data(),GL_DYNAMIC_DRAW);
 	}
 	delete[] vbo_handles;
 	for (auto& i : glPrograms){
 		glUniform1i(glGetUniformLocation(i.programHandle,"tex"),0);
+		glUniformBlockBinding(i.programHandle, glGetUniformBlockIndex(i.programHandle, "VP"), 0); // Global VP data is at 0
 	}
-	ws.MatrixID = glGetUniformLocation(glPrograms[0].programHandle,"VP");
+	ubos.emplace_back();
+	GLBuffer<float>& matrixbuffer = ubos.back();
+	glBindBuffer(GL_UNIFORM_BUFFER, matrixbuffer.m_handle);
+	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_DYNAMIC_DRAW);
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, matrixbuffer.m_handle, 0, 64); // Global VP data
+	ws.MatrixID = ubos.size() - 1;
 }
 SpriteBatchImpl::~SpriteBatchImpl(){
 	for (auto& i : m_texData){
@@ -63,7 +69,7 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 }
 void SpriteBatchImpl::Draw(Sprite* spr){
 	spr->render();
-	GLuint* m_tex = spr->m_subtexture->m_texture;
+	GLuint m_tex = *spr->m_subtexture->m_texture;
 	if (m_texData.find(m_tex) == m_texData.end()){
 		m_texData[m_tex] = TextureData();
 		glGenBuffers(1,&m_texData[m_tex].VBO);
@@ -144,7 +150,8 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glfwMakeContextCurrent(target);
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
 	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
-	glUniformMatrix4fv(ws->MatrixID,1,GL_FALSE,&ws->camera->getVP()[0][0]);
+	glBindBuffer(GL_UNIFORM_BUFFER, ubos[ws->MatrixID].m_handle);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, &ws->camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glPrograms[SPRITE2D].ebo.m_handle);
@@ -170,7 +177,7 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 				currentTexData.sprites[spriteIndex]->m_changed = false;
 			}
 		}
-		glBindTexture(GL_TEXTURE_2D,*texturepair.first);
+		glBindTexture(GL_TEXTURE_2D,texturepair.first);
 		glBindBuffer(GL_ARRAY_BUFFER,currentTexData.VBO);
 		glBufferSubData(GL_ARRAY_BUFFER,skippedSprites*4*sizeof(Vertex),(currentTexData.vertices.size()-skippedSprites*4)*sizeof(Vertex),currentTexData.vertices.data()+(skippedSprites*4));
 		glDrawElements(GL_TRIANGLES,6*(currentTexData.vertices.size()/4),GL_UNSIGNED_SHORT,nullptr);

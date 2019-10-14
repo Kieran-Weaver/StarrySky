@@ -2,8 +2,10 @@
 in vec2 position;
 in vec2 texcoord;
 out vec2 Texcoord;
-uniform mat4 VP;
+layout (std140) uniform VP{
+	mat4 globalVP;
+};
 void main(){
 	Texcoord = texcoord;
-	gl_Position = VP*vec4(position,0.0,1.0);
+	gl_Position = globalVP*vec4(position,0.0,1.0);
 } 
