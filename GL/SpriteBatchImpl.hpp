@@ -16,16 +16,13 @@ namespace sajson{
 	class document;
 }
 struct Sprite;
-struct TileMapDeleter{
-	void operator()(TileMap *p);
-};
 class SpriteBatchImpl{
 public:
-	SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws);
+	SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile);
 	~SpriteBatchImpl();
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void Draw(Sprite* spr);
-	void ChangeMap(TileMap* tm);
+	void ChangeMap(const TileMap& tm);
 	void Draw(GLFWwindow* target);
 private:
 	struct TextureData{
@@ -48,7 +45,7 @@ private:
 	};
 	std::vector<GLProgram> glPrograms;
 	std::vector<GLBuffer<float>> ubos;
-	std::unique_ptr<TileMap,TileMapDeleter> m_currentMap;
+	TileMap m_currentMap;
 	google::dense_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;
 	sajson::document *document;

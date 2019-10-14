@@ -69,7 +69,7 @@ int main(){
 	Enemy testEnemy(900, 300, map, "birdo1", "birdo3", 10, atlas);
 	std::vector<MovingEntity*> objects;
 	objects.push_back(&testEnemy);
-	SpriteBatch batch(atlas,ws);
+	SpriteBatch batch(atlas, ws, "data/shaders.json");
 	glfwSetWindowUserPointer(window,&ws);
 	glfwSetKeyCallback(window,key_callback);
 	glEnable(GL_BLEND);

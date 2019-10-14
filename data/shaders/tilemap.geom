@@ -1,28 +1,29 @@
 #version 330
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
-in vec2 index[];
-uniform mat2 AffineT;
-const float tileW = 1.0/16.0;
-const float tileH = 1.0/16.0;
-const float halfTileW = 1.0/32.0;
-const float halfTileH = 1.0/32.0;
+in int index[];
 out vec2 texposition;
+layout (std140) uniform GSData{
+	mat2 AffineT;
+	int numTextures;
+	vec4 tileData[256];
+};
 vec2 doTransform(vec2 initial, mat2 transform, vec2 position){
 	return (transform * initial) + position; 
 }
 void main(){
-	vec2 texcenter = vec2(tileW * index[0].x,tileH * index[0].y);
-	texposition = texcenter + vec2(halfTileW, -halfTileH);
+	vec2 texTopLeft = tileData[index[0]].xy;
+	vec3 texSize = vec3(tileData[index[0]].zw, 0.0);
+	texposition = texTopLeft + texSize.xz;
 	gl_Position = vec4(doTransform(vec2(0.5,-0.5), AffineT, gl_in[0].gl_Position.xy),0.f,1.f);
 	EmitVertex();
-	texposition = texcenter + vec2(-halfTileW, -halfTileH);
+	texposition = texTopLeft;
 	gl_Position = vec4(doTransform(vec2(-0.5,-0.5), AffineT, gl_in[0].gl_Position.xy),0.f,1.f);
 	EmitVertex();
-	texposition = texcenter + vec2(halfTileW, halfTileH);
+	texposition = texTopLeft + texSize.xy;
 	gl_Position = vec4(doTransform(vec2(0.5,0.5), AffineT, gl_in[0].gl_Position.xy),0.f,1.f);
 	EmitVertex();
-	texposition = texcenter + vec2(-halfTileW, halfTileH);
+	texposition = texTopLeft + texSize.zy;
 	gl_Position = vec4(doTransform(vec2(-0.5,0.5), AffineT, gl_in[0].gl_Position.xy),0.f,1.f);
 	EmitVertex();
 	EndPrimitive();

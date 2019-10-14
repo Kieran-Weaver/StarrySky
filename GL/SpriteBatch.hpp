@@ -16,7 +16,7 @@ struct SpriteBatchImplDeleter{
 };
 class SpriteBatch{
 public:
-	SpriteBatch(TextureAtlas& atlas, WindowState& ws);
+	SpriteBatch(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile);
 	~SpriteBatch() = default;
 	SpriteBatch(SpriteBatch &&) noexcept;
 	SpriteBatch& operator=(SpriteBatch &&) noexcept;
@@ -24,7 +24,7 @@ public:
 	SpriteBatch& operator=(const SpriteBatch& rhs) = delete;
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void Draw(Sprite* spr);
-	void ChangeMap(TileMap* tm);
+	void ChangeMap(const TileMap& tm);
 	void Draw(GLFWwindow* target);
 private:
 	const SpriteBatchImpl* Pimpl() const { return m_pImpl.get(); }

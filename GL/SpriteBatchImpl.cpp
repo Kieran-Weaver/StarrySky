@@ -6,8 +6,8 @@
 #include <iostream>
 #include <string>
 // TODO: Add tilemap functionality
-SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
-	std::string shaderdata = readWholeFile("data/shaders.json");
+SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){
+	std::string shaderdata = readWholeFile(shaderfile);
 	char *sdata = new char[shaderdata.length()+1];
 	std::strncpy(sdata, shaderdata.c_str(), shaderdata.length());
 	document = new sajson::document(sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(shaderdata.length(), sdata)));
@@ -127,10 +127,10 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 			start = get_int(parameterNode, "start");
 			GLint inputHandle = glGetAttribLocation(glPrograms.back().programHandle, input_name.c_str());
 			glEnableVertexAttribArray(inputHandle);
-			if (start == 0){
-				glVertexAttribPointer(inputHandle,components,type,normalized,stride,nullptr);
-			}else{
+			if (type == GL_FLOAT || normalized){
 				glVertexAttribPointer(inputHandle,components,type,normalized,stride,reinterpret_cast<void*>(start));
+			}else{
+				glVertexAttribIPointer(inputHandle,components,type,stride,reinterpret_cast<void*>(start));
 			}
 		}
 	}
@@ -175,9 +175,6 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 //	glUseProgram(glPrograms[TILEMAP].programHandle);
 //	glBindVertexArray(glPrograms[TILEMAP].VAO);
 }
-void SpriteBatchImpl::ChangeMap(TileMap* tm){
-	this->m_currentMap.reset(tm);
-}
-void TileMapDeleter::operator()(TileMap *p){
-	delete p;
+void SpriteBatchImpl::ChangeMap(const TileMap& tm){
+	this->m_currentMap = tm;
 }
