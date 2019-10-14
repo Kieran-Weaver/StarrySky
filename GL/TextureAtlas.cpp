@@ -1,8 +1,8 @@
 #include "TextureAtlas.hpp"
-#include <fstream>
+#include "Helpers.hpp"
 #include <zlib.h>
-#include <iosfwd>
-#define ROTATE
+#include "JSONHelper.hpp"
+#include <fstream>
 // Loads a recrunch-ed .dds.gz file, and populates the Atlas
 TextureAtlas::TextureAtlas(){
 	Bitmasks.set_empty_key(std::numeric_limits<GLuint>::max());
@@ -104,20 +104,22 @@ std::string getString(std::ifstream& input_file){
 	return value;
 }
 bool TextureAtlas::loadFromFile(const std::string& file_path){
-	std::ifstream input_file(file_path, std::ifstream::in | std::ifstream::binary);
-	if(!input_file){
-		return false;
-	}
+	std::string jsondata = readWholeFile(file_path);
+	char *jdata = new char[jsondata.length()+1];
+	std::strncpy(jdata, jsondata.c_str(), jsondata.length());
+	const sajson::document &document = sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(jsondata.length(), jdata));
+	sajson::value texturesNode = get_node(document.get_root(),"textures");
+	this->m_num_textures = texturesNode.get_length();
 	std::string path = file_path.substr(0, file_path.find_last_of("\\/") + 1);
-	uint16_t num_textures=0;
-	uint16_t num_images=0;
-	input_file.read(reinterpret_cast<char*>(&num_textures),2);
-	m_num_textures = num_textures;
-	m_texture_handles = new GLuint[m_num_textures];
-	glGenTextures(m_num_textures,m_texture_handles);
-	for (int textureIndex = 0; textureIndex < num_textures; textureIndex++){
-		std::string textureName = getString(input_file);
-		input_file.read(reinterpret_cast<char*>(&num_images),2);
+
+	this->m_texture_handles = new GLuint[this->m_num_textures];
+	glGenTextures(this->m_num_textures,this->m_texture_handles);
+
+	for (int textureIndex = 0; textureIndex < this->m_num_textures; textureIndex++){
+		sajson::value textureNode = texturesNode.get_array_element(textureIndex);
+		std::string textureName = get_string(textureNode, "name");
+		sajson::value filenamesNode = get_node(textureNode, "images");
+
 		m_atlas_list.emplace_back(Atlas());
 		m_atlas_list[textureIndex].m_texture = m_texture_handles + textureIndex;
 		if (!loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex])){
@@ -126,10 +128,16 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 		if (!loadBINgz(path + textureName + ".bin.gz",m_atlas_list[textureIndex])){
 			return false;
 		}
+
+		auto num_images = filenamesNode.get_length();
 		for (int imageindex = 0; imageindex < num_images; imageindex++){
-			std::string img_name = getString(input_file);
+			sajson::value imageNode = filenamesNode.get_array_element(imageindex);
+			std::string img_name = get_string(imageNode, "n");
 			Rect<uint16_t> tmp;
-			input_file.read(reinterpret_cast<char*>(&tmp.left),8);
+			tmp.left = get_int(imageNode, "x");
+			tmp.top = get_int(imageNode, "y");
+			tmp.width = get_int(imageNode, "w");
+			tmp.height = get_int(imageNode, "h");
 			auto width = static_cast<float>(m_atlas_list[textureIndex].width);
 			auto height = static_cast<float>(m_atlas_list[textureIndex].height);
 			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
@@ -139,22 +147,16 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 				static_cast<uint16_t>(tmp.height/height*65536.f));
 			m_atlas_list[textureIndex].m_texture_table[img_name].width = tmp.width;
 			m_atlas_list[textureIndex].m_texture_table[img_name].height = tmp.height;
-#ifdef TRIM
-			input_file.seekg(8,ios::cur);
-#endif
-#ifdef ROTATE
-			input_file.read(reinterpret_cast<char*>(&m_atlas_list[textureIndex].m_texture_table[img_name].rotated),1);
-			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated != 0){
+			m_atlas_list[textureIndex].m_texture_table[img_name].rotated = get_bool(imageNode, "r");
+			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated){
 				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
 				static_cast<uint16_t>(tmp.left/width*65536.f),
 				static_cast<uint16_t>(tmp.top/height*65536.f),
 				static_cast<uint16_t>(tmp.height/width*65536.f),
 				static_cast<uint16_t>(tmp.width/height*65536.f));
 			}
-#endif
 		}
 	}
-	input_file.close();
 	return !m_atlas_list.empty();
 }
 

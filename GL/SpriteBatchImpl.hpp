@@ -8,12 +8,13 @@
 #include "WindowState.h"
 #include "TextureAtlas.hpp"
 #include <GLFW/glfw3.h>
-#include <sajson.h>
 // Rendering Modes
 #define SPRITE2D 0
 #define TILEMAP 1
 #define SPRITE3D 2
-
+namespace sajson{
+	class document;
+}
 struct Sprite;
 struct TileMapDeleter{
 	void operator()(TileMap *p);

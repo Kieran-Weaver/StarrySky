@@ -60,8 +60,8 @@ int main(){
 	io.Fonts->AddFontFromFileTTF("data/fonts/boxfont_round.ttf",20.f);
 	glm::mat4 m(1.0f);
 	TextureAtlas atlas;
-	if (!atlas.loadFromFile("data/atlas.bin")){
-		std::cout << "Could not load atlas from data/atlas.bin" << std::endl;
+	if (!atlas.loadFromFile("data/atlas.json")){
+		std::cout << "Could not load atlas from data/atlas.json" << std::endl;
 		return 3;
 	}
 	ObjMap map("map2.txt",atlas);

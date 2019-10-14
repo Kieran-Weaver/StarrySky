@@ -1,21 +1,11 @@
 #include "SpriteBatchImpl.hpp"
 #include "Camera.hpp"
 #include "Sprite.hpp"
+#include "JSONHelper.hpp"
+#include <sajson.h>
 #include <iostream>
 #include <string>
 // TODO: Add tilemap functionality
-std::string get_string(const sajson::value& node, std::string key){
-	return node.get_value_of_key(sajson::string(key.c_str(), key.length())).as_string();
-}
-int get_int(const sajson::value& node, std::string key){
-	return node.get_value_of_key(sajson::string(key.c_str(), key.length())).get_integer_value();
-}
-bool get_bool(const sajson::value& node, std::string key){
-	return (node.get_value_of_key(sajson::string(key.c_str(), key.length())).get_type() == sajson::TYPE_TRUE);
-}
-sajson::value get_node(const sajson::value& node, std::string key){
-	return node.get_value_of_key(sajson::string(key.c_str(), key.length()));
-}
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile("data/shaders.json");
 	char *sdata = new char[shaderdata.length()+1];
