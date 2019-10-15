@@ -1,11 +1,14 @@
 #version 330
 in vec2 position;
-in vec2 Index;
+in int Index;
 layout (std140) uniform VP{
 	mat4 globalVP;
+	vec4 unusedVec;
+	vec2 tSize;
 };
-out vec2 index;
+out int index;
 void main(){
 	index = Index;
-	gl_Position = globalVP*vec4(position,0.0,1.0);
+	mat2 tempMat = mat2(unusedVec);
+	gl_Position = vec4(tempMat*position*tSize,0.0,1.0);
 }

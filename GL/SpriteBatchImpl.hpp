@@ -22,13 +22,17 @@ public:
 	~SpriteBatchImpl();
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void Draw(Sprite* spr);
-	void ChangeMap(const TileMap& tm);
 	void Draw(GLFWwindow* target);
 private:
 	struct TextureData{
-		GLuint VBO;
 		std::vector<Sprite*> sprites;
 		std::vector<Vertex> vertices;
+	};
+	struct Tile{
+		float px;
+		float py;
+		uint16_t index;
+		uint16_t ignored;
 	};
 	struct GLProgram{
 		GLProgram(){
@@ -42,10 +46,13 @@ private:
 		GLuint programHandle;
 		GLBuffer<uint16_t> ebo;
 		GLuint VAO;
+		GLuint VBO;
+		GLuint VBO_size = 0;
 	};
 	std::vector<GLProgram> glPrograms;
 	std::vector<GLBuffer<float>> ubos;
 	TileMap m_currentMap;
+	std::vector<Tile> m_tiles;
 	google::dense_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;
 	sajson::document *document;

@@ -9,9 +9,6 @@ int SpriteBatch::loadPrograms(int num_shaders,GLuint* VAOs){
 void SpriteBatch::Draw(Sprite* spr){
 	Pimpl()->Draw(spr);
 }
-void SpriteBatch::ChangeMap(const TileMap& tm){
-	Pimpl()->ChangeMap(tm);
-}
 void SpriteBatch::Draw(GLFWwindow* target){
 	Pimpl()->Draw(target);
 }

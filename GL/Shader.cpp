@@ -65,8 +65,6 @@ GLuint CreateProgram(const Shader& VertexShader, const Shader& FragShader, const
 		std::string errorMessage(infoLog.data(), infoLog.size());
 		std::cerr << "Message: " << errorMessage << std::endl;
 		return 0;
-	// Provide the infolog in whatever manner you deem best.
-	// Exit with failure.
 	}else{
 		return shaderProgram;
 	}
@@ -78,5 +76,20 @@ GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const
 	glAttachShader(shaderProgram, FragShader.m_handle);
 	glBindFragDataLocation(shaderProgram,0,OutputLocation.c_str());
 	glLinkProgram(shaderProgram);
-	return shaderProgram;
+	GLint isLinked = 0;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
+	if (isLinked == GL_FALSE){
+		GLint maxLength = 0;
+		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
+
+		glDeleteProgram(shaderProgram);
+		std::string errorMessage(infoLog.data(), infoLog.size());
+		std::cerr << "Message: " << errorMessage << std::endl;
+		return 0;
+	}else{
+		return shaderProgram;
+	}
 }

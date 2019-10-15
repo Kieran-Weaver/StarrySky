@@ -5,7 +5,6 @@
 #include <sajson.h>
 #include <iostream>
 #include <string>
-// TODO: Add tilemap functionality
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile(shaderfile);
 	char *sdata = new char[shaderdata.length()+1];
@@ -20,22 +19,15 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glGenVertexArrays(num_shaders,VAOs);
 	glBindVertexArray(VAOs[0]);
 
-	auto vbo_handles = new GLuint[m_atlas.m_num_textures];
-	glGenBuffers(m_atlas.m_num_textures,vbo_handles);
-	glBindBuffer(GL_ARRAY_BUFFER,vbo_handles[0]);
 	if (this->loadPrograms(num_shaders,VAOs) == -1){
 		std::cout << "Not valid JSON" << std::endl;
 		return;
 	}
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
-	genIndexBuffer<uint16_t>(0xffff,glPrograms[0].ebo);
+	genIndexBuffer<uint16_t>(0xffff,glPrograms[SPRITE2D].ebo);
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
 		this->m_texData[m_atlas.m_texture_handles[textureIndex]] = TextureData();
-		this->m_texData[m_atlas.m_texture_handles[textureIndex]].VBO = vbo_handles[textureIndex];
-		glBindBuffer(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles[textureIndex]].VBO);
-		glBufferData(GL_ARRAY_BUFFER,m_texData[m_atlas.m_texture_handles[textureIndex]].vertices.size()*sizeof(Vertex),m_texData[m_atlas.m_texture_handles[textureIndex]].vertices.data(),GL_DYNAMIC_DRAW);
 	}
-	delete[] vbo_handles;
 	for (auto& i : glPrograms){
 		glUniform1i(glGetUniformLocation(i.programHandle,"tex"),0);
 		glUniformBlockBinding(i.programHandle, glGetUniformBlockIndex(i.programHandle, "VP"), 0); // Global VP data is at 0
@@ -43,16 +35,36 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	ubos.emplace_back();
 	GLBuffer<float>& matrixbuffer = ubos.back();
 	glBindBuffer(GL_UNIFORM_BUFFER, matrixbuffer.m_handle);
-	glBufferData(GL_UNIFORM_BUFFER, 64, NULL, GL_DYNAMIC_DRAW);
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, matrixbuffer.m_handle, 0, 64); // Global VP data
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) + sizeof(TileMap), NULL, GL_DYNAMIC_DRAW);
+	glBindBufferRange(GL_UNIFORM_BUFFER, 0, matrixbuffer.m_handle, 0, sizeof(glm::mat4) + sizeof(TileMap)); // Global VP data + TileMap data
+	glBindVertexArray(glPrograms[TILEMAP].VAO);
+	glUseProgram(glPrograms[TILEMAP].programHandle);
+	glBindBuffer(GL_UNIFORM_BUFFER, matrixbuffer.m_handle);
+	glUniformBlockBinding(glPrograms[TILEMAP].programHandle, glGetUniformBlockIndex(glPrograms[TILEMAP].programHandle, "GSData"), 0);
 	ws.MatrixID = ubos.size() - 1;
+	const Texture *tempTex = m_atlas.findSubTexture("block");
+	m_currentMap.tiles[0][0] = tempTex->m_rect.left / 65536.f;
+	m_currentMap.tiles[0][1] = tempTex->m_rect.top / 65536.f;
+	m_currentMap.tiles[0][2] = tempTex->m_rect.width / 65536.f;
+	m_currentMap.tiles[0][3] = tempTex->m_rect.height / 65536.f;
+	m_currentMap.affineT[0] = 1;
+	m_currentMap.affineT[1] = 0;
+	m_currentMap.affineT[2] = 1;
+	m_currentMap.affineT[3] = 1;
+	m_currentMap.tileSize[0] = 150.0;
+	m_currentMap.tileSize[1] = 150.0;
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(TileMap), &m_currentMap);
+	glBindBuffer(GL_ARRAY_BUFFER,glPrograms[TILEMAP].VBO);
+	Tile tmp1 = {0.0, 0.0, 0};
+	Tile tmp2 = {1.0, 1.0, 0};
+	m_tiles.emplace_back(tmp1);
+	m_tiles.emplace_back(tmp2);
+	glBufferData(GL_ARRAY_BUFFER, m_tiles.size() * sizeof(Tile), nullptr, GL_DYNAMIC_DRAW);
 }
 SpriteBatchImpl::~SpriteBatchImpl(){
-	for (auto& i : m_texData){
-		glDeleteBuffers(1,&i.second.VBO);
-	}
 	for (auto& i : glPrograms){
 		glDeleteVertexArrays(1,&i.VAO);
+		glDeleteBuffers(1,&i.VBO);
 		glDeleteProgram(i.programHandle);
 		glDeleteBuffers(1,&i.ebo.m_handle);
 	}
@@ -62,13 +74,15 @@ void SpriteBatchImpl::Draw(Sprite* spr){
 	GLuint m_tex = *spr->m_subtexture->m_texture;
 	if (m_texData.find(m_tex) == m_texData.end()){
 		m_texData[m_tex] = TextureData();
-		glGenBuffers(1,&m_texData[m_tex].VBO);
 	}
 	if (std::find(m_texData[m_tex].sprites.begin(),m_texData[m_tex].sprites.end(),spr) == m_texData[m_tex].sprites.end()){
 		m_texData[m_tex].sprites.emplace_back(spr);
 		m_texData[m_tex].vertices.insert(m_texData[m_tex].vertices.end(),spr->cached_vtx_data.data(),spr->cached_vtx_data.data()+4);
-		glBindBuffer(GL_ARRAY_BUFFER,m_texData[m_tex].VBO);
-		glBufferData(GL_ARRAY_BUFFER,m_texData[m_tex].vertices.size()*sizeof(Vertex),m_texData[m_tex].vertices.data(),GL_DYNAMIC_DRAW);
+		if (m_texData[m_tex].vertices.size() * sizeof(Vertex) > glPrograms[SPRITE2D].VBO_size){
+			glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
+			glBufferData(GL_ARRAY_BUFFER,m_texData[m_tex].vertices.size()*sizeof(Vertex),nullptr,GL_DYNAMIC_DRAW);
+			glPrograms[SPRITE2D].VBO_size = m_texData[m_tex].vertices.size() * sizeof(Vertex);
+		}
 	}
 }
 bool SpriteCMP(const Sprite* a, const Sprite* b){
@@ -85,6 +99,8 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 		GLProgram& currentProgram = glPrograms.back();
 		currentProgram.VAO = VAOs[ind];
 		glBindVertexArray(currentProgram.VAO);
+		glGenBuffers(1,&currentProgram.VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[ind].VBO);
 		sajson::value shaderNode = node.get_array_element(ind);
 
 		currentProgram.fgShader.load(get_string(shaderNode, "fgFile"));
@@ -141,10 +157,11 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
 	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
 	glBindBuffer(GL_UNIFORM_BUFFER, ubos[ws->MatrixID].m_handle);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, &ws->camera->getVP()[0][0]);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &ws->camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glPrograms[SPRITE2D].ebo.m_handle);
+	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
 		size_t spriteIndex = 0;
@@ -168,13 +185,14 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 			}
 		}
 		glBindTexture(GL_TEXTURE_2D,texturepair.first);
-		glBindBuffer(GL_ARRAY_BUFFER,currentTexData.VBO);
-		glBufferSubData(GL_ARRAY_BUFFER,skippedSprites*4*sizeof(Vertex),(currentTexData.vertices.size()-skippedSprites*4)*sizeof(Vertex),currentTexData.vertices.data()+(skippedSprites*4));
+		glBufferSubData(GL_ARRAY_BUFFER,0,currentTexData.vertices.size()*sizeof(Vertex),currentTexData.vertices.data());
 		glDrawElements(GL_TRIANGLES,6*(currentTexData.vertices.size()/4),GL_UNSIGNED_SHORT,nullptr);
 	}
-//	glUseProgram(glPrograms[TILEMAP].programHandle);
-//	glBindVertexArray(glPrograms[TILEMAP].VAO);
-}
-void SpriteBatchImpl::ChangeMap(const TileMap& tm){
-	this->m_currentMap = tm;
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(glPrograms[TILEMAP].VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[TILEMAP].VBO);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, m_tiles.size() * sizeof(Tile), m_tiles.data());
+	glUseProgram(glPrograms[TILEMAP].programHandle);
+	glDrawArrays(GL_POINTS, 0, 2);
+	glUseProgram(0);
 }

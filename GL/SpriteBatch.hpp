@@ -24,7 +24,6 @@ public:
 	SpriteBatch& operator=(const SpriteBatch& rhs) = delete;
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void Draw(Sprite* spr);
-	void ChangeMap(const TileMap& tm);
 	void Draw(GLFWwindow* target);
 private:
 	const SpriteBatchImpl* Pimpl() const { return m_pImpl.get(); }
