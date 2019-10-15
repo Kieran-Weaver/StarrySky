@@ -51,8 +51,10 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	m_currentMap.affineT[1] = 0;
 	m_currentMap.affineT[2] = 1;
 	m_currentMap.affineT[3] = 1;
-	m_currentMap.tileSize[0] = 150.0;
-	m_currentMap.tileSize[1] = 150.0;
+	m_currentMap.packedtileSize[0] = 150.0;
+	m_currentMap.packedtileSize[1] = 150.0;
+	m_currentMap.packedtileSize[2] = 1000.0;
+	m_currentMap.packedtileSize[3] = 0;
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(TileMap), &m_currentMap);
 	glBindBuffer(GL_ARRAY_BUFFER,glPrograms[TILEMAP].VBO);
 	Tile tmp1 = {0.0, 0.0, 0};
@@ -68,6 +70,7 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 		glDeleteProgram(i.programHandle);
 		glDeleteBuffers(1,&i.ebo.m_handle);
 	}
+	delete document;
 }
 void SpriteBatchImpl::Draw(Sprite* spr){
 	spr->render();
@@ -195,4 +198,7 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glUseProgram(glPrograms[TILEMAP].programHandle);
 	glDrawArrays(GL_POINTS, 0, 2);
 	glUseProgram(0);
+}
+void SpriteBatchImpl::ChangeMap(const TileMap& tm){
+	this->m_currentMap = tm;
 }

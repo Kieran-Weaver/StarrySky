@@ -21,6 +21,7 @@ public:
 	SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile);
 	~SpriteBatchImpl();
 	int loadPrograms(int num_shaders,GLuint* VAOs);
+	void ChangeMap(const TileMap& tm);
 	void Draw(Sprite* spr);
 	void Draw(GLFWwindow* target);
 private:

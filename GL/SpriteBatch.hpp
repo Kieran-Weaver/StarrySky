@@ -23,6 +23,7 @@ public:
 	SpriteBatch(const SpriteBatch& rhs) = delete;
 	SpriteBatch& operator=(const SpriteBatch& rhs) = delete;
 	int loadPrograms(int num_shaders,GLuint* VAOs);
+	void ChangeMap(const TileMap& tm);
 	void Draw(Sprite* spr);
 	void Draw(GLFWwindow* target);
 private:

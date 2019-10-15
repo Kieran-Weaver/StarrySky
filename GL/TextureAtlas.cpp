@@ -108,7 +108,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 	char *jdata = new char[jsondata.length()+1];
 	std::strncpy(jdata, jsondata.c_str(), jsondata.length());
 	const sajson::document &document = sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(jsondata.length(), jdata));
-	sajson::value texturesNode = get_node(document.get_root(),"textures");
+	const sajson::value texturesNode = get_node(document.get_root(),"textures");
 	this->m_num_textures = texturesNode.get_length();
 	std::string path = file_path.substr(0, file_path.find_last_of("\\/") + 1);
 
@@ -157,6 +157,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 			}
 		}
 	}
+	delete[] jdata;
 	return !m_atlas_list.empty();
 }
 

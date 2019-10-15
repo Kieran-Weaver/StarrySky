@@ -4,8 +4,7 @@
 #include "Helpers.hpp"
 struct TileMap{
 	float affineT[4]; // 16 bytes
-	float tileSize[2];
-	float tilepadding[2]; // 16 bytes
+	float packedtileSize[4];
 	float tiles[256][4]; // Max 255 tile types
 };
 #endif

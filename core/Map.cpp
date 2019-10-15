@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <GL/JSONHelper.hpp>
 #include "Map.hpp"
 #include "../imgui/imgui.h"
 #include "ImGuiHelper.hpp"
@@ -8,61 +9,69 @@ ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas
 	this->loadFromFile(filename);
 	this->SetPosition(0,0);
 }
+glm::vec2 get_xy(const sajson::value& value){
+	return glm::vec2(get_int(value, "x"), get_int(value, "y"));
+}
 void ObjMap::loadFromFile(const std::string& filename){
 	ledges.clear();
 	surfaces.clear();
 	sprs.clear();
-	std::ifstream mapfile(filename);
-	std::string line;
-	std::getline(mapfile,line);
-	std::istringstream is(line);
-	int surfacesize = 0;
-	int sprssize = 0;
-	int ledgesize = 0;
-	is >> surfacesize >> sprssize >> ledgesize;
+
+	std::string jsondata = readWholeFile(filename);
+	char *jdata = new char[jsondata.length()+1];
+	std::strncpy(jdata, jsondata.c_str(), jsondata.length());
+	const sajson::document &document = sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(jsondata.length(), jdata));
+	const sajson::value surfacesNode = get_node(document.get_root(), "surfaces");
+	const sajson::value spritesNode = get_node(document.get_root(), "sprites");
+	const sajson::value ledgesNode = get_node(document.get_root(), "ledges");
+	int surfacesize = surfacesNode.get_length();
+	int sprssize = spritesNode.get_length();
+	int ledgesize = ledgesNode.get_length();
 	for (int i=0;i<surfacesize;i++){
-		std::getline(mapfile,line);
-		std::istringstream iss(line);
+		const sajson::value surfaceNode = surfacesNode.get_array_element(i);
 		Surface s;
-		iss >> s.x >> s.y >> s.length;
-		std::string type;
-		std::getline(iss,type);
-		std::string::iterator end_pos = std::remove(type.begin(),type.end(),' ');
-		type.erase(end_pos,type.end());
-		if (type == "F"){
+		glm::vec2 pos = get_xy(surfaceNode);
+		s.x = pos.x;
+		s.y = pos.y;
+		s.length = get_int(surfaceNode, "l");
+		std::string type = get_string(surfaceNode, "t");
+		switch (type[0]){
+		case 'F':
 			s.type = WallType::FLOOR;
-		}else if (type == "C"){
+			break;
+		case 'C':
 			s.type = WallType::CEIL;
-		}else if (type == "L"){
+			break;
+		case 'L':
 			s.type = WallType::LWALL;
-		}else if (type == "R"){
+			break;
+		case 'R':
 			s.type = WallType::RWALL;
-		}else if (type == "O"){
+			break;
+		case 'O':
 			s.type = WallType::ONEWAY;
-		}else{
-			std::cout << type;
+			break;
+		default:
+			std::cout << type << std::endl;
 			s.type = WallType::FLOOR;
+			break;
 		}
 		addSurface(s);
 	}
 	for (int i=0;i<sprssize;i++){
-		std::getline(mapfile,line);
-		std::istringstream iss(line);
+		const sajson::value spriteNode = spritesNode.get_array_element(i);
 		glm::vec2 sprscale;
-		glm::vec2 sprposition;
-		std::string fname;
-		iss >> sprposition.x >> sprposition.y >> sprscale.x >> sprscale.y;
-		std::getline(iss,fname);
+		glm::vec2 sprposition = get_xy(spriteNode);
+		sprscale.x = get_double(spriteNode, "sx");
+		sprscale.y = get_double(spriteNode, "sy");
+		std::string fname = get_string(spriteNode, "name");
 		this->addBGTexture(sprposition,sprscale,fname);
 	}
 	for (int i=0;i<ledgesize;i++){
-		std::getline(mapfile,line);
-		std::istringstream iss(line);
-		glm::vec2 ledge;
-		iss >> ledge.x >> ledge.y;
-		ledges.emplace_back(ledge);
+		const sajson::value ledgeNode = ledgesNode.get_array_element(i);
+		ledges.emplace_back(get_xy(ledgeNode));
 	}
-	mapfile.close();
+	delete[] jdata;
 }
 void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::vec2& sprScale, const std::string& fname){
 	int i = sprs.size();

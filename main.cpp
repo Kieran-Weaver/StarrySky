@@ -64,7 +64,7 @@ int main(){
 		std::cout << "Could not load atlas from data/atlas.json" << std::endl;
 		return 3;
 	}
-	ObjMap map("map2.txt",atlas);
+	ObjMap map("map.json",atlas);
 	Character player(300, 300, map, "lesserdog", "sword2", "sword", atlas);
 	Enemy testEnemy(900, 300, map, "birdo1", "birdo3", 10, atlas);
 	std::vector<MovingEntity*> objects;
