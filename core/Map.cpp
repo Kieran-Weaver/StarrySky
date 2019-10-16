@@ -2,6 +2,7 @@
 #include <iostream>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 #include "Map.hpp"
 #include "../imgui/imgui.h"
 #include "ImGuiHelper.hpp"
@@ -76,12 +77,14 @@ void ObjMap::loadFromFile(const std::string& filename){
 	}
 	const rapidjson::Value& tilesNode = tilemapNode["tiles"];
 	rapidjson::SizeType numTiles = tilesNode.Size() & 0xff;
+	internal_tm.numTiles = numTiles;
 	for (int i = 0; i < numTiles; i++){
 		const Texture *tempTex = m_atlas.findSubTexture(tilesNode[i].GetString());
 		internal_tm.tiles[i][0] = tempTex->m_rect.left / 65536.f;
 		internal_tm.tiles[i][1] = tempTex->m_rect.top / 65536.f;
 		internal_tm.tiles[i][2] = tempTex->m_rect.width / 65536.f;
 		internal_tm.tiles[i][3] = tempTex->m_rect.height / 65536.f;
+		internal_tm.filenames.emplace_back(tilesNode[i].GetString());
 	}
 	const rapidjson::Value& sizeNode = tilemapNode["tileSize"];
 	for (int i = 0; i < 2; i++){
@@ -117,47 +120,132 @@ void ObjMap::addSurface(const Surface& wall){
 void ObjMap::SetPosition(float x, float y) {
 	this->position.x = x;
 	this->position.y = y;
-	for (unsigned int i=0;i<sprs.size();i++){
-		sprs[i].spr.setPosition(sprs[i].iPosition.x + x, sprs[i].iPosition.y + y);
+	for (auto& i : sprs){
+		i.spr.setPosition(i.iPosition.x + x, i.iPosition.y + y);
 	}
 }
 void ObjMap::WriteToFile(const std::string& filename){
 	std::ofstream ofs(filename);
-	ofs << surfaces.size() << " " << sprs.size() << " " << ledges.size() << "\n";
+	rapidjson::StringBuffer s;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	writer.StartObject();
+	writer.Key("surfaces");
+	
+	writer.StartArray();
 	for (auto& i : surfaces){
-		ofs << i.x << " " << i.y << " " << i.length << " ";
+		writer.StartObject();
+		writer.Key("x");
+		writer.Int(i.x);
+		writer.Key("y");
+		writer.Int(i.y);
+		writer.Key("l");
+		writer.Int(i.length);
+		writer.Key("t");
 		switch (i.type){
 		case LWALL:
-			ofs << "L\n";
+			writer.String("L");
 			break;
 		case RWALL:
-			ofs << "R\n";
+			writer.String("R");
 			break;
 		case FLOOR:
-			ofs << "F\n";
+			writer.String("F");
 			break;
 		case CEIL:
-			ofs << "C\n";
+			writer.String("C");
 			break;
 		case ONEWAY:
-			ofs << "O\n";
+			writer.String("O");
 			break;
 		default:
 			std::cout << "Unknown type\n";
 			break;
 		}
+		writer.EndObject();
 	}
+	writer.EndArray();
+	
+	writer.Key("sprites");
 	glm::quat orientation = glm::quat();
 	glm::vec3 scale = glm::vec3(), translation = glm::vec3(), skew = glm::vec3();
 	glm::vec4 perspective = glm::vec4();
-	for (int i = (sprs.size()-1);i>=0;i--){
-		glm::decompose(sprs[i].spr.m_model,scale,orientation,translation,skew,perspective);
-		ofs << sprs[i].iPosition.x << " " << sprs[i].iPosition.y << " " << scale.x << " " << scale.y << " " << sprs[i].filename << "\n";
+	
+	writer.StartArray();
+	for (auto& i : sprs){
+		writer.StartObject();
+		glm::decompose(i.spr.m_model,scale,orientation,translation,skew,perspective);
+		writer.Key("x");
+		writer.Int(i.iPosition.x);
+		writer.Key("y");
+		writer.Int(i.iPosition.y);
+		writer.Key("sx");
+		writer.Double(scale.x);
+		writer.Key("sy");
+		writer.Double(scale.y);
+		writer.Key("name");
+		writer.String(i.filename.c_str());
+		writer.EndObject();
 	}
+	writer.EndArray();
+	
+	writer.Key("ledges");
+	
+	writer.StartArray();
 	for (auto& i : ledges){
-		ofs << i.x << " " << i.y << "\n";
+		writer.StartObject();
+		writer.Key("x");
+		writer.Int(i.x);
+		writer.Key("y");
+		writer.Int(i.y);
+		writer.EndObject();
 	}
-	ofs << std::endl;
+	writer.EndArray();
+	
+	writer.Key("tilemap");
+	writer.StartObject();
+	writer.Key("AffineT");
+	writer.StartArray();
+	for (int i = 0; i < 4; i++){
+		writer.Double(internal_tm.affineT[i]);
+	}
+	writer.EndArray();
+	writer.Key("tiles");
+	
+	writer.StartArray();
+	for (int i = 0; i < internal_tm.numTiles; i++){
+		writer.String(internal_tm.filenames[i].c_str());
+	}
+	writer.EndArray();
+	
+	writer.Key("tileSize");
+	writer.StartArray();
+	writer.Double(internal_tm.packedtileSize[0]);
+	writer.Double(internal_tm.packedtileSize[1]);
+	writer.EndArray();
+
+	writer.Key("position");
+	writer.StartArray();
+	writer.Double(internal_tm.packedtileSize[2]);
+	writer.Double(internal_tm.packedtileSize[3]);
+	writer.EndArray();
+
+	writer.Key("drawntiles");
+	writer.StartArray();
+	for (auto& i : internal_tm.drawn){
+		writer.StartObject();
+		writer.Key("x");
+		writer.Double(i.px);
+		writer.Key("y");
+		writer.Double(i.py);
+		writer.Key("index");
+		writer.Int(i.index);
+		writer.EndObject();
+	}
+	writer.EndArray();
+	writer.EndObject();
+	
+	writer.EndObject();
+	ofs << s.GetString() << std::endl;
 	ofs.close();
 }
 void ObjMap::Draw(SpriteBatch& frame) {

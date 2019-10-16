@@ -15,6 +15,8 @@ struct TileMap{
 	float packedtileSize[4]; // 16 bytes
 	float tiles[256][4]; // Max 255 tile types
 	// Internal Data
+	int numTiles;
+	std::vector<std::string> filenames;
 	std::vector<Tile> drawn;
 };
 #endif

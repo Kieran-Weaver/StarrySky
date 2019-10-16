@@ -2,7 +2,6 @@
 #include "Camera.hpp"
 #include "Sprite.hpp"
 #include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
 #include <iostream>
 #include <string>
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){

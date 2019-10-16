@@ -2,7 +2,6 @@
 #include "Helpers.hpp"
 #include <zlib.h>
 #include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
 #include <fstream>
 // Loads a recrunch-ed .dds.gz file, and populates the Atlas
 TextureAtlas::TextureAtlas(){
