@@ -24,6 +24,7 @@ void ObjMap::loadFromFile(const std::string& filename){
 	const sajson::value surfacesNode = get_node(document.get_root(), "surfaces");
 	const sajson::value spritesNode = get_node(document.get_root(), "sprites");
 	const sajson::value ledgesNode = get_node(document.get_root(), "ledges");
+	const sajson::value tilemapNode = get_node(document.get_root(), "tilemap");
 	int surfacesize = surfacesNode.get_length();
 	int sprssize = spritesNode.get_length();
 	int ledgesize = ledgesNode.get_length();
@@ -71,6 +72,37 @@ void ObjMap::loadFromFile(const std::string& filename){
 		const sajson::value ledgeNode = ledgesNode.get_array_element(i);
 		ledges.emplace_back(get_xy(ledgeNode));
 	}
+	const sajson::value ATNode = get_node(tilemapNode, "AffineT");
+	for (int i = 0; i < 4; i++){
+		internal_tm.affineT[i] = ATNode.get_array_element(i).get_double_value();
+	}
+	const sajson::value tilesNode = get_node(tilemapNode, "tiles");
+	int numTiles = tilesNode.get_length() & 0xff;
+	for (int i = 0; i < numTiles; i++){
+		const Texture *tempTex = m_atlas.findSubTexture(tilesNode.get_array_element(i).as_string());
+		internal_tm.tiles[i][0] = tempTex->m_rect.left / 65536.f;
+		internal_tm.tiles[i][1] = tempTex->m_rect.top / 65536.f;
+		internal_tm.tiles[i][2] = tempTex->m_rect.width / 65536.f;
+		internal_tm.tiles[i][3] = tempTex->m_rect.height / 65536.f;
+	}
+	const sajson::value sizeNode = get_node(tilemapNode, "tileSize");
+	for (int i = 0; i < 2; i++){
+		internal_tm.packedtileSize[i] = sizeNode.get_array_element(i).get_double_value();
+	}
+	const sajson::value posNode = get_node(tilemapNode, "position");
+	for (int i = 0; i < 2; i++){
+		internal_tm.packedtileSize[2 + i] = posNode.get_array_element(i).get_double_value();
+	}
+	const sajson::value drawnNode = get_node(tilemapNode, "drawntiles");
+	for (int i = 0; i < drawnNode.get_length(); i++){
+		const sajson::value tileNode = drawnNode.get_array_element(i);
+		Tile temp;
+		temp.px = get_double(tileNode, "x");
+		temp.py = get_double(tileNode, "y");
+		temp.index = get_int(tileNode, "index");
+		internal_tm.drawn.emplace_back(temp);
+	}
+	tm_changed = true;
 	delete[] jdata;
 }
 void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::vec2& sprScale, const std::string& fname){
@@ -135,5 +167,9 @@ void ObjMap::WriteToFile(const std::string& filename){
 void ObjMap::Draw(SpriteBatch& frame) {
 	for (auto& i : sprs){
 		frame.Draw(&(i.spr));
+	}
+	if (tm_changed){
+		frame.ChangeMap(internal_tm);
+		tm_changed = false;
 	}
 }

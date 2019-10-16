@@ -6,6 +6,7 @@
 #include <sparsehash/dense_hash_map>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Sprite.hpp>
+#include <GL/TileMap.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
@@ -41,6 +42,8 @@ public:
 	float ledgeheight = 8.f;
 	
 private:
+	TileMap internal_tm;
+	bool tm_changed = false;
 	TextureAtlas& m_atlas;
 	std::vector<MapSprite> sprs;
 };

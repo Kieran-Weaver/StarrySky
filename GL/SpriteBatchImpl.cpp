@@ -42,26 +42,6 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glBindBuffer(GL_UNIFORM_BUFFER, matrixbuffer.m_handle);
 	glUniformBlockBinding(glPrograms[TILEMAP].programHandle, glGetUniformBlockIndex(glPrograms[TILEMAP].programHandle, "GSData"), 0);
 	ws.MatrixID = ubos.size() - 1;
-	const Texture *tempTex = m_atlas.findSubTexture("block");
-	m_currentMap.tiles[0][0] = tempTex->m_rect.left / 65536.f;
-	m_currentMap.tiles[0][1] = tempTex->m_rect.top / 65536.f;
-	m_currentMap.tiles[0][2] = tempTex->m_rect.width / 65536.f;
-	m_currentMap.tiles[0][3] = tempTex->m_rect.height / 65536.f;
-	m_currentMap.affineT[0] = 1;
-	m_currentMap.affineT[1] = 0;
-	m_currentMap.affineT[2] = 1;
-	m_currentMap.affineT[3] = 1;
-	m_currentMap.packedtileSize[0] = 150.0;
-	m_currentMap.packedtileSize[1] = 150.0;
-	m_currentMap.packedtileSize[2] = 1000.0;
-	m_currentMap.packedtileSize[3] = 0;
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(TileMap), &m_currentMap);
-	glBindBuffer(GL_ARRAY_BUFFER,glPrograms[TILEMAP].VBO);
-	Tile tmp1 = {0.0, 0.0, 0};
-	Tile tmp2 = {1.0, 1.0, 0};
-	m_tiles.emplace_back(tmp1);
-	m_tiles.emplace_back(tmp2);
-	glBufferData(GL_ARRAY_BUFFER, m_tiles.size() * sizeof(Tile), nullptr, GL_DYNAMIC_DRAW);
 }
 SpriteBatchImpl::~SpriteBatchImpl(){
 	for (auto& i : glPrograms){
@@ -194,11 +174,16 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(glPrograms[TILEMAP].VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[TILEMAP].VBO);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, m_tiles.size() * sizeof(Tile), m_tiles.data());
+	if (glPrograms[TILEMAP].VBO_size < m_currentMap.drawn.size()){
+		glBufferData(GL_ARRAY_BUFFER, m_currentMap.drawn.size() * sizeof(Tile), nullptr, GL_DYNAMIC_DRAW);
+		glPrograms[TILEMAP].VBO_size = m_currentMap.drawn.size();
+	}
+	glBufferSubData(GL_ARRAY_BUFFER, 0, m_currentMap.drawn.size() * sizeof(Tile), m_currentMap.drawn.data());
 	glUseProgram(glPrograms[TILEMAP].programHandle);
 	glDrawArrays(GL_POINTS, 0, 2);
 	glUseProgram(0);
 }
 void SpriteBatchImpl::ChangeMap(const TileMap& tm){
 	this->m_currentMap = tm;
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(TileMap), &m_currentMap);
 }

@@ -29,12 +29,6 @@ private:
 		std::vector<Sprite*> sprites;
 		std::vector<Vertex> vertices;
 	};
-	struct Tile{
-		float px;
-		float py;
-		uint16_t index;
-		uint16_t ignored;
-	};
 	struct GLProgram{
 		GLProgram(){
 			this->vxShader = Shader(GL_VERTEX_SHADER);
@@ -53,7 +47,6 @@ private:
 	std::vector<GLProgram> glPrograms;
 	std::vector<GLBuffer<float>> ubos;
 	TileMap m_currentMap;
-	std::vector<Tile> m_tiles;
 	google::dense_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;
 	sajson::document *document;
