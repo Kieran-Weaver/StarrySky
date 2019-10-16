@@ -1,7 +1,8 @@
 #include "TextureAtlas.hpp"
 #include "Helpers.hpp"
 #include <zlib.h>
-#include "JSONHelper.hpp"
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
 #include <fstream>
 // Loads a recrunch-ed .dds.gz file, and populates the Atlas
 TextureAtlas::TextureAtlas(){
@@ -105,20 +106,18 @@ std::string getString(std::ifstream& input_file){
 }
 bool TextureAtlas::loadFromFile(const std::string& file_path){
 	std::string jsondata = readWholeFile(file_path);
-	char *jdata = new char[jsondata.length()+1];
-	std::strncpy(jdata, jsondata.c_str(), jsondata.length());
-	const sajson::document &document = sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(jsondata.length(), jdata));
-	const sajson::value texturesNode = get_node(document.get_root(),"textures");
-	this->m_num_textures = texturesNode.get_length();
+	rapidjson::Document document;
+	document.Parse(jsondata.c_str());
+	const rapidjson::Value& texturesNode = document["textures"];
+	this->m_num_textures = texturesNode.Size();
 	std::string path = file_path.substr(0, file_path.find_last_of("\\/") + 1);
 
 	this->m_texture_handles = new GLuint[this->m_num_textures];
 	glGenTextures(this->m_num_textures,this->m_texture_handles);
 
 	for (int textureIndex = 0; textureIndex < this->m_num_textures; textureIndex++){
-		sajson::value textureNode = texturesNode.get_array_element(textureIndex);
-		std::string textureName = get_string(textureNode, "name");
-		sajson::value filenamesNode = get_node(textureNode, "images");
+		const rapidjson::Value& textureNode = texturesNode[textureIndex];
+		std::string textureName = textureNode["name"].GetString();
 
 		m_atlas_list.emplace_back(Atlas());
 		m_atlas_list[textureIndex].m_texture = m_texture_handles + textureIndex;
@@ -129,15 +128,16 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 			return false;
 		}
 
-		auto num_images = filenamesNode.get_length();
+		const rapidjson::Value& filenamesNode = textureNode["images"];
+		auto num_images = filenamesNode.Size();
 		for (int imageindex = 0; imageindex < num_images; imageindex++){
-			sajson::value imageNode = filenamesNode.get_array_element(imageindex);
-			std::string img_name = get_string(imageNode, "n");
+			const rapidjson::Value& imageNode = filenamesNode[imageindex];
+			std::string img_name = imageNode["n"].GetString();
 			Rect<uint16_t> tmp;
-			tmp.left = get_int(imageNode, "x");
-			tmp.top = get_int(imageNode, "y");
-			tmp.width = get_int(imageNode, "w");
-			tmp.height = get_int(imageNode, "h");
+			tmp.left = imageNode["x"].GetInt();
+			tmp.top = imageNode["y"].GetInt();
+			tmp.width = imageNode["w"].GetInt();
+			tmp.height = imageNode["h"].GetInt();
 			auto width = static_cast<float>(m_atlas_list[textureIndex].width);
 			auto height = static_cast<float>(m_atlas_list[textureIndex].height);
 			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
@@ -147,7 +147,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 				static_cast<uint16_t>(tmp.height/height*65536.f));
 			m_atlas_list[textureIndex].m_texture_table[img_name].width = tmp.width;
 			m_atlas_list[textureIndex].m_texture_table[img_name].height = tmp.height;
-			m_atlas_list[textureIndex].m_texture_table[img_name].rotated = get_bool(imageNode, "r");
+			m_atlas_list[textureIndex].m_texture_table[img_name].rotated = imageNode["r"].GetBool();
 			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated){
 				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
 				static_cast<uint16_t>(tmp.left/width*65536.f),
@@ -157,7 +157,6 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 			}
 		}
 	}
-	delete[] jdata;
 	return !m_atlas_list.empty();
 }
 

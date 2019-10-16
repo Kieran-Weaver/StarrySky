@@ -8,13 +8,11 @@
 #include "WindowState.h"
 #include "TextureAtlas.hpp"
 #include <GLFW/glfw3.h>
+#include <rapidjson/document.h>
 // Rendering Modes
 #define SPRITE2D 0
 #define TILEMAP 1
 #define SPRITE3D 2
-namespace sajson{
-	class document;
-}
 struct Sprite;
 class SpriteBatchImpl{
 public:
@@ -49,6 +47,6 @@ private:
 	TileMap m_currentMap;
 	google::dense_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;
-	sajson::document *document;
+	rapidjson::Document document;
 };
 #endif

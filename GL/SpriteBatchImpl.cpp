@@ -1,20 +1,17 @@
 #include "SpriteBatchImpl.hpp"
 #include "Camera.hpp"
 #include "Sprite.hpp"
-#include "JSONHelper.hpp"
-#include <sajson.h>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
 #include <iostream>
 #include <string>
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile(shaderfile);
-	char *sdata = new char[shaderdata.length()+1];
-	std::strncpy(sdata, shaderdata.c_str(), shaderdata.length());
-	document = new sajson::document(sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(shaderdata.length(), sdata)));
+	document.Parse(shaderdata.c_str());
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	m_texData.set_empty_key(std::numeric_limits<GLuint>::max());
-	sajson::value node = document->get_root();
-	int num_shaders = get_int(node, "shaders.len");
+	int num_shaders = document["shaders.len"].GetInt();
 	GLuint* VAOs = new GLuint[num_shaders];
 	glGenVertexArrays(num_shaders,VAOs);
 	glBindVertexArray(VAOs[0]);
@@ -50,7 +47,6 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 		glDeleteProgram(i.programHandle);
 		glDeleteBuffers(1,&i.ebo.m_handle);
 	}
-	delete document;
 }
 void SpriteBatchImpl::Draw(Sprite* spr){
 	spr->render();
@@ -76,40 +72,38 @@ bool SpriteCMP(const Sprite* a, const Sprite* b){
 	}
 }
 int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
-	sajson::value node = get_node(document->get_root(),"shaders");
-	for (int ind = 0; ind < num_shaders; ind++){
+	rapidjson::Value& node = document["shaders"];
+	for (rapidjson::SizeType ind = 0; ind < num_shaders; ind++){
 		glPrograms.emplace_back();
 		GLProgram& currentProgram = glPrograms.back();
 		currentProgram.VAO = VAOs[ind];
 		glBindVertexArray(currentProgram.VAO);
 		glGenBuffers(1,&currentProgram.VBO);
 		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[ind].VBO);
-		sajson::value shaderNode = node.get_array_element(ind);
+		rapidjson::Value& shaderNode = node[ind];
 
-		currentProgram.fgShader.load(get_string(shaderNode, "fgFile"));
-		currentProgram.vxShader.load(get_string(shaderNode, "vxFile"));
-		bool usesGS = get_bool(shaderNode, "usesGS");
+		currentProgram.fgShader.load(shaderNode["fgFile"].GetString());
+		currentProgram.vxShader.load(shaderNode["vxFile"].GetString());
+		bool usesGS = shaderNode["usesGS"].GetBool();
 		if (usesGS){
-			currentProgram.gsShader.load(get_string(shaderNode, "gsFile"));
-			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.gsShader,currentProgram.fgShader,get_string(shaderNode, "output"));
+			currentProgram.gsShader.load(shaderNode["gsFile"].GetString());
+			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.gsShader,currentProgram.fgShader,shaderNode["output"].GetString());
 		}else{
-			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.fgShader,get_string(shaderNode, "output"));
+			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.fgShader,shaderNode["output"].GetString());
 		}
-		sajson::value layoutNode = get_node(shaderNode,"layout");
-		int arrayLength = layoutNode.get_length();
-		for (int i = 0; i < arrayLength; i++){
-			sajson::value parameterNode = layoutNode.get_array_element(i);
+		rapidjson::Value& layoutNode = shaderNode["layout"];
+		for (auto& parameterNode : layoutNode.GetArray()){
 			std::string input_name = "";
 			GLuint components = 2;
 			GLuint type = GL_FLOAT;
 			GLboolean normalized = false;
 			GLuint stride = 0;
 			GLuint start = 0;
-			input_name = get_string(parameterNode, "name");
+			input_name = parameterNode["name"].GetString();
 			
-			components = get_int(parameterNode,"components");	
+			components = parameterNode["components"].GetInt();	
 			
-			switch (get_int(parameterNode, "type")){
+			switch (parameterNode["type"].GetInt()){
 			case 0:
 				type = GL_FLOAT;
 				break;
@@ -121,9 +115,9 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 				break;
 			}
 			
-			normalized = get_bool(parameterNode, "norm");
-			stride = get_int(parameterNode, "stride");
-			start = get_int(parameterNode, "start");
+			normalized = parameterNode["norm"].GetBool();
+			stride = parameterNode["stride"].GetInt();
+			start = parameterNode["start"].GetInt();
 			GLint inputHandle = glGetAttribLocation(glPrograms.back().programHandle, input_name.c_str());
 			glEnableVertexAttribArray(inputHandle);
 			if (type == GL_FLOAT || normalized){

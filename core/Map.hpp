@@ -6,7 +6,7 @@
 #include <sparsehash/dense_hash_map>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Sprite.hpp>
-#include <GL/TileMap.hpp>
+#include <GL/Tilemap.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_decompose.hpp>

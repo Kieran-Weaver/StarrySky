@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
-#include <GL/JSONHelper.hpp>
+#include <rapidjson/document.h>
+#include <rapidjson/stringbuffer.h>
 #include "Map.hpp"
 #include "../imgui/imgui.h"
 #include "ImGuiHelper.hpp"
@@ -9,33 +10,27 @@ ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas
 	this->loadFromFile(filename);
 	this->SetPosition(0,0);
 }
-glm::vec2 get_xy(const sajson::value& value){
-	return glm::vec2(get_int(value, "x"), get_int(value, "y"));
-}
 void ObjMap::loadFromFile(const std::string& filename){
 	ledges.clear();
 	surfaces.clear();
 	sprs.clear();
 
 	std::string jsondata = readWholeFile(filename);
-	char *jdata = new char[jsondata.length()+1];
-	std::strncpy(jdata, jsondata.c_str(), jsondata.length());
-	const sajson::document &document = sajson::parse(sajson::dynamic_allocation(), sajson::mutable_string_view(jsondata.length(), jdata));
-	const sajson::value surfacesNode = get_node(document.get_root(), "surfaces");
-	const sajson::value spritesNode = get_node(document.get_root(), "sprites");
-	const sajson::value ledgesNode = get_node(document.get_root(), "ledges");
-	const sajson::value tilemapNode = get_node(document.get_root(), "tilemap");
-	int surfacesize = surfacesNode.get_length();
-	int sprssize = spritesNode.get_length();
-	int ledgesize = ledgesNode.get_length();
-	for (int i=0;i<surfacesize;i++){
-		const sajson::value surfaceNode = surfacesNode.get_array_element(i);
+	rapidjson::Document document;
+	rapidjson::ParseResult result = document.Parse(jsondata.c_str());
+	if (!result) {
+		std::cerr << "ERROR" << std::endl;
+	}
+	const rapidjson::Value& surfacesNode = document["surfaces"];
+	const rapidjson::Value& spritesNode = document["sprites"];
+	const rapidjson::Value& ledgesNode = document["ledges"];
+	const rapidjson::Value& tilemapNode = document["tilemap"];
+	for (auto& surfaceNode : surfacesNode.GetArray()){
 		Surface s;
-		glm::vec2 pos = get_xy(surfaceNode);
-		s.x = pos.x;
-		s.y = pos.y;
-		s.length = get_int(surfaceNode, "l");
-		std::string type = get_string(surfaceNode, "t");
+		s.x = surfaceNode["x"].GetFloat();
+		s.y = surfaceNode["y"].GetFloat();
+		s.length = surfaceNode["l"].GetInt();
+		std::string type = surfaceNode["t"].GetString();
 		switch (type[0]){
 		case 'F':
 			s.type = WallType::FLOOR;
@@ -59,51 +54,52 @@ void ObjMap::loadFromFile(const std::string& filename){
 		}
 		addSurface(s);
 	}
-	for (int i=0;i<sprssize;i++){
-		const sajson::value spriteNode = spritesNode.get_array_element(i);
+	for (auto& spriteNode : spritesNode.GetArray()){
 		glm::vec2 sprscale;
-		glm::vec2 sprposition = get_xy(spriteNode);
-		sprscale.x = get_double(spriteNode, "sx");
-		sprscale.y = get_double(spriteNode, "sy");
-		std::string fname = get_string(spriteNode, "name");
+		glm::vec2 sprposition;
+		sprposition.x = spriteNode["x"].GetFloat();
+		sprposition.y = spriteNode["y"].GetFloat();
+		sprscale.x = spriteNode["sx"].GetFloat();
+		sprscale.y = spriteNode["sy"].GetFloat();
+		std::string fname = spriteNode["name"].GetString();
 		this->addBGTexture(sprposition,sprscale,fname);
 	}
-	for (int i=0;i<ledgesize;i++){
-		const sajson::value ledgeNode = ledgesNode.get_array_element(i);
-		ledges.emplace_back(get_xy(ledgeNode));
+	for (auto& ledgeNode : ledgesNode.GetArray()){
+		glm::vec2 pos;
+		pos.x = ledgeNode["x"].GetFloat();
+		pos.y = ledgeNode["y"].GetFloat();
+		ledges.emplace_back(pos);
 	}
-	const sajson::value ATNode = get_node(tilemapNode, "AffineT");
+	const rapidjson::Value& ATNode = tilemapNode["AffineT"];
 	for (int i = 0; i < 4; i++){
-		internal_tm.affineT[i] = ATNode.get_array_element(i).get_double_value();
+		internal_tm.affineT[i] = ATNode[i].GetFloat();
 	}
-	const sajson::value tilesNode = get_node(tilemapNode, "tiles");
-	int numTiles = tilesNode.get_length() & 0xff;
+	const rapidjson::Value& tilesNode = tilemapNode["tiles"];
+	rapidjson::SizeType numTiles = tilesNode.Size() & 0xff;
 	for (int i = 0; i < numTiles; i++){
-		const Texture *tempTex = m_atlas.findSubTexture(tilesNode.get_array_element(i).as_string());
+		const Texture *tempTex = m_atlas.findSubTexture(tilesNode[i].GetString());
 		internal_tm.tiles[i][0] = tempTex->m_rect.left / 65536.f;
 		internal_tm.tiles[i][1] = tempTex->m_rect.top / 65536.f;
 		internal_tm.tiles[i][2] = tempTex->m_rect.width / 65536.f;
 		internal_tm.tiles[i][3] = tempTex->m_rect.height / 65536.f;
 	}
-	const sajson::value sizeNode = get_node(tilemapNode, "tileSize");
+	const rapidjson::Value& sizeNode = tilemapNode["tileSize"];
 	for (int i = 0; i < 2; i++){
-		internal_tm.packedtileSize[i] = sizeNode.get_array_element(i).get_double_value();
+		internal_tm.packedtileSize[i] = sizeNode[i].GetFloat();
 	}
-	const sajson::value posNode = get_node(tilemapNode, "position");
+	const rapidjson::Value& posNode = tilemapNode["position"];
 	for (int i = 0; i < 2; i++){
-		internal_tm.packedtileSize[2 + i] = posNode.get_array_element(i).get_double_value();
+		internal_tm.packedtileSize[2 + i] = posNode[i].GetFloat();
 	}
-	const sajson::value drawnNode = get_node(tilemapNode, "drawntiles");
-	for (int i = 0; i < drawnNode.get_length(); i++){
-		const sajson::value tileNode = drawnNode.get_array_element(i);
+	const rapidjson::Value& drawnNode = tilemapNode["drawntiles"];
+	for (auto& tileNode : drawnNode.GetArray()){
 		Tile temp;
-		temp.px = get_double(tileNode, "x");
-		temp.py = get_double(tileNode, "y");
-		temp.index = get_int(tileNode, "index");
+		temp.px = tileNode["x"].GetFloat();
+		temp.py = tileNode["y"].GetFloat();
+		temp.index = tileNode["index"].GetInt();
 		internal_tm.drawn.emplace_back(temp);
 	}
 	tm_changed = true;
-	delete[] jdata;
 }
 void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::vec2& sprScale, const std::string& fname){
 	int i = sprs.size();
