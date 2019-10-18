@@ -9,7 +9,7 @@ TextureAtlas::TextureAtlas(){
 }
 bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D,*(atlas.m_texture));
+	glBindTexture(GL_TEXTURE_2D,atlas.m_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -82,7 +82,7 @@ bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
 		auto *data = new boost::dynamic_bitset<>::block_type[atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type))];
 		if (gzread(gzhandle,data,atlas.width*atlas.height/8) != -1){
 			boost::from_block_range(data,data+atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type)),maskwrapper.mask);
-			Bitmasks.insert(std::make_pair(*atlas.m_texture,maskwrapper));
+			Bitmasks.insert(std::make_pair(atlas.m_texture,maskwrapper));
 			return_code = true;
 		}
 		gzclose_r(gzhandle);
@@ -119,7 +119,7 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 		std::string textureName = textureNode["name"].GetString();
 
 		m_atlas_list.emplace_back(Atlas());
-		m_atlas_list[textureIndex].m_texture = m_texture_handles + textureIndex;
+		m_atlas_list[textureIndex].m_texture = m_texture_handles[textureIndex];
 		if (!loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex])){
 			return false;
 		}
@@ -161,15 +161,15 @@ bool TextureAtlas::loadFromFile(const std::string& file_path){
 
 // Finds a Texture inside the atlas table.
 // Returns a valid Texture if found in the TextureAtlas, otherwise returns a null Texture.
-const Texture * TextureAtlas::findSubTexture(const std::string& name){
-	Texture *texture = nullptr;
+const Texture TextureAtlas::findSubTexture(const std::string& name){
+	Texture texture;
 	for(auto& atlas : m_atlas_list){
 		if(atlas.m_texture_table.find(name) != atlas.m_texture_table.end()){
-			texture = new Texture(atlas.m_texture, atlas.m_texture_table[name].m_rect);
-			texture->width = atlas.m_texture_table[name].width;
-			texture->height = atlas.m_texture_table[name].height;
-			texture->rotated = atlas.m_texture_table[name].rotated;
-			texture->m_bitmask = new Bitmask(Bitmasks[*atlas.m_texture]);
+			texture = Texture(atlas.m_texture, atlas.m_texture_table[name].m_rect);
+			texture.width = atlas.m_texture_table[name].width;
+			texture.height = atlas.m_texture_table[name].height;
+			texture.rotated = atlas.m_texture_table[name].rotated;
+			texture.m_bitmask.reset(new Bitmask(Bitmasks[atlas.m_texture]));
 			break;
 		}
 	}

@@ -23,6 +23,6 @@ public:
 private:
 	int ihealth;
 	TextureAtlas& m_atlas;
-	std::vector<const Texture*> texs; //1, 2, 3
+	std::vector<Texture> texs; //1, 2, 3
 };
 #endif

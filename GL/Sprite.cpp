@@ -13,7 +13,7 @@ Sprite::Sprite(const Texture* tex) noexcept{
 	this->setTexture(tex);
 }
 void Sprite::setTexture(const Texture* tex){
-	this->m_subtexture = new Texture(tex);
+	this->m_subtexture.reset(new Texture(tex));
 	this->m_changed = true;
 	this->m_model = glm::translate(glm::mat4(1.f),glm::vec3(-0.5f,-0.5f,0.f));
 	if (tex->rotated != 0){

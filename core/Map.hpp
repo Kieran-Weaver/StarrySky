@@ -19,7 +19,7 @@ struct Surface{
 	WallType type;
 };
 struct MapSprite{
-	MapSprite(const glm::vec2& iPos, const std::string& fname, const Sprite& sprite) : iPosition(iPos), filename(fname), spr(sprite){}
+	MapSprite(const glm::vec2& iPos, const std::string& fname) : iPosition(iPos), filename(fname){}
 	glm::vec2 iPosition;
 	std::string filename;
 	Sprite spr;

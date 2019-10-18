@@ -11,7 +11,7 @@ class TextureAtlas{
 public:
 	TextureAtlas();
 	bool loadFromFile(const std::string& file_path);
-	const Texture *findSubTexture(const std::string& name);
+	const Texture findSubTexture(const std::string& name);
 	const Bitmask& getBitmask(const Texture* tex);
 	std::vector<std::string> getSubTextureNames();
 	~TextureAtlas(){
@@ -30,7 +30,7 @@ private:
 			m_texture_table.set_empty_key("");
 		}
 		google::dense_hash_map<std::string, Texture> m_texture_table;
-		GLuint* m_texture = nullptr;
+		GLuint m_texture = 0;
 		GLuint format;
 		uint16_t width=0, height=0;
 	};

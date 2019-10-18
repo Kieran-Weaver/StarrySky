@@ -3,12 +3,7 @@
 #include <cstdint>
 #include <vector>
 #include "Helpers.hpp"
-struct Tile{
-	float px;
-	float py;
-	uint16_t index;
-	uint16_t ignored;
-};
+using Tile = uint32_t; // 12 bits X-pos, 12 bits Y-pos, 8 bits index
 struct TileMap{
 	// UBO Data
 	float affineT[4]; // 16 bytes

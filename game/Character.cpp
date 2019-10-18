@@ -8,13 +8,13 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 	for (auto& i : fnames){
 		this->texs.emplace_back(atlas.findSubTexture(i));
 	}
-	this->m_spr.setTexture(this->texs[0]);
+	this->m_spr.setTexture(&this->texs[0]);
 //	this->spr.transform(flipped_mat);
 	Rect<float> tmpAABB = m_spr.getAABB();
 	this->m_width = tmpAABB.width;
 	this->m_height = tmpAABB.height;
-	this->m_spr2.setTexture(this->texs[1]);
-	this->m_shieldspr.setTexture(this->texs[3]);
+	this->m_spr2.setTexture(&this->texs[1]);
+	this->m_shieldspr.setTexture(&this->texs[3]);
 }
 void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow* window) {
 	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
@@ -28,7 +28,7 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 		this->swordtimer--;
 		if (this->swordtimer == 0){
 			swordout = false;
-			this->m_spr2.setTexture(this->texs[1]);
+			this->m_spr2.setTexture(&this->texs[1]);
 			if (flipped){
 				this->m_spr2.transform(this->flipped_mat);
 			}
@@ -36,7 +36,7 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 		}
 	}else if ((ws->keyboardState[controls.swordkey])&&(!this->swordout)&&(!this->shieldout)){
 		this->swordout = true;
-		this->m_spr2.setTexture(this->texs[2]);
+		this->m_spr2.setTexture(&this->texs[2]);
 		if (flipped){
 			this->m_spr2.transform(this->flipped_mat);
 		}

@@ -4,7 +4,6 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include "Map.hpp"
-#include "../imgui/imgui.h"
 #include "ImGuiHelper.hpp"
 #include <sstream>
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
@@ -79,11 +78,11 @@ void ObjMap::loadFromFile(const std::string& filename){
 	rapidjson::SizeType numTiles = tilesNode.Size() & 0xff;
 	internal_tm.numTiles = numTiles;
 	for (int i = 0; i < numTiles; i++){
-		const Texture *tempTex = m_atlas.findSubTexture(tilesNode[i].GetString());
-		internal_tm.tiles[i][0] = tempTex->m_rect.left / 65536.f;
-		internal_tm.tiles[i][1] = tempTex->m_rect.top / 65536.f;
-		internal_tm.tiles[i][2] = tempTex->m_rect.width / 65536.f;
-		internal_tm.tiles[i][3] = tempTex->m_rect.height / 65536.f;
+		const Texture tempTex = m_atlas.findSubTexture(tilesNode[i].GetString());
+		internal_tm.tiles[i][0] = tempTex.m_rect.left / 65536.f;
+		internal_tm.tiles[i][1] = tempTex.m_rect.top / 65536.f;
+		internal_tm.tiles[i][2] = tempTex.m_rect.width / 65536.f;
+		internal_tm.tiles[i][3] = tempTex.m_rect.height / 65536.f;
 		internal_tm.filenames.emplace_back(tilesNode[i].GetString());
 	}
 	const rapidjson::Value& sizeNode = tilemapNode["tileSize"];
@@ -97,9 +96,10 @@ void ObjMap::loadFromFile(const std::string& filename){
 	const rapidjson::Value& drawnNode = tilemapNode["drawntiles"];
 	for (auto& tileNode : drawnNode.GetArray()){
 		Tile temp;
-		temp.px = tileNode["x"].GetFloat();
-		temp.py = tileNode["y"].GetFloat();
-		temp.index = tileNode["index"].GetInt();
+		int px = tileNode["x"].GetInt();
+		int py = tileNode["y"].GetInt();
+		int index = tileNode["index"].GetInt();
+		temp = ((px & 0xFFF) << 20) | ((py & 0x0FFF) << 8) | (index & 0xFF);
 		internal_tm.drawn.emplace_back(temp);
 	}
 	tm_changed = true;
@@ -109,8 +109,9 @@ void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::vec2& sprScal
 	std::string filename(fname);
 	auto end_pos = std::remove(filename.begin(),filename.end(),' ');
 	filename.erase(end_pos,filename.end());
-	sprs.emplace_back(sprPosition,filename,Sprite());
-	sprs[i].spr.setTexture(m_atlas.findSubTexture(filename));
+	sprs.emplace_back(sprPosition,filename);
+	Texture temp = m_atlas.findSubTexture(filename);
+	sprs[i].spr.setTexture(&temp);
 	sprs[i].spr.setPosition(sprPosition);
 	sprs[i].spr.m_model = glm::scale(sprs[i].spr.m_model,glm::vec3(sprScale,1.f));
 }
@@ -234,11 +235,11 @@ void ObjMap::WriteToFile(const std::string& filename){
 	for (auto& i : internal_tm.drawn){
 		writer.StartObject();
 		writer.Key("x");
-		writer.Double(i.px);
+		writer.Int(i >> 20);
 		writer.Key("y");
-		writer.Double(i.py);
+		writer.Int((i >> 8) & 0xFFF);
 		writer.Key("index");
-		writer.Int(i.index);
+		writer.Int(i & 0xFF);
 		writer.EndObject();
 	}
 	writer.EndArray();

@@ -1,6 +1,7 @@
 #ifndef SPRITE_H
 #define SPRITE_H
 #include <glm/glm.hpp>
+#include <memory>
 #include "Helpers.hpp"
 #include "Rect.hpp"
 #include <array>
@@ -18,7 +19,7 @@ struct Sprite{
 	Rect<float> getAABB() const;
 	void render();
 
-	Texture* m_subtexture;
+	std::unique_ptr<Texture> m_subtexture;
 	glm::vec2 center; // world coordinates
 	bool m_drawn = false;
 	bool m_changed = true;

@@ -41,7 +41,7 @@ private:
 	float maxFallSpeed = 1300.0f;
 	const float shieldmax = 600.f;
 	TextureAtlas& m_atlas;
-	std::vector<const Texture*> texs; //1,2,3,shield
+	std::vector<Texture> texs; //1,2,3,shield
 	bool isOnLedge = false;
 	bool jumped = false;
 	int swordtimer = 0;

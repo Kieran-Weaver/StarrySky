@@ -1,8 +1,8 @@
 CC=gcc
 CXX=g++
 TARGET=Platformer
-CFLAGS := -O2 -march=native -I. -iquote imgui
-CXXFLAGS := -O2 -march=native -fno-rtti -std=c++11 -I. -iquote imgui -Irapidjson/include
+CFLAGS := -O0 -g -march=native -I. -iquote imgui
+CXXFLAGS := -O0 -g -march=native -fno-rtti -std=c++11 -I. -iquote imgui -Irapidjson/include
 CPPFLAGS := $(INC_FLAGS) -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -MMD -MP
 IMGUI_SRCS := imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp imgui/imgui_demo.cpp imgui/examples/imgui_impl_glfw.cpp imgui/examples/imgui_impl_opengl3.cpp
 SRCS := gl.c $(shell find . -path "./GL/*.cpp" -o -path "./core/*.cpp" -o -path "./game/*.cpp" ) main.cpp $(IMGUI_SRCS)

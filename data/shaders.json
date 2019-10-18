@@ -32,20 +32,12 @@
 	  "usesGS" : true,
 	  "layout" : [
 	    {
-          "name" : "position",
-		  "components" : 2,
-		  "type" : 0,
-		  "norm" : false,
-		  "stride" : 12,
-		  "start" : 0
-		},
-		{
-          "name" : "Index",
+          "name" : "packedpos",
 		  "components" : 1,
-		  "type" : 1,
+		  "type" : 2,
 		  "norm" : false,
-		  "stride" : 12,
-		  "start" : 8
+		  "stride" : 4,
+		  "start" : 0
 		}
 	  ],
 	  "output" : "outColor"

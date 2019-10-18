@@ -38,6 +38,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glBindBuffer(GL_UNIFORM_BUFFER, matrixbuffer.m_handle);
 	glUniformBlockBinding(glPrograms[TILEMAP].programHandle, glGetUniformBlockIndex(glPrograms[TILEMAP].programHandle, "GSData"), 0);
 	ws.MatrixID = ubos.size() - 1;
+	delete[] VAOs;
 }
 SpriteBatchImpl::~SpriteBatchImpl(){
 	for (auto& i : glPrograms){
@@ -49,7 +50,7 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 }
 void SpriteBatchImpl::Draw(Sprite* spr){
 	spr->render();
-	GLuint m_tex = *spr->m_subtexture->m_texture;
+	GLuint& m_tex = spr->m_subtexture->m_texture;
 	if (m_texData.find(m_tex) == m_texData.end()){
 		m_texData[m_tex] = TextureData();
 	}
@@ -108,6 +109,9 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 				break;
 			case 1:
 				type = GL_UNSIGNED_SHORT;
+				break;
+			case 2:
+				type = GL_UNSIGNED_INT;
 				break;
 			default:
 				type = GL_FLOAT;
