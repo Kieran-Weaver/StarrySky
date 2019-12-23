@@ -32,10 +32,9 @@ struct GLBuffer{
 template<typename T>
 void genIndexBuffer(T max_sprites, GLBuffer<T>& buffer);
 extern template void genIndexBuffer<uint16_t>(uint16_t max_sprites, GLBuffer<uint16_t>& buffer);
-struct Vertex{
-	float posX;
-	float posY;
-	uint16_t texX;
-	uint16_t texY;
+struct GLRect2D{
+	uint16_t texRect[4];
+	float packedMat[4];
+	float sprPos[2];
 };
 #endif

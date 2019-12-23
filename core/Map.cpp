@@ -55,14 +55,16 @@ void ObjMap::loadFromFile(const std::string& filename){
 		addSurface(s);
 	}
 	for (auto& spriteNode : spritesNode.GetArray()){
-		glm::vec2 sprscale;
+		glm::mat2 sprtransform;
 		glm::vec2 sprposition;
 		sprposition.x = spriteNode["x"].GetFloat();
 		sprposition.y = spriteNode["y"].GetFloat();
-		sprscale.x = spriteNode["sx"].GetFloat();
-		sprscale.y = spriteNode["sy"].GetFloat();
+		sprtransform[0][0] = spriteNode["t"][0].GetFloat();
+		sprtransform[0][1] = spriteNode["t"][1].GetFloat();
+		sprtransform[1][0] = spriteNode["t"][2].GetFloat();
+		sprtransform[1][1] = spriteNode["t"][3].GetFloat();
 		std::string fname = spriteNode["name"].GetString();
-		this->addBGTexture(sprposition,sprscale,fname);
+		this->addBGTexture(sprposition,sprtransform,fname);
 	}
 	for (auto& ledgeNode : ledgesNode.GetArray()){
 		glm::vec2 pos;
@@ -104,16 +106,16 @@ void ObjMap::loadFromFile(const std::string& filename){
 	}
 	tm_changed = true;
 }
-void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::vec2& sprScale, const std::string& fname){
+void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::mat2& sprTransform, const std::string& fname){
 	int i = sprs.size();
 	std::string filename(fname);
 	auto end_pos = std::remove(filename.begin(),filename.end(),' ');
 	filename.erase(end_pos,filename.end());
 	sprs.emplace_back(sprPosition,filename);
 	Texture temp = m_atlas.findSubTexture(filename);
-	sprs[i].spr.setTexture(&temp);
+	sprs[i].spr.setTexture(temp);
 	sprs[i].spr.setPosition(sprPosition);
-	sprs[i].spr.m_model = glm::scale(sprs[i].spr.m_model,glm::vec3(sprScale,1.f));
+	sprs[i].spr.m_model = sprTransform * sprs[i].spr.m_model;
 }
 void ObjMap::addSurface(const Surface& wall){
 	surfaces.emplace_back(wall);
@@ -167,22 +169,21 @@ void ObjMap::WriteToFile(const std::string& filename){
 	writer.EndArray();
 	
 	writer.Key("sprites");
-	glm::quat orientation = glm::quat();
-	glm::vec3 scale = glm::vec3(), translation = glm::vec3(), skew = glm::vec3();
-	glm::vec4 perspective = glm::vec4();
 	
 	writer.StartArray();
 	for (auto& i : sprs){
 		writer.StartObject();
-		glm::decompose(i.spr.m_model,scale,orientation,translation,skew,perspective);
 		writer.Key("x");
 		writer.Int(i.iPosition.x);
 		writer.Key("y");
 		writer.Int(i.iPosition.y);
-		writer.Key("sx");
-		writer.Double(scale.x);
-		writer.Key("sy");
-		writer.Double(scale.y);
+		writer.Key("t");
+		writer.StartArray();
+		writer.Double(i.spr.m_model[0][0]);
+		writer.Double(i.spr.m_model[0][1]);
+		writer.Double(i.spr.m_model[1][0]);
+		writer.Double(i.spr.m_model[1][1]);
+		writer.EndArray();
 		writer.Key("name");
 		writer.String(i.filename.c_str());
 		writer.EndObject();

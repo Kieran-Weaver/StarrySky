@@ -50,17 +50,17 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 }
 void SpriteBatchImpl::Draw(Sprite* spr){
 	spr->render();
-	GLuint& m_tex = spr->m_subtexture->m_texture;
+	GLuint& m_tex = spr->m_subtexture.m_texture;
 	if (m_texData.find(m_tex) == m_texData.end()){
 		m_texData[m_tex] = TextureData();
 	}
 	if (std::find(m_texData[m_tex].sprites.begin(),m_texData[m_tex].sprites.end(),spr) == m_texData[m_tex].sprites.end()){
 		m_texData[m_tex].sprites.emplace_back(spr);
-		m_texData[m_tex].vertices.insert(m_texData[m_tex].vertices.end(),spr->cached_vtx_data.data(),spr->cached_vtx_data.data()+4);
-		if (m_texData[m_tex].vertices.size() * sizeof(Vertex) > glPrograms[SPRITE2D].VBO_size){
+		m_texData[m_tex].vertices.emplace_back(spr->cached_vtx_data);
+		if (m_texData[m_tex].vertices.size() * sizeof(GLRect2D) > glPrograms[SPRITE2D].VBO_size){
 			glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
-			glBufferData(GL_ARRAY_BUFFER,m_texData[m_tex].vertices.size()*sizeof(Vertex),nullptr,GL_DYNAMIC_DRAW);
-			glPrograms[SPRITE2D].VBO_size = m_texData[m_tex].vertices.size() * sizeof(Vertex);
+			glBufferData(GL_ARRAY_BUFFER,m_texData[m_tex].vertices.size()*sizeof(GLRect2D),nullptr,GL_DYNAMIC_DRAW);
+			glPrograms[SPRITE2D].VBO_size = m_texData[m_tex].vertices.size() * sizeof(GLRect2D);
 		}
 	}
 }
@@ -100,7 +100,7 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 			GLuint stride = 0;
 			GLuint start = 0;
 			input_name = parameterNode["name"].GetString();
-			
+			GLint inputHandle = parameterNode["location"].GetInt();
 			components = parameterNode["components"].GetInt();	
 			
 			switch (parameterNode["type"].GetInt()){
@@ -121,7 +121,7 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 			normalized = parameterNode["norm"].GetBool();
 			stride = parameterNode["stride"].GetInt();
 			start = parameterNode["start"].GetInt();
-			GLint inputHandle = glGetAttribLocation(glPrograms.back().programHandle, input_name.c_str());
+			glBindAttribLocation(glPrograms.back().programHandle, inputHandle, input_name.c_str());
 			glEnableVertexAttribArray(inputHandle);
 			if (type == GL_FLOAT || normalized){
 				glVertexAttribPointer(inputHandle,components,type,normalized,stride,reinterpret_cast<void*>(start));
@@ -140,7 +140,6 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &ws->camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
 	glActiveTexture(GL_TEXTURE0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glPrograms[SPRITE2D].ebo.m_handle);
 	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
@@ -151,22 +150,25 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 		}
 		size_t skippedSprites = spriteIndex;
 		std::sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(),SpriteCMP);
-		if (currentTexData.vertices.size() > spriteIndex*4){
-			currentTexData.vertices.erase(currentTexData.vertices.begin() + (spriteIndex*4),currentTexData.vertices.end());
+		if (currentTexData.vertices.size() > spriteIndex){
+			currentTexData.vertices.erase(currentTexData.vertices.begin() + spriteIndex,currentTexData.vertices.end());
 		}
 		for (;spriteIndex < num_sprites;spriteIndex++){
 			if (!currentTexData.sprites[spriteIndex]->m_drawn){
 				currentTexData.sprites[spriteIndex]->m_changed = false;
 				continue;
 			}else{
-				currentTexData.vertices.insert(currentTexData.vertices.end(),currentTexData.sprites[spriteIndex]->cached_vtx_data.data(),currentTexData.sprites[spriteIndex]->cached_vtx_data.data()+4);
+				currentTexData.vertices.emplace_back(currentTexData.sprites[spriteIndex]->cached_vtx_data);
 				currentTexData.sprites[spriteIndex]->m_drawn = false;
 				currentTexData.sprites[spriteIndex]->m_changed = false;
 			}
 		}
 		glBindTexture(GL_TEXTURE_2D,texturepair.first);
-		glBufferSubData(GL_ARRAY_BUFFER,0,currentTexData.vertices.size()*sizeof(Vertex),currentTexData.vertices.data());
-		glDrawElements(GL_TRIANGLES,6*(currentTexData.vertices.size()/4),GL_UNSIGNED_SHORT,nullptr);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindVertexArray(glPrograms[SPRITE2D].VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
+		glBufferSubData(GL_ARRAY_BUFFER,0,currentTexData.vertices.size()*sizeof(GLRect2D),currentTexData.vertices.data());
+		glDrawArrays(GL_POINTS,0,currentTexData.vertices.size());
 	}
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(glPrograms[TILEMAP].VAO);

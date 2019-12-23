@@ -25,7 +25,7 @@ public:
 private:
 	struct TextureData{
 		std::vector<Sprite*> sprites;
-		std::vector<Vertex> vertices;
+		std::vector<GLRect2D> vertices;
 	};
 	struct GLProgram{
 		GLProgram(){

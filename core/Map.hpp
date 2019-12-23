@@ -31,7 +31,7 @@ public:
 	void SetPosition(float x, float y);
 	void Draw(SpriteBatch& frame);
 	void addSurface(const Surface& wall);
-	void addBGTexture(const glm::vec2& thisposition, const glm::vec2& toscale, const std::string& fname);
+	void addBGTexture(const glm::vec2& thisposition, const glm::mat2& transform, const std::string& fname);
 	void WriteToFile(const std::string& filename);
 	glm::vec2 position;
 	std::vector<Surface> surfaces;

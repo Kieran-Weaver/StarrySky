@@ -11,7 +11,7 @@ Enemy::Enemy(float x, float y, ObjMap& map, const std::string& mainsprite, const
 	for (auto& i : fnames){
 		this->texs.emplace_back(atlas.findSubTexture(i));
 	}
-	this->m_spr.setTexture(&this->texs[0]);
+	this->m_spr.setTexture(this->texs[0]);
 	Rect<float> tmpAABB = m_spr.getAABB();
 	this->m_width = tmpAABB.width;
 	this->m_height = tmpAABB.height;
@@ -20,7 +20,7 @@ Enemy::Enemy(float x, float y, ObjMap& map, const std::string& mainsprite, const
 }
 void Enemy::reset(){
 	health = ihealth;
-	m_spr.setTexture(&this->texs[0]);
+	m_spr.setTexture(this->texs[0]);
 	flipped = false;
 }
 void Enemy::Update(float dt, Character* player) {
@@ -36,12 +36,12 @@ void Enemy::Update(float dt, Character* player) {
 			invltimer=45;
 			health--;
 			if (textureIndex == 0){
-				m_spr.setTexture(&texs[1]);
+				m_spr.setTexture(texs[1]);
 				textureIndex = 1;
 			}
 		}else{
 			if (textureIndex != 0){
-				m_spr.setTexture(&texs[0]);
+				m_spr.setTexture(texs[0]);
 				textureIndex = 0;
 			}
 		}
