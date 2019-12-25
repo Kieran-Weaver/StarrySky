@@ -12,6 +12,9 @@ Sprite::Sprite(const Texture& tex) noexcept{
 	this->center = glm::vec2(0,0);
 	this->setTexture(tex);
 }
+void Sprite::setStencil(bool stencil_state){
+	this->uses_stencil = stencil_state;
+}
 void Sprite::setTexture(const Texture& tex){
 	this->m_subtexture = tex;
 	this->m_changed = true;

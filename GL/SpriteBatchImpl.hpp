@@ -42,11 +42,14 @@ private:
 		GLuint VBO;
 		GLuint VBO_size = 0;
 	};
+	void setStencil(bool new_state);
 	std::vector<GLProgram> glPrograms;
 	std::vector<GLBuffer<float>> ubos;
 	TileMap m_currentMap;
+	TileMap effectLayer;
 	google::dense_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;
+	std::array<GLenum,3> stencil_state{GL_KEEP,GL_KEEP,GL_KEEP};
 	rapidjson::Document document;
 };
 #endif

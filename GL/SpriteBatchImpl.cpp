@@ -39,6 +39,10 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glUniformBlockBinding(glPrograms[TILEMAP].programHandle, glGetUniformBlockIndex(glPrograms[TILEMAP].programHandle, "GSData"), 0);
 	ws.MatrixID = ubos.size() - 1;
 	delete[] VAOs;
+	
+	glEnable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 1, 255);
+	setStencil(false);
 }
 SpriteBatchImpl::~SpriteBatchImpl(){
 	for (auto& i : glPrograms){
@@ -181,6 +185,19 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glUseProgram(glPrograms[TILEMAP].programHandle);
 	glDrawArrays(GL_POINTS, 0, 2);
 	glUseProgram(0);
+}
+void SpriteBatchImpl::setStencil(bool new_state){
+	if (new_state) {
+		if (stencil_state == std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_KEEP}) {
+			stencil_state = std::array<GLenum,3>{GL_KEEP, GL_KEEP, GL_REPLACE};
+			glStencilOp(stencil_state[0], stencil_state[1], stencil_state[2]);
+		}
+	} else {
+		if (stencil_state != std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_KEEP}) {
+			stencil_state.fill(GL_KEEP);
+			glStencilOp(stencil_state[0], stencil_state[1], stencil_state[2]);
+		}
+	}
 }
 void SpriteBatchImpl::ChangeMap(const TileMap& tm){
 	this->m_currentMap = tm;
