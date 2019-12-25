@@ -7,7 +7,6 @@ layout (std140) uniform GSData{
 	mat4 unused; // 64 bytes
 	vec4 AffineV; // 16 bytes
 	vec4 packedtileSize; // 16 bytes
-	vec4 offset;
 	vec4 tileData[256];
 };
 vec2 doTransform(vec2 initial, mat2 transform, vec2 position){

@@ -8,11 +8,13 @@ enum TMState{
 	Normal,
 	Effect
 };
+inline Tile makeTile(uint16_t x, uint16_t y, uint8_t index){
+	return ((x & 0xFFF) << 20) | ((y & 0xFFF) << 8) | index;
+}
 struct TileMap{
 	// UBO Data
 	float affineT[4]; // 16 bytes
 	float packedtileSize[4]; // 16 bytes
-	float offset[4];
 	float tiles[256][4]; // Max 255 tile types
 	// Internal Data
 	int numTiles;
