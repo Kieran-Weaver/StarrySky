@@ -71,10 +71,6 @@ void ObjMap::loadFromFile(const std::string& filename){
 		pos.y = ledgeNode["y"].GetFloat();
 		ledges.emplace_back(pos);
 	}
-	const rapidjson::Value& offset_node = tilemapNode["offset"];
-	for (int i = 0; i < 2; i++){
-		internal_tm.offset[i] = offset_node[i].GetFloat();
-	}
 	const rapidjson::Value& ATNode = tilemapNode["AffineT"];
 	for (int i = 0; i < 4; i++){
 		internal_tm.affineT[i] = ATNode[i].GetFloat();
@@ -129,8 +125,8 @@ void ObjMap::SetPosition(float x, float y) {
 	for (auto& i : sprs){
 		i.spr.setPosition(i.iPosition.x + x, i.iPosition.y + y);
 	}
-	this->internal_tm.offset[0] = x;
-	this->internal_tm.offset[1] = y;
+	this->internal_tm.packedtileSize[2] = x;
+	this->internal_tm.packedtileSize[3] = y;
 	tm_changed = true;
 }
 void ObjMap::WriteToFile(const std::string& filename){

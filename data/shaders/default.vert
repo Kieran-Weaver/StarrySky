@@ -1,7 +1,7 @@
-#version 150
-in vec4 ptpos;
-in vec4 pmat2;
-in vec2 ctr;
+#version 330
+layout(location = 0) in vec4 ptpos;
+layout(location = 1) in vec4 pmat2;
+layout(location = 2) in vec2 ctr;
 out Vertex
 {
 	vec4 packedtexpos;
