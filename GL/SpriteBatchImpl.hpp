@@ -28,11 +28,6 @@ private:
 		std::vector<GLRect2D> vertices;
 	};
 	struct GLProgram{
-		GLProgram(){
-			this->vxShader = Shader(GL_VERTEX_SHADER);
-			this->fgShader = Shader(GL_FRAGMENT_SHADER);
-			this->gsShader = Shader(GL_GEOMETRY_SHADER);
-		}
 		Shader vxShader;
 		Shader fgShader;
 		Shader gsShader;

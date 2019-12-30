@@ -2,23 +2,7 @@
 #include <fstream>
 #include <array>
 #include <iostream>
-Shader::Shader(GLenum type) : m_handle(0), m_type(type) {}
-Shader::Shader(Shader&& other) : m_handle(other.m_handle), m_type(other.m_type){
-	other.m_handle = 0;
-}
-Shader& Shader::operator=(Shader&& other){
-	if (this != &other){
-		glDeleteShader(m_handle);
-		this->m_handle = other.m_handle;
-		this->m_type = other.m_type;
-		other.m_handle = 0;
-	}
-	return *this;
-}
-Shader::~Shader(){
-	glDeleteShader(m_handle);
-}
-void Shader::load(const std::string& filename){
+Shader::Shader(GLenum type, const std::string& filename) : m_type(type) {
 	m_handle = glCreateShader(this->m_type);
 	std::string contents = readWholeFile(filename);
 	const char* shader_contents = contents.c_str();
@@ -35,44 +19,34 @@ void Shader::load(const std::string& filename){
 		std::string errorMessage(errorLog.data(), errorLog.size());
 		std::cerr << "Message: " << errorMessage << std::endl;
 		glDeleteShader(m_handle);
-		loaded = false;
+		this->loaded = false;
 	}else{
-		loaded = true;
+		this->loaded = true;
 	}
 }
-GLuint CreateProgram(const std::string& VertexShader, const std::string& FragShader, const std::string& OutputLocation){
-	std::array<Shader,2> shaders = {GL_VERTEX_SHADER,GL_FRAGMENT_SHADER};
-	shaders[0].load(VertexShader);
-	shaders[1].load(FragShader);
-	return CreateProgram(shaders[0],shaders[1],OutputLocation);
+Shader::Shader(Shader&& other) : m_handle(other.m_handle), m_type(other.m_type), loaded(other.loaded){
+	other.m_handle = 0;
 }
-GLuint CreateProgram(const Shader& VertexShader, const Shader& FragShader, const std::string& OutputLocation){
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, VertexShader.m_handle);
-	glAttachShader(shaderProgram, FragShader.m_handle);
-	glBindFragDataLocation(shaderProgram,0,OutputLocation.c_str());
-	glLinkProgram(shaderProgram);
-	GLint isLinked = 0;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
-	if (isLinked == GL_FALSE){
-		GLint maxLength = 0;
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
-
-		std::vector<GLchar> infoLog(maxLength);
-		glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
-
-		glDeleteProgram(shaderProgram);
-		std::string errorMessage(infoLog.data(), infoLog.size());
-		std::cerr << "Message: " << errorMessage << std::endl;
-		return 0;
-	}else{
-		return shaderProgram;
+Shader& Shader::operator=(Shader&& other){
+	if (this != &other){
+		glDeleteShader(m_handle);
+		this->m_handle = other.m_handle;
+		this->m_type = other.m_type;
+		this->loaded = other.loaded;
+		other.m_handle = 0;
 	}
+	return *this;
+}
+Shader::~Shader(){
+	glDeleteShader(m_handle);
+	loaded = false;
 }
 GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const Shader& FragShader, const std::string& OutputLocation){
 	GLuint shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, VertexShader.m_handle);
-	glAttachShader(shaderProgram, GeomShader.m_handle);
+	if (GeomShader.loaded){
+		glAttachShader(shaderProgram, GeomShader.m_handle);
+	}
 	glAttachShader(shaderProgram, FragShader.m_handle);
 	glBindFragDataLocation(shaderProgram,0,OutputLocation.c_str());
 	glLinkProgram(shaderProgram);

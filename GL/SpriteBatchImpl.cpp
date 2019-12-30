@@ -86,15 +86,13 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[ind].VBO);
 		rapidjson::Value& shaderNode = node[ind];
 
-		currentProgram.fgShader.load(shaderNode["fgFile"].GetString());
-		currentProgram.vxShader.load(shaderNode["vxFile"].GetString());
+		currentProgram.fgShader = Shader(GL_FRAGMENT_SHADER, shaderNode["fgFile"].GetString());
+		currentProgram.vxShader = Shader(GL_VERTEX_SHADER, shaderNode["vxFile"].GetString());
 		bool usesGS = shaderNode["usesGS"].GetBool();
 		if (usesGS){
-			currentProgram.gsShader.load(shaderNode["gsFile"].GetString());
-			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.gsShader,currentProgram.fgShader,shaderNode["output"].GetString());
-		}else{
-			currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.fgShader,shaderNode["output"].GetString());
+			currentProgram.gsShader = Shader(GL_GEOMETRY_SHADER, shaderNode["gsFile"].GetString());
 		}
+		currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.gsShader,currentProgram.fgShader,shaderNode["output"].GetString());
 		rapidjson::Value& layoutNode = shaderNode["layout"];
 		for (auto& parameterNode : layoutNode.GetArray()){
 			std::string input_name = "";
