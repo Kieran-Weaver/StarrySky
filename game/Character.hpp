@@ -1,6 +1,7 @@
 #ifndef CHARACTER_HPP
 #define CHARACTER_HPP
 #include <core/MovingEntity.hpp>
+#include <core/Timer.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/TextureAtlas.hpp>
@@ -44,11 +45,11 @@ private:
 	std::vector<Texture> texs; //1,2,3,shield
 	bool isOnLedge = false;
 	bool jumped = false;
-	int swordtimer = 0;
+	Timer swordtimer;
+	Timer invltimer;
 	bool flipped = false;
 	bool shieldout = false;
 	bool shieldbroken = false;
-	int invltimer = 0;
 	float shieldmeter = 600.f;
 	Controls controls;
 	WallType walljumpstate;

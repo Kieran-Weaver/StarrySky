@@ -2,7 +2,6 @@
 #define STARRYSKY_MAP_HPP
 #include <vector>
 #include <string>
-#include <gl.h>
 #include <sparsehash/dense_hash_map>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Sprite.hpp>

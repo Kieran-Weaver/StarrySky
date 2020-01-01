@@ -8,6 +8,7 @@ Shader::Shader(GLenum type, const std::string& filename) : m_type(type) {
 	const char* shader_contents = contents.c_str();
 	glShaderSource(m_handle,1,&shader_contents,nullptr);
 	glCompileShader(m_handle);
+#ifndef NDEBUG
 	GLint success = 0;
 	glGetShaderiv(m_handle, GL_COMPILE_STATUS, &success);
 	if (success == GL_FALSE){
@@ -23,9 +24,13 @@ Shader::Shader(GLenum type, const std::string& filename) : m_type(type) {
 	}else{
 		this->loaded = true;
 	}
+#else
+	this->loaded = true;
+#endif
 }
 Shader::Shader(Shader&& other) : m_handle(other.m_handle), m_type(other.m_type), loaded(other.loaded){
 	other.m_handle = 0;
+	other.loaded = false;
 }
 Shader& Shader::operator=(Shader&& other){
 	if (this != &other){
@@ -50,6 +55,7 @@ GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const
 	glAttachShader(shaderProgram, FragShader.m_handle);
 	glBindFragDataLocation(shaderProgram,0,OutputLocation.c_str());
 	glLinkProgram(shaderProgram);
+#ifndef NDEBUG
 	GLint isLinked = 0;
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
 	if (isLinked == GL_FALSE){
@@ -66,4 +72,7 @@ GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const
 	}else{
 		return shaderProgram;
 	}
+#else
+	return shaderProgram;
+#endif
 }

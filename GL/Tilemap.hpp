@@ -2,7 +2,6 @@
 #define STARRYSKY_TILEMAP_H
 #include <cstdint>
 #include <vector>
-#include "Helpers.hpp"
 using Tile = uint32_t; // 12 bits X-pos, 12 bits Y-pos, 8 bits index
 enum TMState{
 	Normal,

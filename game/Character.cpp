@@ -22,26 +22,24 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 		this->jumped = false;
 	}
 	this->dropFromOneWay = ws->keyboardState[controls.downkey];
-	if (this->swordtimer < 0){
-		this->swordtimer++;
-	}else if (this->swordtimer > 0){
-		this->swordtimer--;
-		if (this->swordtimer == 0){
-			swordout = false;
-			this->m_spr2.setTexture(this->texs[1]);
-			if (flipped){
-				this->m_spr2.transform(this->flipped_mat);
-			}
-			this->swordtimer = -6;
-		}
-	}else if ((ws->keyboardState[controls.swordkey])&&(!this->swordout)&&(!this->shieldout)){
-		this->swordout = true;
-		this->m_spr2.setTexture(this->texs[2]);
+	if (swordtimer()){
+		swordout = false;
+		this->m_spr2.setTexture(this->texs[1]);
 		if (flipped){
 			this->m_spr2.transform(this->flipped_mat);
 		}
-		ws->keyboardState[controls.swordkey] = false;
-		this->swordtimer = 30;
+		this->swordtimer.setDelay(6);
+		this->swordtimer.setTime(-1);
+	} else if (!swordout && this->swordtimer.getDelay() == 0) {
+		if ((ws->keyboardState[controls.swordkey])&&(!this->shieldout)){
+			this->swordout = true;
+			this->m_spr2.setTexture(this->texs[2]);
+			if (flipped){
+				this->m_spr2.transform(this->flipped_mat);
+			}
+			ws->keyboardState[controls.swordkey] = false;
+			this->swordtimer.setTime(30);
+		}
 	}
 	this->minSpeed = -this->walkSpeed;
 	this->maxSpeed = this->walkSpeed;
@@ -153,19 +151,17 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 	}
 	this->m_spr2.setPosition(glm::vec2(posx,posy));
 	MovingEntity::Update(dt);
-	if (invltimer > 0){
-		invltimer--;
-	}
+	invltimer();
 	for (auto& i : objects){
 		if (this->m_spr.PPCollidesWith(i->m_spr)){
 			if (shieldout && !shieldbroken){
-				if (invltimer == 0){
+				if (invltimer.getTime()==0){
 					shieldmeter = shieldmeter - 200.f;
 					if (shieldmeter < 0.0f){
 						shieldbroken = true;
 						shieldmeter = 0.0f;
 					}
-					invltimer = 20;
+					invltimer.setTime(20);
 				}
 			}else{
 				dead = true;

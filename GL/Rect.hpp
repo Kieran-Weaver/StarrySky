@@ -1,6 +1,5 @@
 #ifndef RECT_H
 #define RECT_H
-#include <glm/glm.hpp>
 #include <algorithm>
 template<typename T>
 struct Rect{
@@ -24,8 +23,8 @@ struct Rect{
 	T top;
 	T width;
 	T height;
-	bool Contains(glm::vec2 point) const{
-		return (((left - point.x)*(left + width - point.x) <= 0.f)&&((top - point.y)*(top + height - point.y) <= 0.f));
+	bool Contains(float x, float y) const{
+		return (((left - x)*(left + width - x) <= 0.f)&&((top - y)*(top + height - y) <= 0.f));
 	}
 	bool Contains(const Rect<T>& r) const{
 		return (((r.left + r.width)<=(left+width))&&((r.top+r.height)<=(top+height))&&(r.left >= left) && (r.top >= top));
