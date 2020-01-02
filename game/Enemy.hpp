@@ -1,6 +1,7 @@
 #ifndef ENEMY_HPP
 #define ENEMY_HPP
 #include <core/MovingEntity.hpp>
+#include <core/Timer.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/TextureAtlas.hpp>
@@ -10,7 +11,7 @@ public:
 	float walkSpeed = 400.0f;
 	float maxFallSpeed = 600.0f;
 	int textureIndex = 0;
-	int invltimer = 0;
+	Timer invltimer;
 	int health;
 	bool flipped = false;
 public:

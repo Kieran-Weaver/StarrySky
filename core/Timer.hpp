@@ -2,8 +2,6 @@
 #define TIMER_HPP
 class Timer{
 public:
-	Timer() : m_pause_for(0), m_time_left(0){}
-	Timer(int pause_for,int time_left) : m_pause_for(pause_for), m_time_left(time_left){}
 	bool operator()(){
 		if (m_pause_for == 0){
 			if (m_time_left > 0){

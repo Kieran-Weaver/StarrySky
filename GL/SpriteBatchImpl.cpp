@@ -181,7 +181,7 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	}
 	glBufferSubData(GL_ARRAY_BUFFER, 0, m_currentMap.drawn.size() * sizeof(Tile), m_currentMap.drawn.data());
 	glUseProgram(glPrograms[TILEMAP].programHandle);
-	glDrawArrays(GL_POINTS, 0, 2);
+	glDrawArrays(GL_POINTS, 0, m_currentMap.drawn.size());
 	glUseProgram(0);
 }
 void SpriteBatchImpl::setStencil(bool new_state){

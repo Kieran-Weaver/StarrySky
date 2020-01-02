@@ -1,15 +1,28 @@
 #include "gl.h"
-#include <GLFW/glfw3.h>
+#include <glfw3.h>
 #include <iostream>
 #include <zlib.h>
 #include <cstring>
-#include "GL/Shader.hpp"
-#include "GL/Camera.hpp"
-#include "GL/TextureAtlas.h"
-#include "GL/SpriteBatch.h"
-#include "imgui/imgui.h"
-#include "imgui/examples/imgui_impl_glfw.h"
-#include "imgui/examples/imgui_impl_opengl3.h"
+#include <GL/Shader.hpp>
+#include <GL/Camera.hpp>
+#include <GL/TextureAtlas.hpp>
+#include <GL/SpriteBatch.hpp>
+#include <GL/Sprite.hpp>
+#include <imgui/imgui.h>
+#include <imgui/examples/imgui_impl_glfw.h>
+#include <imgui/examples/imgui_impl_opengl3.h>
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
+		glfwSetWindowShouldClose(window,GLFW_TRUE);
+	}
+	auto * ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+	if (action == GLFW_PRESS){
+		ws->keyboardState[key] = true;
+	}else if (action == GLFW_RELEASE){
+		ws->keyboardState[key] = false;
+	}
+	ImGui_ImplGlfw_KeyCallback(window,key,scancode,action,mods);
+}
 int main(int, char const**) {
 	float x1=0.0,x2=0.0,y1=0.0,y2=0.0;
 	GLFWwindow* window;
@@ -18,6 +31,7 @@ int main(int, char const**) {
 	}
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f));
 	WindowState ws;
+	bool paused = false;
 	ws.camera = &camera;
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
@@ -39,12 +53,13 @@ int main(int, char const**) {
 	ImGui_ImplGlfw_InitForOpenGL(window,true);
 	ImGui_ImplOpenGL3_Init("#version 150");
 	TextureAtlas atlas;
-	atlas.loadFromFile("../data/atlas.bin");
-	SpriteBatch batch(atlas,ws);
+	atlas.loadFromFile("data/atlas.json");
+	SpriteBatch batch(atlas, ws, "data/shaders.json");
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glfwSetWindowUserPointer(window,&ws);
+	glfwSetKeyCallback(window,key_callback);
 	Texture t = atlas.findSubTexture("test1");
 	Texture t2 = atlas.findSubTexture("test2");
 	Sprite s(t);
@@ -60,10 +75,16 @@ int main(int, char const**) {
 		ImGui::SliderFloat("Object 2 x-pos",&x2,0.0f,1280.0f);
 		ImGui::SliderFloat("Object 2 y-pos",&y2,0.0f,800.0f);
 		s.setPosition(x1,y1);
-		s.rotate(0.1f);
 		s2.setPosition(x2,y2);
-		s2.rotate(-0.1f);
-		bool collided = atlas.PixelPerfectTest(s,s2);
+		if (ws.keyboardState[GLFW_KEY_A]){
+			paused = true;
+			ws.keyboardState[GLFW_KEY_A] = false;
+		}
+		if (!paused){
+			s2.rotate(-0.1f);
+			s.rotate(0.1f);
+		}
+		bool collided = s.PPCollidesWith(s2);
 		std::string colstr = "no";
 		if (collided){
 			colstr = "yes";

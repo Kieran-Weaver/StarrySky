@@ -1,5 +1,6 @@
 #include "Character.hpp"
 #include <GL/Camera.hpp>
+#include <iostream>
 #define LASERW 25
 #define LASERH 10
 Character::Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas): MovingEntity(x, y, map), m_atlas(atlas) {
@@ -154,6 +155,7 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 	invltimer();
 	for (auto& i : objects){
 		if (this->m_spr.PPCollidesWith(i->m_spr)){
+			std::cout << "Collision: Yes" << std::endl;
 			if (shieldout && !shieldbroken){
 				if (invltimer.getTime()==0){
 					shieldmeter = shieldmeter - 200.f;
@@ -199,4 +201,8 @@ void Character::Draw(SpriteBatch& mframe) {
 	ImGui::Begin("Shield");
 	ImGui::ProgressBar(shieldmeter/shieldmax);
 	ImGui::End();
+	ImGui::Begin("InvlTimer");
+	ImGui::ProgressBar(invltimer.getTime()/20.f);
+	ImGui::End();
+	
 }

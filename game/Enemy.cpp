@@ -25,7 +25,7 @@ void Enemy::reset(){
 }
 void Enemy::Update(float dt, Character* player) {
 // Update states
-	if (invltimer == 0){
+	if (invltimer()){
 		bool hit = false;
 		if (player->swordout){
 			if (this->m_spr.PPCollidesWith(player->m_spr2)){
@@ -33,7 +33,7 @@ void Enemy::Update(float dt, Character* player) {
 			}
 		}
 		if (hit){
-			invltimer=45;
+			invltimer.setTime(45);
 			health--;
 			if (textureIndex == 0){
 				m_spr.setTexture(texs[1]);
@@ -48,8 +48,6 @@ void Enemy::Update(float dt, Character* player) {
 		if (health == 0){
 			dead = true;
 		}
-	}else{
-		invltimer--;
 	}
 	this->m_speed.y += GRAVITY * dt;
 	this->m_speed.y = std::min(this->m_speed.y, maxFallSpeed);

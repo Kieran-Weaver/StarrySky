@@ -1,0 +1,59 @@
+{
+  "shaders.len" : 2,
+  "shaders": [
+    {
+      "gsFile" : "data/shaders/default.geom",
+      "vxFile" : "data/shaders/default.vert",
+      "fgFile" : "data/shaders/default.frag",
+	  "usesGS" : true,
+      "layout" : [
+        {
+          "name" : "ptpos",
+          "location" : 0,
+          "components" : 4,
+          "type" : 1,
+          "norm" : true,
+          "stride" : 32,
+          "start" : 0
+        },
+        {
+          "name" : "pmat2",
+          "location" : 1,
+          "components" : 4,
+          "type" : 0,
+          "norm" : false,
+          "stride" : 32,
+          "start" : 8
+        },
+        {
+          "name" : "ctr",
+          "location" : 2,
+          "components": 2,
+          "type" : 0,
+          "norm" : false,
+          "stride" : 32,
+          "start" : 24
+        }
+      ],
+      "output" : "outColor"
+    },
+	{
+	  "gsFile" : "data/shaders/tilemap.geom",
+	  "vxFile" : "data/shaders/tilemap.vert",
+	  "fgFile" : "data/shaders/tilemap.frag",
+	  "usesGS" : true,
+	  "layout" : [
+	    {
+          "name" : "packedpos",
+          "location" : 0,
+		  "components" : 1,
+		  "type" : 2,
+		  "norm" : false,
+		  "stride" : 4,
+		  "start" : 0
+		}
+	  ],
+	  "output" : "outColor"
+	}
+  ]
+}
