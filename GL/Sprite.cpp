@@ -92,11 +92,11 @@ bool Sprite::PPCollidesWith(const Sprite& Object2){
 		const glm::mat2 o1t_subrect_to_pixel(
 			o1m_rect.width * mask1.width,0,
 			0,o1m_rect.height*mask1.height);
-		const glm::vec2 o1t_subrect_tl(o1m_rect.left*mask1.width,o1m_rect.top*mask1.height);
+		const glm::vec2 o1t_subrect_center((o1m_rect.left+o1m_rect.width/2.f)*mask1.width,(o1m_rect.top+o1m_rect.height/2.f)*mask1.height);
 		const glm::mat2 o2t_subrect_to_pixel(
 			o2m_rect.width * mask2.width,0,
 			0,o2m_rect.height*mask2.height);
-		const glm::vec2 o2t_subrect_tl(o2m_rect.left*mask2.width,o2m_rect.top*mask2.height);
+		const glm::vec2 o2t_subrect_center((o2m_rect.left+o2m_rect.width/2.f)*mask2.width,(o2m_rect.top+o2m_rect.height/2.f)*mask2.height);
 		for (int i = static_cast<int>(Intersection.left); i < static_cast<int>(Intersection.left+Intersection.width); i++) {
 			for (int j = static_cast<int>(Intersection.top); j < static_cast<int>(Intersection.top+Intersection.height); j++) {
 
@@ -104,10 +104,10 @@ bool Sprite::PPCollidesWith(const Sprite& Object2){
 				glm::vec2 o2v = o2t*glm::vec2(i-Object2.center.x, j-Object2.center.y);
 
 			// Make sure pixels fall within the sprite's subrect
-				if (o1v.x > 0.f && o1v.y > 0.f && o2v.x > 0.f && o2v.y > 0.f &&
-					o1v.x < 1.f && o1v.y < 1.f && o2v.x < 1.f && o2v.y < 1.f) {
-					glm::ivec2 pixel1 = o1t_subrect_to_pixel * o1v + o1t_subrect_tl;
-					glm::ivec2 pixel2 = o2t_subrect_to_pixel * o2v + o2t_subrect_tl;
+				if (o1v.x > -0.5f && o1v.y > -0.5f && o2v.x > -0.5f && o2v.y > -0.5f &&
+					o1v.x < 0.5f && o1v.y < 0.5f && o2v.x < 0.5f && o2v.y < 0.5f) {
+					glm::ivec2 pixel1 = o1t_subrect_to_pixel * o1v + o1t_subrect_center;
+					glm::ivec2 pixel2 = o2t_subrect_to_pixel * o2v + o2t_subrect_center;
 					if ((*(mask1.mask))[pixel1.x+pixel1.y*mask1.width] && (*(mask2.mask))[pixel2.x+pixel2.y*mask2.width]){
 						return true;
 					}
