@@ -9,7 +9,6 @@ class Character;
 class Enemy : public MovingEntity {
 public:
 	float walkSpeed = 400.0f;
-	float maxFallSpeed = 600.0f;
 	int textureIndex = 0;
 	Timer invltimer;
 	int health;

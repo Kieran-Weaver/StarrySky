@@ -6,7 +6,7 @@ class Shader
 {
 public:
 	Shader(GLenum type, const std::string& filename);
-	Shader() : m_handle(0), m_type(0){}
+	Shader() : m_handle(0), m_type(0), loaded(false){}
 	Shader(const Shader&) = delete;
 	Shader& operator=(const Shader&) = delete;
 	Shader(Shader&& other);

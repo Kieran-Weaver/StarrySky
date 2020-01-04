@@ -59,11 +59,7 @@ int main(){
 	ImGui_ImplOpenGL3_Init("#version 150");
 	io.Fonts->AddFontFromFileTTF("data/fonts/boxfont_round.ttf",20.f);
 	glm::mat4 m(1.0f);
-	TextureAtlas atlas;
-	if (!atlas.loadFromFile("data/atlas.json")){
-		std::cout << "Could not load atlas from data/atlas.json" << std::endl;
-		return 3;
-	}
+	TextureAtlas atlas("data/atlas.json");
 	ObjMap map("map.json",atlas);
 	Character player(300, 300, map, "lesserdog", "sword2", "sword", atlas);
 	Enemy testEnemy(900, 300, map, "birdo1", "birdo3", 10, atlas);

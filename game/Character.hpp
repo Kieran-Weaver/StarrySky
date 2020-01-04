@@ -29,7 +29,7 @@ public:
 	Character(const Character&) = delete;
 	Character& operator=(const Character&) = delete;
 	Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas);
-	void Update(float dt, std::vector<MovingEntity *>& objects, GLFWwindow* window);
+	void Update(float dt, const std::vector<MovingEntity *>& objects, GLFWwindow* window);
 	void Draw(SpriteBatch& mframe);
 private:
 	const Controls defaultcontrols;
@@ -39,7 +39,6 @@ private:
 	float minSpeed = 0.0f;
 	float maxSpeed = 0.0f;
 	float gravity = 5000.0f;
-	float maxFallSpeed = 1300.0f;
 	const float shieldmax = 600.f;
 	TextureAtlas& m_atlas;
 	std::vector<Texture> texs; //1,2,3,shield

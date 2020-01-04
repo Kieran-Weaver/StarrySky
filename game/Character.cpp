@@ -17,8 +17,9 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 	this->m_spr2.setTexture(this->texs[1]);
 	this->m_shieldspr.setTexture(this->texs[3]);
 	this->m_spr.setStencil(true);
+	this->maxFallSpeed = 1300.f;
 }
-void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow* window) {
+void Character::Update(float dt, const std::vector<MovingEntity*>& objects, GLFWwindow* window) {
 	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
 	if (!ws->keyboardState[controls.jumpkey]){
 		this->jumped = false;

@@ -29,9 +29,6 @@ struct GLBuffer{
 	GLuint m_handle;
 	std::vector<T> data;
 };
-template<typename T>
-void genIndexBuffer(T max_sprites, GLBuffer<T>& buffer);
-extern template void genIndexBuffer<uint16_t>(uint16_t max_sprites, GLBuffer<uint16_t>& buffer);
 struct GLRect2D{
 	uint16_t texRect[4];
 	float packedMat[4];

@@ -25,7 +25,7 @@ struct Sprite{
 	bool m_drawn = false;
 	bool m_changed = true;
 	bool uses_stencil = false;
-	GLRect2D cached_vtx_data; // used for opengl's drawelements
+	GLRect2D cached_vtx_data = GLRect2D(); // used for opengl's drawelements
 	glm::mat2 m_model; // used for transforming the sprite beyond position: initially converts from [0,1],[0,1] to world coordinates
 private:
 	const std::array<glm::vec2, 4> rectCorners{{{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}}};

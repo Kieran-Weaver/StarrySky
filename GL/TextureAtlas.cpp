@@ -3,9 +3,63 @@
 #include <zlib.h>
 #include <rapidjson/document.h>
 #include <fstream>
-// Loads a recrunch-ed .dds.gz file, and populates the Atlas
-TextureAtlas::TextureAtlas(){
+TextureAtlas::TextureAtlas(const std::string& file_path){
 	Bitmasks.set_empty_key(std::numeric_limits<GLuint>::max());
+	std::string jsondata = readWholeFile(file_path);
+	rapidjson::Document document;
+	document.Parse(jsondata.c_str());
+	const rapidjson::Value& texturesNode = document["textures"];
+	this->m_num_textures = texturesNode.Size();
+	std::string path = file_path.substr(0, file_path.find_last_of("\\/") + 1);
+
+	this->m_texture_handles.resize(this->m_num_textures);
+	glGenTextures(this->m_num_textures,this->m_texture_handles.data());
+
+	for (int textureIndex = 0; textureIndex < this->m_num_textures; textureIndex++){
+		const rapidjson::Value& textureNode = texturesNode[textureIndex];
+		std::string textureName = textureNode["name"].GetString();
+
+		m_atlas_list.emplace_back(Atlas());
+		m_atlas_list[textureIndex].m_texture = m_texture_handles[textureIndex];
+		if (!loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex])){
+			throw std::invalid_argument("Invalid DDS File: " + path + textureName + ".dds.gz");
+		}
+		if (!loadBINgz(path + textureName + ".bin.gz",m_atlas_list[textureIndex])){
+			throw std::invalid_argument("Invalid hitbox file: " + path + textureName + ".bin.gz");
+		}
+
+		const rapidjson::Value& filenamesNode = textureNode["images"];
+		auto num_images = filenamesNode.Size();
+		for (int imageindex = 0; imageindex < num_images; imageindex++){
+			const rapidjson::Value& imageNode = filenamesNode[imageindex];
+			std::string img_name = imageNode["n"].GetString();
+			Rect<uint16_t> tmp;
+			tmp.left = imageNode["x"].GetInt();
+			tmp.top = imageNode["y"].GetInt();
+			tmp.width = imageNode["w"].GetInt();
+			tmp.height = imageNode["h"].GetInt();
+			auto width = static_cast<float>(m_atlas_list[textureIndex].width);
+			auto height = static_cast<float>(m_atlas_list[textureIndex].height);
+			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
+				static_cast<uint16_t>(tmp.left/width*65536.f),
+				static_cast<uint16_t>(tmp.top/height*65536.f),
+				static_cast<uint16_t>(tmp.width/width*65536.f),
+				static_cast<uint16_t>(tmp.height/height*65536.f));
+			m_atlas_list[textureIndex].m_texture_table[img_name].width = tmp.width;
+			m_atlas_list[textureIndex].m_texture_table[img_name].height = tmp.height;
+			m_atlas_list[textureIndex].m_texture_table[img_name].rotated = imageNode["r"].GetBool();
+			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated){
+				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
+				static_cast<uint16_t>(tmp.left/width*65536.f),
+				static_cast<uint16_t>(tmp.top/height*65536.f),
+				static_cast<uint16_t>(tmp.height/width*65536.f),
+				static_cast<uint16_t>(tmp.width/height*65536.f));
+			}
+		}
+	}
+	if (m_atlas_list.empty()){
+		throw std::invalid_argument("Invalid Texture Atlas");
+	}
 }
 bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glActiveTexture(GL_TEXTURE0);
@@ -90,72 +144,6 @@ bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
 	}
 	return return_code;
 }
-std::string getString(std::ifstream& input_file){
-	std::string value;
-	char chr = 0;
-	do{
-		input_file.read(&chr,1);
-		if (chr != 0){
-			value += chr;
-		}
-	}while (chr != 0);
-	return value;
-}
-bool TextureAtlas::loadFromFile(const std::string& file_path){
-	std::string jsondata = readWholeFile(file_path);
-	rapidjson::Document document;
-	document.Parse(jsondata.c_str());
-	const rapidjson::Value& texturesNode = document["textures"];
-	this->m_num_textures = texturesNode.Size();
-	std::string path = file_path.substr(0, file_path.find_last_of("\\/") + 1);
-
-	this->m_texture_handles = new GLuint[this->m_num_textures];
-	glGenTextures(this->m_num_textures,this->m_texture_handles);
-
-	for (int textureIndex = 0; textureIndex < this->m_num_textures; textureIndex++){
-		const rapidjson::Value& textureNode = texturesNode[textureIndex];
-		std::string textureName = textureNode["name"].GetString();
-
-		m_atlas_list.emplace_back(Atlas());
-		m_atlas_list[textureIndex].m_texture = m_texture_handles[textureIndex];
-		if (!loadDDSgz(path + textureName + ".dds.gz",m_atlas_list[textureIndex])){
-			return false;
-		}
-		if (!loadBINgz(path + textureName + ".bin.gz",m_atlas_list[textureIndex])){
-			return false;
-		}
-
-		const rapidjson::Value& filenamesNode = textureNode["images"];
-		auto num_images = filenamesNode.Size();
-		for (int imageindex = 0; imageindex < num_images; imageindex++){
-			const rapidjson::Value& imageNode = filenamesNode[imageindex];
-			std::string img_name = imageNode["n"].GetString();
-			Rect<uint16_t> tmp;
-			tmp.left = imageNode["x"].GetInt();
-			tmp.top = imageNode["y"].GetInt();
-			tmp.width = imageNode["w"].GetInt();
-			tmp.height = imageNode["h"].GetInt();
-			auto width = static_cast<float>(m_atlas_list[textureIndex].width);
-			auto height = static_cast<float>(m_atlas_list[textureIndex].height);
-			m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
-				static_cast<uint16_t>(tmp.left/width*65536.f),
-				static_cast<uint16_t>(tmp.top/height*65536.f),
-				static_cast<uint16_t>(tmp.width/width*65536.f),
-				static_cast<uint16_t>(tmp.height/height*65536.f));
-			m_atlas_list[textureIndex].m_texture_table[img_name].width = tmp.width;
-			m_atlas_list[textureIndex].m_texture_table[img_name].height = tmp.height;
-			m_atlas_list[textureIndex].m_texture_table[img_name].rotated = imageNode["r"].GetBool();
-			if (m_atlas_list[textureIndex].m_texture_table[img_name].rotated){
-				m_atlas_list[textureIndex].m_texture_table[img_name].m_rect = Rect<uint16_t>(
-				static_cast<uint16_t>(tmp.left/width*65536.f),
-				static_cast<uint16_t>(tmp.top/height*65536.f),
-				static_cast<uint16_t>(tmp.height/width*65536.f),
-				static_cast<uint16_t>(tmp.width/height*65536.f));
-			}
-		}
-	}
-	return !m_atlas_list.empty();
-}
 
 // Finds a Texture inside the atlas table.
 // Returns a valid Texture if found in the TextureAtlas, otherwise returns a null Texture.
@@ -180,9 +168,7 @@ std::vector<std::string> TextureAtlas::getSubTextureNames(){
 	std::vector<std::string> names;
 	for(const auto& atlas : m_atlas_list)
 	{
-		for(const auto& itr : atlas.m_texture_table){
-			names.push_back(itr.first);
-		}
+		std::transform(atlas.m_texture_table.begin(), atlas.m_texture_table.end(), std::back_inserter(names), [](const std::pair<const std::string, Texture>& itr) -> std::string { return itr.first; });
 	}
 	return names;
 }

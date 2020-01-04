@@ -20,7 +20,6 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 		return;
 	}
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
-	genIndexBuffer<uint16_t>(0xffff,glPrograms[SPRITE2D].ebo);
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
 		this->m_texData[m_atlas.m_texture_handles[textureIndex]] = TextureData();
 	}
