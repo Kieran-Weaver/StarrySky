@@ -2,8 +2,9 @@
 #define STARRYSKY_TILEMAP_H
 #include <cstdint>
 #include <vector>
+#include <array>
 using Tile = uint32_t; // 12 bits X-pos, 12 bits Y-pos, 8 bits index
-enum TMState{
+enum TMType{
 	Normal,
 	Effect
 };
@@ -12,13 +13,13 @@ inline Tile makeTile(uint16_t x, uint16_t y, uint8_t index){
 }
 struct TileMap{
 	// UBO Data
-	float affineT[4]; // 16 bytes
-	float packedtileSize[4]; // 16 bytes
-	float tiles[256][4]; // Max 255 tile types
+	std::array<float,4> affineT; // 16 bytes
+	std::array<float,4> packedtileSize; // 16 bytes
+	std::array<std::array<float,4>,256> tiles; // Max 255 tile types
 	// Internal Data
 	int numTiles;
 	std::vector<std::string> filenames;
 	std::vector<Tile> drawn;
-	TMState state = TMState::Normal;
+	TMType type = TMType::Normal;
 };
 #endif

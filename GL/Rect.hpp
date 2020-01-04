@@ -49,4 +49,7 @@ struct Rect{
 		}
 	}
 };
+inline Rect<float> Normalize(const Rect<uint16_t>& texrect){
+	return Rect<float>(texrect.left/65536.f,texrect.top/65536.f,texrect.width/65536.f,texrect.height/65536.f);
+}
 #endif

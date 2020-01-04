@@ -16,6 +16,7 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 	this->m_height = tmpAABB.height;
 	this->m_spr2.setTexture(this->texs[1]);
 	this->m_shieldspr.setTexture(this->texs[3]);
+	this->m_spr.setStencil(true);
 }
 void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow* window) {
 	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
@@ -155,7 +156,6 @@ void Character::Update(float dt, std::vector<MovingEntity*>& objects, GLFWwindow
 	invltimer();
 	for (auto& i : objects){
 		if (this->m_spr.PPCollidesWith(i->m_spr)){
-			std::cout << "Collision: Yes" << std::endl;
 			if (shieldout && !shieldbroken){
 				if (invltimer.getTime()==0){
 					shieldmeter = shieldmeter - 200.f;

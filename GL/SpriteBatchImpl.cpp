@@ -43,6 +43,15 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 1, 255);
 	setStencil(false);
+	
+	effectLayer.affineT = {1.f, 0.f, 0.f, 1.f};
+	effectLayer.packedtileSize = {2000.f, 2000.f, 0.f, 0.f};
+	Texture t = atlas.findSubTexture("electricity");
+	Rect<float> trect = Normalize(t.m_rect);
+	effectLayer.tiles[0] = {trect.left, trect.top, trect.width, trect.height};
+	effectLayer.numTiles = 0;
+	effectLayer.type = TMType::Effect;
+	effectLayer.drawn.emplace_back(0);
 }
 SpriteBatchImpl::~SpriteBatchImpl(){
 	for (auto& i : glPrograms){
@@ -70,7 +79,11 @@ void SpriteBatchImpl::Draw(Sprite* spr){
 }
 bool SpriteCMP(const Sprite* a, const Sprite* b){
 	if (a->m_drawn && b->m_drawn){
-		return (!a->m_changed && b->m_changed);
+		if (a->uses_stencil && b->uses_stencil){
+			return (!a->m_changed && b->m_changed);
+		} else {
+			return (a->uses_stencil);
+		}
 	}else{
 		return (a->m_drawn);
 	}
@@ -143,15 +156,19 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
+	glStencilFunc(GL_ALWAYS, 1, 255);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
-		size_t spriteIndex = 0;
+		size_t spriteIndex = 0, stencil_stop = 0;
 		size_t num_sprites = currentTexData.sprites.size();
 		while ((spriteIndex<currentTexData.sprites.size())&&(currentTexData.sprites[spriteIndex]->m_drawn)&&(!currentTexData.sprites[spriteIndex]->m_changed)){
+			if (currentTexData.sprites[spriteIndex]->uses_stencil){
+				stencil_stop = spriteIndex + 1;
+			}
 			spriteIndex++;
 		}
-		size_t skippedSprites = spriteIndex;
 		std::sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(),SpriteCMP);
+		size_t skippedSprites = spriteIndex;
 		if (currentTexData.vertices.size() > spriteIndex){
 			currentTexData.vertices.erase(currentTexData.vertices.begin() + spriteIndex,currentTexData.vertices.end());
 		}
@@ -163,6 +180,9 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 				currentTexData.vertices.emplace_back(currentTexData.sprites[spriteIndex]->cached_vtx_data);
 				currentTexData.sprites[spriteIndex]->m_drawn = false;
 				currentTexData.sprites[spriteIndex]->m_changed = false;
+				if (currentTexData.sprites[spriteIndex]->uses_stencil){
+					stencil_stop = spriteIndex + 1;
+				}
 			}
 		}
 		glBindTexture(GL_TEXTURE_2D,texturepair.first);
@@ -170,29 +190,43 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 		glBindVertexArray(glPrograms[SPRITE2D].VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
 		glBufferSubData(GL_ARRAY_BUFFER,0,currentTexData.vertices.size()*sizeof(GLRect2D),currentTexData.vertices.data());
-		glDrawArrays(GL_POINTS,0,currentTexData.vertices.size());
+		setStencil(true);
+		glDrawArrays(GL_POINTS,0,stencil_stop);
+		setStencil(false);
+		glDrawArrays(GL_POINTS,stencil_stop,currentTexData.vertices.size()-stencil_stop);
 	}
+	drawTileMap(m_currentMap, ws->MatrixID);
+	drawTileMap(effectLayer, ws->MatrixID);
+}
+void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, const GLuint& UBOIndex){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(glPrograms[TILEMAP].VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[TILEMAP].VBO);
-	if (glPrograms[TILEMAP].VBO_size < m_currentMap.drawn.size()){
-		glBufferData(GL_ARRAY_BUFFER, m_currentMap.drawn.size() * sizeof(Tile), nullptr, GL_DYNAMIC_DRAW);
-		glPrograms[TILEMAP].VBO_size = m_currentMap.drawn.size();
+	glBindBuffer(GL_UNIFORM_BUFFER, ubos[UBOIndex].m_handle);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(TileMap), &tilemap);
+	if (glPrograms[TILEMAP].VBO_size < tilemap.drawn.size()){
+		glBufferData(GL_ARRAY_BUFFER, tilemap.drawn.size() * sizeof(Tile), nullptr, GL_DYNAMIC_DRAW);
+		glPrograms[TILEMAP].VBO_size = tilemap.drawn.size();
 	}
-	glBufferSubData(GL_ARRAY_BUFFER, 0, m_currentMap.drawn.size() * sizeof(Tile), m_currentMap.drawn.data());
+	glBufferSubData(GL_ARRAY_BUFFER, 0, tilemap.drawn.size() * sizeof(Tile), tilemap.drawn.data());
 	glUseProgram(glPrograms[TILEMAP].programHandle);
-	glDrawArrays(GL_POINTS, 0, m_currentMap.drawn.size());
+	if (tilemap.type == TMType::Normal) {
+		glStencilFunc(GL_ALWAYS, 1, 255);
+	} else if (tilemap.type == TMType::Effect) {
+		glStencilFunc(GL_EQUAL, 1, 255);
+	}
+	glDrawArrays(GL_POINTS, 0, tilemap.drawn.size());
 	glUseProgram(0);
 }
 void SpriteBatchImpl::setStencil(bool new_state){
 	if (new_state) {
-		if (stencil_state == std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_KEEP}) {
-			stencil_state = std::array<GLenum,3>{GL_KEEP, GL_KEEP, GL_REPLACE};
+		if (stencil_state == std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_ZERO}) {
+			stencil_state = {GL_KEEP, GL_KEEP, GL_REPLACE};
 			glStencilOp(stencil_state[0], stencil_state[1], stencil_state[2]);
 		}
 	} else {
-		if (stencil_state != std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_KEEP}) {
-			stencil_state.fill(GL_KEEP);
+		if (stencil_state != std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_ZERO}) {
+			stencil_state = {GL_KEEP, GL_KEEP, GL_ZERO};
 			glStencilOp(stencil_state[0], stencil_state[1], stencil_state[2]);
 		}
 	}

@@ -73,9 +73,6 @@ Rect<float> Sprite::getAABB() const{
 	auto yExtremes = std::minmax_element(vertices,vertices+4,compareY);
 	return Rect<float>(xExtremes.first->x,yExtremes.first->y,xExtremes.second->x-xExtremes.first->x,yExtremes.second->y-yExtremes.first->y);
 }
-static Rect<float> Normalize(const Rect<uint16_t>& texrect){
-	return Rect<float>(texrect.left/65536.f,texrect.top/65536.f,texrect.width/65536.f,texrect.height/65536.f);
-}
 
 bool Sprite::PPCollidesWith(const Sprite& Object2){
 	Rect<float> Intersection; 

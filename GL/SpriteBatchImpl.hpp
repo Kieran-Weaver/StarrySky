@@ -38,6 +38,7 @@ private:
 		GLuint VBO_size = 0;
 	};
 	void setStencil(bool new_state);
+	void drawTileMap(const TileMap& tilemap, const GLuint& UBOHandle);
 	std::vector<GLProgram> glPrograms;
 	std::vector<GLBuffer<float>> ubos;
 	TileMap m_currentMap;
