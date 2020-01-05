@@ -5,14 +5,6 @@
 #include "Mat2D.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-Sprite::Sprite() noexcept{
-	this->center = glm::vec2(0,0);
-	this->m_model = glm::mat2(1.0f);
-}
-Sprite::Sprite(const Texture& tex) noexcept{
-	this->center = glm::vec2(0,0);
-	this->setTexture(tex);
-}
 void Sprite::setStencil(bool stencil_state){
 	this->uses_stencil = stencil_state;
 }
@@ -65,6 +57,7 @@ bool compareY(const glm::vec2& lhs,const glm::vec2& rhs){
 	return lhs.y < rhs.y;
 }
 Rect<float> Sprite::getAABB() const{
+	const std::array<glm::vec2, 4> rectCorners{{{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}}};
 	glm::vec2 vertices[4];
 	for (int8_t i=0;i<4;i++){
 		vertices[i] = glm::vec2(this->m_model * rectCorners[i])+this->center;

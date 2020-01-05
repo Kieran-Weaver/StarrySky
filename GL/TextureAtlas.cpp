@@ -151,7 +151,8 @@ const Texture TextureAtlas::findSubTexture(const std::string& name){
 	Texture texture;
 	for(auto& atlas : m_atlas_list){
 		if(atlas.m_texture_table.find(name) != atlas.m_texture_table.end()){
-			texture = Texture(atlas.m_texture, atlas.m_texture_table[name].m_rect);
+			texture.m_texture = atlas.m_texture;
+			texture.m_rect = atlas.m_texture_table[name].m_rect;
 			texture.width = atlas.m_texture_table[name].width;
 			texture.height = atlas.m_texture_table[name].height;
 			texture.rotated = atlas.m_texture_table[name].rotated;

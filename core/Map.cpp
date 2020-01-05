@@ -3,10 +3,14 @@
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include "PRNG.hpp"
 #include "Map.hpp"
 #include "ImGuiHelper.hpp"
 #include <sstream>
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
+	this->surfaces.set_empty_key(-1);
+	this->sprs.set_empty_key(-1);
+	this->rng = SeedRNG();
 	this->loadFromFile(filename);
 }
 void ObjMap::loadFromFile(const std::string& filename){
@@ -106,24 +110,32 @@ void ObjMap::loadFromFile(const std::string& filename){
 	tm_changed = true;
 }
 void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::mat2& sprTransform, const std::string& fname){
-	int i = sprs.size();
+	uint32_t i;
+	do{
+		i = rng();
+	} while (sprs.count(i) != 0);
 	std::string filename(fname);
 	auto end_pos = std::remove(filename.begin(),filename.end(),' ');
 	filename.erase(end_pos,filename.end());
-	sprs.emplace_back(sprPosition,filename);
+	sprs[i] = {sprPosition,filename};
 	Texture temp = m_atlas.findSubTexture(filename);
 	sprs[i].spr.setTexture(temp);
 	sprs[i].spr.setPosition(sprPosition);
 	sprs[i].spr.m_model = sprTransform * sprs[i].spr.m_model;
 }
-void ObjMap::addSurface(const Surface& wall){
-	surfaces.emplace_back(wall);
+uint32_t ObjMap::addSurface(const Surface& wall){
+	uint32_t seed;
+	do{
+		seed = rng();
+	} while (surfaces.count(seed) != 0);
+	surfaces[seed] = wall;
+	return seed;
 }
 void ObjMap::SetPosition(float x, float y) {
 	this->position.x = x;
 	this->position.y = y;
 	for (auto& i : sprs){
-		i.spr.setPosition(i.iPosition.x + x, i.iPosition.y + y);
+		i.second.spr.setPosition(i.second.iPosition.x + x, i.second.iPosition.y + y);
 	}
 	this->internal_tm.packedtileSize[2] = x;
 	this->internal_tm.packedtileSize[3] = y;
@@ -137,7 +149,8 @@ void ObjMap::WriteToFile(const std::string& filename){
 	writer.Key("surfaces");
 	
 	writer.StartArray();
-	for (auto& i : surfaces){
+	for (auto& surf : surfaces){
+		auto& i = surf.second;
 		writer.StartObject();
 		writer.Key("x");
 		writer.Int(i.x);
@@ -173,7 +186,8 @@ void ObjMap::WriteToFile(const std::string& filename){
 	writer.Key("sprites");
 	
 	writer.StartArray();
-	for (auto& i : sprs){
+	for (auto& spr: sprs){
+		auto& i = spr.second;
 		writer.StartObject();
 		writer.Key("x");
 		writer.Int(i.iPosition.x);
@@ -254,7 +268,7 @@ void ObjMap::WriteToFile(const std::string& filename){
 }
 void ObjMap::Draw(SpriteBatch& frame) {
 	for (auto& i : sprs){
-		frame.Draw(&(i.spr));
+		frame.Draw(&(i.second.spr));
 	}
 	if (tm_changed){
 		frame.ChangeMap(internal_tm);

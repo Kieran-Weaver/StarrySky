@@ -8,8 +8,6 @@
 #include <array>
 #define WH_EPSILON 0.01
 struct Sprite{
-	Sprite() noexcept;
-	Sprite(const Texture& tex) noexcept;
 	void setStencil(bool stencil_state);
 	void setTexture(const Texture& tex);
 	void setPosition(const float& x, const float& y);
@@ -21,13 +19,11 @@ struct Sprite{
 	void render();
 
 	Texture m_subtexture;
-	glm::vec2 center; // world coordinates
+	glm::vec2 center = glm::vec2(0.f,0.f); // world coordinates
 	bool m_drawn = false;
 	bool m_changed = true;
 	bool uses_stencil = false;
 	GLRect2D cached_vtx_data = GLRect2D(); // used for opengl's drawelements
-	glm::mat2 m_model; // used for transforming the sprite beyond position: initially converts from [0,1],[0,1] to world coordinates
-private:
-	const std::array<glm::vec2, 4> rectCorners{{{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}}};
+	glm::mat2 m_model = glm::mat2(1.0f); // used for transforming the sprite beyond position: initially converts from [0,1],[0,1] to world coordinates
 };
 #endif

@@ -26,7 +26,8 @@ void MovingEntity::Update(float dt) {
 	this->isAtCeiling=false;
 	this->isOnGround=false;
 	this->onOneWayPlatform = false;
-	for (auto& i : m_map.surfaces){
+	for (auto& surf : m_map.surfaces){
+		auto& i = surf.second;
 		switch (i.type){
 		case WallType::RWALL:
 			if ((m_lastPosition.x + (m_width/2)) <= i.x){
