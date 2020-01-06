@@ -17,13 +17,17 @@ struct Sprite{
 	bool PPCollidesWith(const Sprite& Object2);
 	Rect<float> getAABB() const;
 	void render();
+	glm::mat2 getMat2(){
+		return this->m_model;
+	}
 
-	Texture m_subtexture;
-	glm::vec2 center = glm::vec2(0.f,0.f); // world coordinates
+	Texture m_subtexture = {};
 	bool m_drawn = false;
 	bool m_changed = true;
 	bool uses_stencil = false;
 	GLRect2D cached_vtx_data = GLRect2D(); // used for opengl's drawelements
+private:
+	glm::vec2 center = glm::vec2(0.f,0.f); // world coordinates
 	glm::mat2 m_model = glm::mat2(1.0f); // used for transforming the sprite beyond position: initially converts from [0,1],[0,1] to world coordinates
 };
 #endif

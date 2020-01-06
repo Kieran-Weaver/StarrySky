@@ -121,7 +121,7 @@ void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::mat2& sprTran
 	Texture temp = m_atlas.findSubTexture(filename);
 	sprs[i].spr.setTexture(temp);
 	sprs[i].spr.setPosition(sprPosition);
-	sprs[i].spr.m_model = sprTransform * sprs[i].spr.m_model;
+	sprs[i].spr.transform(sprTransform);
 }
 uint32_t ObjMap::addSurface(const Surface& wall){
 	uint32_t seed;
@@ -195,10 +195,11 @@ void ObjMap::WriteToFile(const std::string& filename){
 		writer.Int(i.iPosition.y);
 		writer.Key("t");
 		writer.StartArray();
-		writer.Double(i.spr.m_model[0][0]);
-		writer.Double(i.spr.m_model[0][1]);
-		writer.Double(i.spr.m_model[1][0]);
-		writer.Double(i.spr.m_model[1][1]);
+		auto mat = i.spr.getMat2();
+		writer.Double(mat[0][0]);
+		writer.Double(mat[0][1]);
+		writer.Double(mat[1][0]);
+		writer.Double(mat[1][1]);
 		writer.EndArray();
 		writer.Key("name");
 		writer.String(i.filename.c_str());

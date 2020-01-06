@@ -20,6 +20,9 @@ Enemy::Enemy(float x, float y, ObjMap& map, const std::string& mainsprite, const
 }
 void Enemy::reset(){
 	health = ihealth;
+	if (flipped){
+		m_spr.transform(this->flipped_mat);
+	}
 	m_spr.setTexture(this->texs[0]);
 	flipped = false;
 }
