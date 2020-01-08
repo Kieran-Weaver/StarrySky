@@ -1,0 +1,12 @@
+# Build-time dependencies
+*.d
+
+# Object files
+*.o
+
+# Executable
+*.exe
+
+# ImGui Config
+*.ini
+
