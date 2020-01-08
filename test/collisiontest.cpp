@@ -95,9 +95,8 @@ int main(int, char const**) {
 		ImGui::Render();
 
 		glfwMakeContextCurrent(window);
-		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		batch.Draw(&s);
 		batch.Draw(&s2);
 		batch.Draw(window);

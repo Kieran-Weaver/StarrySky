@@ -12,10 +12,9 @@ public:
 	Shader(Shader&& other);
 	Shader& operator=(Shader&& other);
 	~Shader();
-	bool loaded;
 	GLuint m_handle;
-private:
 	GLenum m_type;
+	bool loaded;
 };
 GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const Shader& FragShader, const std::string& OutputLocation);
 #endif
