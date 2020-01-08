@@ -196,6 +196,7 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 	}
 	drawTileMap(m_currentMap, ws->MatrixID);
 	drawTileMap(effectLayer, ws->MatrixID);
+	glStencilFunc(GL_ALWAYS, 1, 255);
 }
 void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, const GLuint& UBOIndex){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

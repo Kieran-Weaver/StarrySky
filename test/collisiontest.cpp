@@ -52,8 +52,7 @@ int main(int, char const**) {
 	ImGui::CreateContext();
 	ImGui_ImplGlfw_InitForOpenGL(window,true);
 	ImGui_ImplOpenGL3_Init("#version 150");
-	TextureAtlas atlas;
-	atlas.loadFromFile("data/atlas.json");
+	TextureAtlas atlas("data/atlas.json");
 	SpriteBatch batch(atlas, ws, "data/shaders.json");
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -62,18 +61,12 @@ int main(int, char const**) {
 	glfwSetKeyCallback(window,key_callback);
 	Texture t = atlas.findSubTexture("test1");
 	Texture t2 = atlas.findSubTexture("test2");
-	Sprite s(t);
-	Sprite s2(t2);
+	Sprite s;
+	s.setTexture(t);
+	Sprite s2;
+	s2.setTexture(t2);
 	while (!glfwWindowShouldClose(window)){
 		glfwPollEvents();
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-		ImGui::Begin("Collision Test");
-		ImGui::SliderFloat("Object 1 x-pos",&x1,0.0f,1280.0f);
-		ImGui::SliderFloat("Object 1 y-pos",&y1,0.0f,800.0f);
-		ImGui::SliderFloat("Object 2 x-pos",&x2,0.0f,1280.0f);
-		ImGui::SliderFloat("Object 2 y-pos",&y2,0.0f,800.0f);
 		s.setPosition(x1,y1);
 		s2.setPosition(x2,y2);
 		if (ws.keyboardState[GLFW_KEY_A]){
@@ -89,13 +82,21 @@ int main(int, char const**) {
 		if (collided){
 			colstr = "yes";
 		}
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::Begin("Collision Test");
+		ImGui::SliderFloat("Object 1 x-pos",&x1,0.0f,1280.0f);
+		ImGui::SliderFloat("Object 1 y-pos",&y1,0.0f,800.0f);
+		ImGui::SliderFloat("Object 2 x-pos",&x2,0.0f,1280.0f);
+		ImGui::SliderFloat("Object 2 y-pos",&y2,0.0f,800.0f);
 		ImGui::Text("%s",colstr.c_str());
 		ImGui::End();
 		ImGui::Render();
+
 		glfwMakeContextCurrent(window);
-		glUniformMatrix4fv(ws.MatrixID,1,GL_FALSE,&ws.camera->getVP()[0][0]);
 		glClearColor(0.0f,0.0f,0.0f,1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		batch.Draw(&s);
 		batch.Draw(&s2);
 		batch.Draw(window);
