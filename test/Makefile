@@ -1,13 +1,20 @@
 CXX=g++
 #CXXFLAGS=-Og -g -fsanitize=address,undefined -march=native -flto -std=c++11
-CXXFLAGS=-I.. -I../rapidjson/include -I/usr/include/GLFW -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -Og -g -fsanitize=address,undefined -Wall -Wextra -pedantic -march=native -std=c++11 -I. -iquote ../imgui
-OBJS=../gl.o ../GL/Helpers.o ../GL/SpriteBatchImpl.o ../GL/Mat2D.o ../GL/Shader.o ../GL/Camera.o ../GL/TextureAtlas.o collisiontest.o ../imgui/imgui.o ../imgui/imgui_draw.o ../imgui/imgui_widgets.o ../imgui/imgui_demo.o ../imgui/examples/imgui_impl_glfw.o ../imgui/examples/imgui_impl_opengl3.o ../GL/Sprite.o ../GL/SpriteBatch.o
-LDFLAGS=-lGL -lglfw -ldl -lz
+CXXFLAGS=-I.. -I../rapidjson/include -I/mingw64/include/GLFW -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -Og -g -Wall -Wextra -pedantic -march=native -std=c++11 -I. -iquote ../imgui
+OBJS=../gl.o ../core/Editor.o ../GL/Helpers.o ../GL/SpriteBatchImpl.o ../GL/Mat2D.o ../GL/Shader.o ../GL/Camera.o ../GL/TextureAtlas.o ../imgui/imgui.o ../imgui/imgui_draw.o ../imgui/imgui_widgets.o ../imgui/imgui_demo.o ../imgui/examples/imgui_impl_glfw.o ../imgui/examples/imgui_impl_opengl3.o ../GL/Sprite.o ../GL/SpriteBatch.o
+ifdef OS
+	LDFLAGS=-lopengl32 -lglfw3 -lz -Wl,-O1 -mwindows -static-libstdc++ -static-libgcc -static
+	CXXFLAGS += -I/mingw64/include/GLFW
+else
+	LDFLAGS=-lGL -lglfw -lz -Wl,-O1
+	CXXFLAGS += -I/usr/include/GLFW
+endif
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 %.o : %.c
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
-all: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o collisiontest $(LDFLAGS)
-clean: $(OBJS)
-	rm -fr $(OBJS) collisiontest
+all: $(OBJS) collisiontest.o mat2test.o
+	$(CXX) $(CXXFLAGS) $(OBJS) collisiontest.o -o collisiontest $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) mat2test.o -o mat2test $(OBJS) $(LDFLAGS)
+clean:
+	rm -fr $(OBJS) collisiontest.o mat2test.o collisiontest mat2test

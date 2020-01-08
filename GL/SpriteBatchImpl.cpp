@@ -1,9 +1,16 @@
 #include "SpriteBatchImpl.hpp"
 #include "Camera.hpp"
 #include "Sprite.hpp"
+#include <core/Editor.hpp>
 #include <rapidjson/document.h>
 #include <iostream>
 #include <string>
+std::array<float,4> packmat2(const glm::mat2& matrix){
+	return {matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1]};
+}
+glm::mat2 unpackmat2(const std::array<float,4>& array){
+	return {array[0], array[1], array[2], array[3]};
+}
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile(shaderfile);
 	document.Parse(shaderdata.c_str());
@@ -194,6 +201,10 @@ void SpriteBatchImpl::Draw(GLFWwindow* target){
 		setStencil(false);
 		glDrawArrays(GL_POINTS,stencil_stop,currentTexData.vertices.size()-stencil_stop);
 	}
+	setStencil(false);
+	glm::mat2 test_mat = unpackmat2(m_currentMap.affineT);
+	Mat2GUI(test_mat, "TestMat", 2.f);
+	m_currentMap.affineT = packmat2(test_mat);
 	drawTileMap(m_currentMap, ws->MatrixID);
 	drawTileMap(effectLayer, ws->MatrixID);
 }
@@ -216,6 +227,7 @@ void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, const GLuint& UBOIndex
 	}
 	glDrawArrays(GL_POINTS, 0, tilemap.drawn.size());
 	glUseProgram(0);
+	glStencilFunc(GL_ALWAYS, 1, 255);
 }
 void SpriteBatchImpl::setStencil(bool new_state){
 	if (new_state) {
