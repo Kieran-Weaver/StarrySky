@@ -26,3 +26,9 @@ std::array<float, 5> decomp(const glm::mat2& matrix){
 	const glm::vec2 sh = shear(s);
 	return std::array<float,5>({angle(qs), sc[0], sc[1], sh[0], sh[1]});
 }
+glm::mat2 recompose(const std::array<float,5>& data){
+	const auto rmat = RotMat(data[0]);
+	const auto smat = ScaleMat(data[1], data[2]);
+	const auto hmat = ShearMat(data[3], data[4]);
+	return rmat * hmat * smat;
+}

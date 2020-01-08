@@ -8,3 +8,4 @@ float angle(const glm::mat2& matrix);
 glm::vec2 scale(const glm::mat2& matrix);
 glm::vec2 shear(const glm::mat2& matrix);
 std::array<float, 5> decomp(const glm::mat2& matrix);
+glm::mat2 recompose(const std::array<float,5>& data);
