@@ -11,12 +11,14 @@ bool Mat2GUI(glm::mat2& mdata, const std::string& tag, const float& max_value){
 		matrix_data = decomp(mdata);
 	}
 	std::array<float, 5> temp{matrix_data};
-	ImGui::SliderFloat(("Rotation##" + tag).c_str(), &(temp[0]), -m_pi, m_pi);
+	if (ImGui::SliderFloat(("Rotation##" + tag).c_str(), &(temp[0]), -m_pi, m_pi)){
+		matrix_data[0] = temp[0];
+		mdata = recompose(matrix_data);
+	}
 	ImGui::SliderFloat2(("Scale##" + tag).c_str(), &(temp[1]), -max_value, max_value);
-	ImGui::SliderFloat2(("Shear##" + tag).c_str(), &(temp[3]), -max_value, max_value
-	);
+	ImGui::SliderFloat2(("Shear##" + tag).c_str(), &(temp[3]), -max_value, max_value);
 	ImGui::End();
-	matrix_data[0] = temp[0];
-	mdata = recompose(matrix_data);
 	return changed;
 }
+LevelEditor::LevelEditor(ObjMap& map) : map(map){}
+void LevelEditor::Draw(Window window){}

@@ -7,7 +7,7 @@
 #include <sparsehash/dense_hash_map>
 #include "WindowState.h"
 #include "TextureAtlas.hpp"
-#include <GLFW/glfw3.h>
+#include "Window.hpp"
 #include <rapidjson/document.h>
 // Rendering Modes
 #define SPRITE2D 0
@@ -21,7 +21,7 @@ public:
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void ChangeMap(const TileMap& tm);
 	void Draw(Sprite* spr);
-	void Draw(GLFWwindow* target);
+	void Draw(const Window& target);
 private:
 	struct TextureData{
 		std::vector<Sprite*> sprites;

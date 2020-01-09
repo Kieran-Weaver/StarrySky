@@ -2,7 +2,7 @@
 #define STARRYSKY_SPRITEBATCH_H
 #include "WindowState.h"
 #include "TextureAtlas.hpp"
-#include <GLFW/glfw3.h>
+#include "Window.hpp"
 // Rendering Modes
 #define SPRITE2D 0
 #define TILEMAP 1
@@ -25,7 +25,7 @@ public:
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void ChangeMap(const TileMap& tm);
 	void Draw(Sprite* spr);
-	void Draw(GLFWwindow* target);
+	void Draw(const Window& target);
 private:
 	const SpriteBatchImpl* Pimpl() const { return m_pImpl.get(); }
 	SpriteBatchImpl* Pimpl(){ return m_pImpl.get(); }

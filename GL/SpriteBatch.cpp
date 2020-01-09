@@ -12,7 +12,7 @@ void SpriteBatch::ChangeMap(const TileMap& tm){
 void SpriteBatch::Draw(Sprite* spr){
 	Pimpl()->Draw(spr);
 }
-void SpriteBatch::Draw(GLFWwindow* target){
+void SpriteBatch::Draw(const Window& target){
 	Pimpl()->Draw(target);
 }
 void SpriteBatchImplDeleter::operator()(SpriteBatchImpl *p){

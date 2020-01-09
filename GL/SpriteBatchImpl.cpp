@@ -153,10 +153,10 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 	}
 	return glPrograms.size();
 }
-void SpriteBatchImpl::Draw(GLFWwindow* target){
-	glfwMakeContextCurrent(target);
+void SpriteBatchImpl::Draw(const Window& target){
+	target.makeCurrent();
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
-	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(target));
+	auto ws = target.getWindowState();
 	glBindBuffer(GL_UNIFORM_BUFFER, ubos[ws->MatrixID].m_handle);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &ws->camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);

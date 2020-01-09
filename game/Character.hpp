@@ -5,8 +5,8 @@
 #include <GL/Sprite.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/TextureAtlas.hpp>
+#include <GL/Window.hpp>
 #include <core/Map.hpp>
-#include <imgui/imgui.h>
 #include <cmath>
 #include <array>
 #include <vector>
@@ -29,7 +29,7 @@ public:
 	Character(const Character&) = delete;
 	Character& operator=(const Character&) = delete;
 	Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas);
-	void Update(float dt, const std::vector<MovingEntity *>& objects, GLFWwindow* window);
+	void Update(float dt, const std::vector<MovingEntity *>& objects, const Window& window);
 	void Draw(SpriteBatch& mframe);
 private:
 	const Controls defaultcontrols;

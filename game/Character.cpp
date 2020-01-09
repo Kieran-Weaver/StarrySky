@@ -1,5 +1,6 @@
 #include "Character.hpp"
 #include <GL/Camera.hpp>
+#include <imgui/imgui.h>
 #include <iostream>
 #define LASERW 25
 #define LASERH 10
@@ -19,8 +20,8 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 	this->m_spr.setStencil(true);
 	this->maxFallSpeed = 1300.f;
 }
-void Character::Update(float dt, const std::vector<MovingEntity*>& objects, GLFWwindow* window) {
-	auto ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+void Character::Update(float dt, const std::vector<MovingEntity*>& objects, const Window& window) {
+	auto ws = window.getWindowState();
 	if (!ws->keyboardState[controls.jumpkey]){
 		this->jumped = false;
 	}
