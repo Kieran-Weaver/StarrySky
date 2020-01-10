@@ -1,5 +1,4 @@
 #include "gl.h"
-#include <iostream>
 #include <zlib.h>
 #include "game/Character.hpp"
 #include "game/Enemy.hpp"
@@ -10,7 +9,12 @@
 #include "GL/WindowState.h"
 #include "GL/Window.hpp"
 #include "core/Map.hpp"
+#define MINILOG_IMPLEMENTATION
+#include <iostream>
+#include "minilog/minilog.h"
 int main(){
+	MiniLog::current_level() = logINFO;
+	MiniLog::set_stream(&std::cerr);
 	const float frametime = 1.f/60.f;
 	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Starry Sky");
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f));
@@ -25,9 +29,6 @@ int main(){
 	std::vector<MovingEntity*> objects;
 	objects.push_back(&testEnemy);
 	SpriteBatch batch(atlas, ws, "data/shaders.json");
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_FRAMEBUFFER_SRGB);
 	while (window.isOpen()){
 		window.startFrame();
 		window.makeCurrent();
@@ -44,7 +45,7 @@ int main(){
 			camera.reset();
 		}else if (testEnemy.dead){
 			objects.clear();
-			std::cout << "You Win" << std::endl;
+			MINILOG(logINFO) << "You Win" << std::endl;
 			window.close();
 		}
 		batch.Draw(window);

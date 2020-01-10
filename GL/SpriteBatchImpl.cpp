@@ -3,8 +3,8 @@
 #include "Sprite.hpp"
 #include <core/Editor.hpp>
 #include <rapidjson/document.h>
-#include <iostream>
 #include <string>
+#include <minilog/minilog.h>
 std::array<float,4> packmat2(const glm::mat2& matrix){
 	return {matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1]};
 }
@@ -23,8 +23,8 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glBindVertexArray(VAOs[0]);
 
 	if (this->loadPrograms(num_shaders,VAOs) == -1){
-		std::cout << "Not valid JSON" << std::endl;
-		return;
+		MINILOG(logERROR) << "Not valid JSON" << std::endl;
+		std::exit(1);
 	}
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
 	for (int textureIndex = 0; textureIndex < m_atlas.m_num_textures; textureIndex++){
@@ -58,6 +58,10 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	effectLayer.numTiles = 0;
 	effectLayer.type = TMType::Effect;
 	effectLayer.drawn.emplace_back(0);
+	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_FRAMEBUFFER_SRGB);
 }
 SpriteBatchImpl::~SpriteBatchImpl(){
 	for (auto& i : glPrograms){

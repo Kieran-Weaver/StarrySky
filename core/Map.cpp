@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iostream>
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
@@ -7,6 +6,7 @@
 #include "Map.hpp"
 #include "ImGuiHelper.hpp"
 #include <sstream>
+#include <minilog/minilog.h>
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->surfaces.set_empty_key(-1);
 	this->sprs.set_empty_key(-1);
@@ -22,7 +22,8 @@ void ObjMap::loadFromFile(const std::string& filename){
 	rapidjson::Document document;
 	rapidjson::ParseResult result = document.Parse(jsondata.c_str());
 	if (!result) {
-		std::cerr << "ERROR" << std::endl;
+		MINILOG(logERROR) << "ERROR: Invalid JSON file " << filename;
+		std::exit(1);
 	}
 	const rapidjson::Value& surfacesNode = document["surfaces"];
 	const rapidjson::Value& spritesNode = document["sprites"];
@@ -51,7 +52,7 @@ void ObjMap::loadFromFile(const std::string& filename){
 			s.type = WallType::ONEWAY;
 			break;
 		default:
-			std::cout << type << std::endl;
+			MINILOG(logWARNING) << "Unknown type: " << type;
 			s.type = WallType::FLOOR;
 			break;
 		}
@@ -176,7 +177,7 @@ void ObjMap::WriteToFile(const std::string& filename){
 			writer.String("O");
 			break;
 		default:
-			std::cout << "Unknown type\n";
+			MINILOG(logWARNING) << "Unknown type: " << i.type;
 			break;
 		}
 		writer.EndObject();
