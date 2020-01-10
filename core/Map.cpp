@@ -1,5 +1,4 @@
 #include <fstream>
-#include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
 #include "PRNG.hpp"
@@ -8,10 +7,50 @@
 #include <sstream>
 #include <minilog/minilog.h>
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
+	this->internal_tms.set_empty_key("");
 	this->surfaces.set_empty_key(-1);
 	this->sprs.set_empty_key(-1);
 	this->rng = SeedRNG();
 	this->loadFromFile(filename);
+}
+std::string ObjMap::loadTileMap(TileMap& tomodify, const rapidjson::Value& tilemapNode){
+	const rapidjson::Value& ATNode = tilemapNode["AffineT"];
+	for (int i = 0; i < 4; i++){
+		tomodify.affineT[i] = ATNode[i].GetFloat();
+	}
+	const rapidjson::Value& tilesNode = tilemapNode["tiles"];
+	rapidjson::SizeType numTiles = tilesNode.Size() & 0xff;
+	tomodify.numTiles = numTiles;
+	for (int i = 0; i < numTiles; i++){
+		const Texture tempTex = this->m_atlas.findSubTexture(tilesNode[i].GetString());
+		tomodify.tiles[i][0] = tempTex.m_rect.left / 65536.f;
+		tomodify.tiles[i][1] = tempTex.m_rect.top / 65536.f;
+		tomodify.tiles[i][2] = tempTex.m_rect.width / 65536.f;
+		tomodify.tiles[i][3] = tempTex.m_rect.height / 65536.f;
+		tomodify.filenames.emplace_back(tilesNode[i].GetString());
+	}
+	const rapidjson::Value& sizeNode = tilemapNode["tileSize"];
+	for (int i = 0; i < 2; i++){
+		tomodify.packedtileSize[i] = sizeNode[i].GetFloat();
+	}
+	const rapidjson::Value& posNode = tilemapNode["position"];
+	for (int i = 0; i < 2; i++){
+		tomodify.packedtileSize[2 + i] = posNode[i].GetFloat();
+	}
+	const rapidjson::Value& drawnNode = tilemapNode["drawntiles"];
+	for (auto& tileNode : drawnNode.GetArray()){
+		int px = tileNode["x"].GetInt();
+		int py = tileNode["y"].GetInt();
+		int index = tileNode["index"].GetInt();
+		tomodify.drawn.emplace_back(makeTile(px, py, index));
+	}
+	std::string temptype = tilemapNode["type"].GetString();
+	if (temptype == "normal"){
+		tomodify.type = TMType::Normal;
+	} else if (temptype == "effect"){
+		tomodify.type = TMType::Effect;
+	}
+	return tilemapNode["name"].GetString();
 }
 void ObjMap::loadFromFile(const std::string& filename){
 	ledges.clear();
@@ -28,7 +67,7 @@ void ObjMap::loadFromFile(const std::string& filename){
 	const rapidjson::Value& surfacesNode = document["surfaces"];
 	const rapidjson::Value& spritesNode = document["sprites"];
 	const rapidjson::Value& ledgesNode = document["ledges"];
-	const rapidjson::Value& tilemapNode = document["tilemap"];
+	const rapidjson::Value& tilemapsNode = document["tilemaps"];
 	for (auto& surfaceNode : surfacesNode.GetArray()){
 		Surface s;
 		s.x = surfaceNode["x"].GetFloat();
@@ -76,37 +115,10 @@ void ObjMap::loadFromFile(const std::string& filename){
 		pos.y = ledgeNode["y"].GetFloat();
 		ledges.emplace_back(pos);
 	}
-	const rapidjson::Value& ATNode = tilemapNode["AffineT"];
-	for (int i = 0; i < 4; i++){
-		internal_tm.affineT[i] = ATNode[i].GetFloat();
-	}
-	const rapidjson::Value& tilesNode = tilemapNode["tiles"];
-	rapidjson::SizeType numTiles = tilesNode.Size() & 0xff;
-	internal_tm.numTiles = numTiles;
-	for (int i = 0; i < numTiles; i++){
-		const Texture tempTex = m_atlas.findSubTexture(tilesNode[i].GetString());
-		internal_tm.tiles[i][0] = tempTex.m_rect.left / 65536.f;
-		internal_tm.tiles[i][1] = tempTex.m_rect.top / 65536.f;
-		internal_tm.tiles[i][2] = tempTex.m_rect.width / 65536.f;
-		internal_tm.tiles[i][3] = tempTex.m_rect.height / 65536.f;
-		internal_tm.filenames.emplace_back(tilesNode[i].GetString());
-	}
-	const rapidjson::Value& sizeNode = tilemapNode["tileSize"];
-	for (int i = 0; i < 2; i++){
-		internal_tm.packedtileSize[i] = sizeNode[i].GetFloat();
-	}
-	const rapidjson::Value& posNode = tilemapNode["position"];
-	for (int i = 0; i < 2; i++){
-		internal_tm.packedtileSize[2 + i] = posNode[i].GetFloat();
-	}
-	const rapidjson::Value& drawnNode = tilemapNode["drawntiles"];
-	for (auto& tileNode : drawnNode.GetArray()){
-		Tile temp;
-		int px = tileNode["x"].GetInt();
-		int py = tileNode["y"].GetInt();
-		int index = tileNode["index"].GetInt();
-		temp = ((px & 0xFFF) << 20) | ((py & 0x0FFF) << 8) | (index & 0xFF);
-		internal_tm.drawn.emplace_back(temp);
+	for (auto& tilemapNode : tilemapsNode.GetArray()){
+		TileMap tm;
+		std::string tmname = loadTileMap(tm,tilemapNode);
+		internal_tms[tmname] = tm;
 	}
 	tm_changed = true;
 }
@@ -138,8 +150,8 @@ void ObjMap::SetPosition(float x, float y) {
 	for (auto& i : sprs){
 		i.second.spr.setPosition(i.second.iPosition.x + x, i.second.iPosition.y + y);
 	}
-	this->internal_tm.packedtileSize[2] = x;
-	this->internal_tm.packedtileSize[3] = y;
+	this->internal_tms["default"].packedtileSize[2] = x;
+	this->internal_tms["default"].packedtileSize[3] = y;
 	tm_changed = true;
 }
 void ObjMap::WriteToFile(const std::string& filename){
@@ -221,48 +233,59 @@ void ObjMap::WriteToFile(const std::string& filename){
 	}
 	writer.EndArray();
 	
-	writer.Key("tilemap");
-	writer.StartObject();
-	writer.Key("AffineT");
+	writer.Key("tilemaps");
 	writer.StartArray();
-	for (int i = 0; i < 4; i++){
-		writer.Double(internal_tm.affineT[i]);
-	}
-	writer.EndArray();
-	writer.Key("tiles");
-	
-	writer.StartArray();
-	for (int i = 0; i < internal_tm.numTiles; i++){
-		writer.String(internal_tm.filenames[i].c_str());
-	}
-	writer.EndArray();
-	
-	writer.Key("tileSize");
-	writer.StartArray();
-	writer.Double(internal_tm.packedtileSize[0]);
-	writer.Double(internal_tm.packedtileSize[1]);
-	writer.EndArray();
+	for (auto& tmpair : internal_tms){
+		auto& internal_tm = tmpair.second;
 
-	writer.Key("position");
-	writer.StartArray();
-	writer.Double(internal_tm.packedtileSize[2]);
-	writer.Double(internal_tm.packedtileSize[3]);
-	writer.EndArray();
-
-	writer.Key("drawntiles");
-	writer.StartArray();
-	for (auto& i : internal_tm.drawn){
 		writer.StartObject();
-		writer.Key("x");
-		writer.Int(i >> 20);
-		writer.Key("y");
-		writer.Int((i >> 8) & 0xFFF);
-		writer.Key("index");
-		writer.Int(i & 0xFF);
+
+		writer.Key("Name");
+		writer.String("tmpair.first");
+
+		writer.Key("AffineT");
+		writer.StartArray();
+		for (int i = 0; i < 4; i++){
+			writer.Double(internal_tm.affineT[i]);
+		}
+		writer.EndArray();
+		
+		writer.Key("tiles");
+		writer.StartArray();
+		for (int i = 0; i < internal_tm.numTiles; i++){
+			writer.String(internal_tm.filenames[i].c_str());
+		}
+		writer.EndArray();
+	
+		writer.Key("tileSize");
+		writer.StartArray();
+		writer.Double(internal_tm.packedtileSize[0]);
+		writer.Double(internal_tm.packedtileSize[1]);
+		writer.EndArray();
+
+		writer.Key("position");
+		writer.StartArray();
+		writer.Double(internal_tm.packedtileSize[2]);
+		writer.Double(internal_tm.packedtileSize[3]);
+		writer.EndArray();
+
+		writer.Key("drawntiles");
+		writer.StartArray();
+		for (auto& i : internal_tm.drawn){
+			writer.StartObject();
+			writer.Key("x");
+			writer.Int(i >> 20);
+			writer.Key("y");
+			writer.Int((i >> 8) & 0xFFF);
+			writer.Key("index");
+			writer.Int(i & 0xFF);
+			writer.EndObject();
+		}
+		writer.EndArray();
+
 		writer.EndObject();
 	}
 	writer.EndArray();
-	writer.EndObject();
 	
 	writer.EndObject();
 	ofs << s.GetString() << std::endl;
@@ -273,7 +296,9 @@ void ObjMap::Draw(SpriteBatch& frame) {
 		frame.Draw(&(i.second.spr));
 	}
 	if (tm_changed){
-		frame.ChangeMap(internal_tm);
+		for (auto& tmap : internal_tms){
+			frame.addMap(tmap.first, tmap.second);
+		}
 		tm_changed = false;
 	}
 }

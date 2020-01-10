@@ -12,11 +12,13 @@ glm::mat2 unpackmat2(const std::array<float,4>& array){
 	return {array[0], array[1], array[2], array[3]};
 }
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){
+	m_texData.set_empty_key(std::numeric_limits<GLuint>::max());
+	m_Maps.set_empty_key("");
+
 	std::string shaderdata = readWholeFile(shaderfile);
 	document.Parse(shaderdata.c_str());
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	m_texData.set_empty_key(std::numeric_limits<GLuint>::max());
 	int num_shaders = document["shaders.len"].GetInt();
 	GLuint* VAOs = new GLuint[num_shaders];
 	glGenVertexArrays(num_shaders,VAOs);
@@ -49,16 +51,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 1, 255);
 	setStencil(false);
-	
-	effectLayer.affineT = {1.f, 0.f, 0.f, 1.f};
-	effectLayer.packedtileSize = {2000.f, 2000.f, 0.f, 0.f};
-	Texture t = atlas.findSubTexture("electricity");
-	Rect<float> trect = Normalize(t.m_rect);
-	effectLayer.tiles[0] = {trect.left, trect.top, trect.width, trect.height};
-	effectLayer.numTiles = 0;
-	effectLayer.type = TMType::Effect;
-	effectLayer.drawn.emplace_back(0);
-	
+		
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
@@ -206,11 +199,9 @@ void SpriteBatchImpl::Draw(const Window& target){
 		glDrawArrays(GL_POINTS,stencil_stop,currentTexData.vertices.size()-stencil_stop);
 	}
 	setStencil(false);
-	glm::mat2 test_mat = unpackmat2(m_currentMap.affineT);
-	Mat2GUI(test_mat, "TestMat", 2.f);
-	m_currentMap.affineT = packmat2(test_mat);
-	drawTileMap(m_currentMap, ws->MatrixID);
-	drawTileMap(effectLayer, ws->MatrixID);
+	for (auto& tmap : m_Maps){
+		drawTileMap(tmap.second, ws->MatrixID);
+	}
 	glStencilFunc(GL_ALWAYS, 1, 255);
 }
 void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, const GLuint& UBOIndex){
@@ -247,7 +238,6 @@ void SpriteBatchImpl::setStencil(bool new_state){
 		}
 	}
 }
-void SpriteBatchImpl::ChangeMap(const TileMap& tm){
-	this->m_currentMap = tm;
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(TileMap), &m_currentMap);
+void SpriteBatchImpl::addMap(const std::string& id, const TileMap& tm){
+	this->m_Maps[id] = tm;
 }

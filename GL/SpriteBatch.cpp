@@ -6,8 +6,8 @@ SpriteBatch& SpriteBatch::SpriteBatch::operator=(SpriteBatch &&) noexcept = defa
 int SpriteBatch::loadPrograms(int num_shaders,GLuint* VAOs){
 	return Pimpl()->loadPrograms(num_shaders,VAOs);
 }
-void SpriteBatch::ChangeMap(const TileMap& tm){
-	Pimpl()->ChangeMap(tm);
+void SpriteBatch::addMap(const std::string& id, const TileMap& tm){
+	Pimpl()->addMap(id, tm);
 }
 void SpriteBatch::Draw(Sprite* spr){
 	Pimpl()->Draw(spr);

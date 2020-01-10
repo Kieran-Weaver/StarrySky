@@ -10,7 +10,6 @@
 #include "GL/Window.hpp"
 #include "core/Map.hpp"
 #define MINILOG_IMPLEMENTATION
-#include <iostream>
 #include "minilog/minilog.h"
 int main(){
 	MiniLog::current_level() = logINFO;

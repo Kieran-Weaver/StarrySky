@@ -10,6 +10,7 @@
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <rapidjson/document.h>
 enum WallType { LWALL, RWALL, CEIL, FLOOR, ONEWAY  };
 enum MenuType { SURFACE, LEDGE, TEXTURE, TILES, NONE };
 struct Surface{
@@ -42,9 +43,10 @@ public:
 	float ledgeheight = 8.f;
 	
 private:
-	TileMap internal_tm;
+	google::dense_hash_map<std::string, TileMap> internal_tms;
 	bool tm_changed = false;
 	TextureAtlas& m_atlas;
 	google::dense_hash_map<int, MapSprite> sprs;
+	std::string loadTileMap(TileMap& tomodify, const rapidjson::Value& tilemapNode);
 };
 #endif
