@@ -1,7 +1,7 @@
 #version 330
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
-in int index[];
+in uint index[];
 out vec2 texposition;
 layout (std140) uniform GSData{
 	mat4 unused; // 64 bytes

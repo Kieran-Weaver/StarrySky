@@ -272,13 +272,16 @@ void ObjMap::WriteToFile(const std::string& filename){
 		writer.Key("drawntiles");
 		writer.StartArray();
 		for (auto& i : internal_tm.drawn){
+			uint16_t x, y;
+			uint8_t index;
+			unpackTile(i, x, y, index);
 			writer.StartObject();
 			writer.Key("x");
-			writer.Int(i >> 20);
+			writer.Int(x);
 			writer.Key("y");
-			writer.Int((i >> 8) & 0xFFF);
+			writer.Int(y);
 			writer.Key("index");
-			writer.Int(i & 0xFF);
+			writer.Int(index);
 			writer.EndObject();
 		}
 		writer.EndArray();
