@@ -5,7 +5,9 @@
 #include "Map.hpp"
 #include "ImGuiHelper.hpp"
 #include <sstream>
-#include <minilog/minilog.h>
+#ifndef NDEBUG
+#include <iostream>
+#endif
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->internal_tms.set_empty_key("");
 	this->surfaces.set_empty_key(-1);
@@ -61,7 +63,9 @@ void ObjMap::loadFromFile(const std::string& filename){
 	rapidjson::Document document;
 	rapidjson::ParseResult result = document.Parse(jsondata.c_str());
 	if (!result) {
-		MINILOG(logERROR) << "ERROR: Invalid JSON file " << filename;
+#ifndef NDEBUG
+		std::cerr << "ERROR: Invalid JSON file " << filename << std::endl; 
+#endif
 		std::exit(1);
 	}
 	const rapidjson::Value& surfacesNode = document["surfaces"];
@@ -73,7 +77,9 @@ void ObjMap::loadFromFile(const std::string& filename){
 		s.hitbox = {surfaceNode["x"].GetFloat(),surfaceNode["y"].GetFloat(),surfaceNode["w"].GetFloat(),surfaceNode["h"].GetFloat()};
 		s.flags = surfaceNode["f"].GetInt() & 0x1F;
 		if (s.flags == 0){
-			MINILOG(logWARNING) << " Warning: Invalid surface flags: " << surfaceNode["f"].GetInt();
+#ifndef NDEBUG
+			std::cerr << " Warning: Invalid surface flags: " << surfaceNode["f"].GetInt() << std::endl;
+#endif
 			s.flags = 1;
 		}
 		addSurface(s);
@@ -155,7 +161,9 @@ void ObjMap::WriteToFile(const std::string& filename){
 		writer.Key("h");
 		writer.Int(i.hitbox.height);
 		if (i.flags == 0){
-			MINILOG(logWARNING) << "Unknown surface flags: " << i.flags;
+#ifndef NDEBUG
+			std::cerr << "Unknown surface flags: " << i.flags << std::endl;
+#endif
 			i.flags = 1;
 		}
 		writer.Key("f");

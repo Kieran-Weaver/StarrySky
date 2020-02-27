@@ -1,7 +1,9 @@
 #include "Shader.hpp"
 #include <fstream>
 #include <array>
-#include <minilog/minilog.h>
+#ifndef NDEBUG
+#include <iostream>
+#endif
 Shader::Shader(GLenum type, const std::string& filename) : m_type(type) {
 	m_handle = glCreateShader(this->m_type);
 	std::string contents = readWholeFile(filename);
@@ -12,13 +14,13 @@ Shader::Shader(GLenum type, const std::string& filename) : m_type(type) {
 	GLint success = 0;
 	glGetShaderiv(m_handle, GL_COMPILE_STATUS, &success);
 	if (success == GL_FALSE){
-		MINILOG(logWARNING) << "Shader compilation failed: " << filename;
+		std::cerr << "Shader compilation failed: " << filename << std::endl;
 		GLint maxLength = 0;
 		glGetShaderiv(m_handle, GL_INFO_LOG_LENGTH, &maxLength);
 		std::vector<GLchar> errorLog(maxLength);
 		glGetShaderInfoLog(m_handle, maxLength, &maxLength, &errorLog[0]);
 		std::string errorMessage(errorLog.data(), errorLog.size());
-		MINILOG(logWARNING) << "Message: " << errorMessage;
+		std::cerr << "Message: " << errorMessage << std::endl;
 		glDeleteShader(m_handle);
 		this->loaded = false;
 	}else{
@@ -67,7 +69,7 @@ GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const
 
 		glDeleteProgram(shaderProgram);
 		std::string errorMessage(infoLog.data(), infoLog.size());
-		MINILOG(logWARNING) << "Message: " << errorMessage;
+		std::cerr << "Message: " << errorMessage << std::endl;
 		return 0;
 	}else{
 		return shaderProgram;

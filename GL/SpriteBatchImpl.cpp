@@ -4,7 +4,9 @@
 #include <core/Editor.hpp>
 #include <rapidjson/document.h>
 #include <string>
-#include <minilog/minilog.h>
+#ifndef NDEBUG
+#include <iostream>
+#endif
 std::array<float,4> packmat2(const glm::mat2& matrix){
 	return {matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1]};
 }
@@ -25,7 +27,9 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glBindVertexArray(VAOs[0]);
 
 	if (this->loadPrograms(num_shaders,VAOs) == -1){
-		MINILOG(logERROR) << "Not valid JSON" << std::endl;
+#ifndef NDEBUG
+		std::cerr << "Not valid JSON" << std::endl;
+#endif
 		std::exit(1);
 	}
 	glUseProgram(glPrograms[SPRITE2D].programHandle);

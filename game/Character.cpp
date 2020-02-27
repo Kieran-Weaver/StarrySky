@@ -127,6 +127,7 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, cons
 			this->m_spr2.transform(this->flipped_mat);
 		}
 	}
+	MovingEntity::Update(dt);
 	this->m_shieldspr.setPosition(this->m_position);
 	int posx = this->m_position.x;
 	int posy = this->m_position.y;
@@ -147,23 +148,21 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, cons
 		}
 	}
 	this->m_spr2.setPosition(glm::vec2(posx,posy));
-	MovingEntity::Update(dt);
-	invltimer();
-	for (auto& i : objects){
-		if (this->m_spr.PPCollidesWith(i->m_spr)){
-			if (shieldout && !shieldbroken){
-				if (invltimer.getTime()==0){
+	if (invltimer()){
+		for (auto& i : objects){
+			if (this->m_spr.PPCollidesWith(i->m_spr)){
+				if (shieldout && !shieldbroken){
 					shieldmeter = shieldmeter - 200.f;
 					if (shieldmeter < 0.0f){
 						shieldbroken = true;
 						shieldmeter = 0.0f;
 					}
 					invltimer.setTime(20);
+				} else {
+					dead = true;
+					shieldmeter = shieldmax;
+					break;
 				}
-			}else{
-				dead = true;
-				shieldmeter = shieldmax;
-				break;
 			}
 		}
 	}

@@ -10,6 +10,3 @@
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/Tencent/rapidjson/
-[submodule "minilog"]
-	path = minilog
-	url = https://github.com/Kieran-Weaver/minilog
