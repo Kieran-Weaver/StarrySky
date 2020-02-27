@@ -28,18 +28,12 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, cons
 	if (swordtimer()){
 		swordout = false;
 		this->m_spr2.setTexture(this->texs[1]);
-		if (flipped){
-			this->m_spr2.transform(this->flipped_mat);
-		}
 		this->swordtimer.setDelay(6);
 		this->swordtimer.setTime(-1);
 	} else if (!swordout && this->swordtimer.getDelay() == 0) {
 		if ((ws->keyboardState[controls.swordkey])&&(!this->shieldout)){
 			this->swordout = true;
 			this->m_spr2.setTexture(this->texs[2]);
-			if (flipped){
-				this->m_spr2.transform(this->flipped_mat);
-			}
 			ws->keyboardState[controls.swordkey] = false;
 			this->swordtimer.setTime(30);
 		}

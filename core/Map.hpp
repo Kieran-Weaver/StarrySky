@@ -9,7 +9,6 @@
 #include <GL/Tilemap.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <rapidjson/document.h>
 enum WallType { LWALL=1, RWALL=2, CEIL=4, FLOOR=8, ONEWAY=16  };
 struct Surface{

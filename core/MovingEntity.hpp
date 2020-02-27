@@ -27,7 +27,7 @@ protected:
 	glm::vec2 m_lastSpeed;
 	glm::vec2 m_lastPosition;
 	ObjMap& m_map;
-	const glm::mat4 flipped_mat = glm::scale(glm::mat4(1.f),glm::vec3(-1.f,1.f,1.f));
+	const glm::mat2 flipped_mat = glm::mat2(-1.f, 0.f, 0.f, 1.f);
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include "Rect.hpp"
 #include "Mat2D.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 void Sprite::setStencil(bool stencil_state){
 	this->uses_stencil = stencil_state;
 }
@@ -12,10 +13,10 @@ void Sprite::setTexture(const Texture& tex){
 	if (this->m_subtexture.m_texture == 0) {
 		this->m_model = glm::mat2(1.f);
 	} else {
-		if (tex.rotated != 0){
-			this->m_model = this->m_model * RotMat(glm::radians(-90.f));
+		if (m_subtexture.rotated != 0){
+			this->m_model = this->m_model*RotMat(glm::radians(-90.f));
 		}
-		this->m_model = this->m_model * ScaleMat(1.f/tex.width, 1.f/tex.height);
+		this->m_model = this->m_model*ScaleMat(1.f/m_subtexture.width, 1.f/m_subtexture.height);
 	}
 	this->m_subtexture = tex;
 	this->m_model = this->m_model*ScaleMat(tex.width,tex.height);
