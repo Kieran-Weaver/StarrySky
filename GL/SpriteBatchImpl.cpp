@@ -48,7 +48,6 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glBindVertexArray(glPrograms[TILEMAP].VAO);
 	glUseProgram(glPrograms[TILEMAP].programHandle);
 	glBindBuffer(GL_UNIFORM_BUFFER, matrixbuffer.m_handle);
-	glUniformBlockBinding(glPrograms[TILEMAP].programHandle, glGetUniformBlockIndex(glPrograms[TILEMAP].programHandle, "GSData"), 0);
 	ws.MatrixID = ubos.size() - 1;
 	delete[] VAOs;
 	
