@@ -1,6 +1,9 @@
 #include "Editor.hpp"
 #include <imgui/imgui.h>
 #include <GL/Mat2D.hpp>
+#include <GL/Tilemap.hpp>
+#include <vector>
+static bool map_changed = false;
 bool Mat2GUI(glm::mat2& mdata, const std::string& tag, const float& max_value){
 	constexpr double m_pi = std::atan(1.f)*4.f;
 	std::array<float,5> matrix_data = decomp(mdata);
@@ -21,4 +24,20 @@ bool Mat2GUI(glm::mat2& mdata, const std::string& tag, const float& max_value){
 	return changed;
 }
 LevelEditor::LevelEditor(ObjMap& map) : map(map){}
-void LevelEditor::Draw(Window window){}
+void LevelEditor::Draw(SpriteBatch& batch){
+	sprites.clear();
+	for (auto& rect : rects){
+		sprites.emplace_back();
+		sprites.back().setTexture(selectedTex);
+		sprites.back().transform(ScaleMat(1.f/selectedTex.m_rect.width, 1.f/selectedTex.m_rect.height));
+		sprites.back().transform(ScaleMat(rect.width, rect.height));
+	}
+	rects.clear();
+	for (auto& sprite : sprites){
+		batch.Draw(&sprite);
+	}
+	TileMap temp_tm = map.getTM("Editor");
+	temp_tm.drawn = tiles;
+	map.setTM("Editor", temp_tm);
+	tiles.clear();
+}
