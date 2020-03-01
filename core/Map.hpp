@@ -33,6 +33,8 @@ public:
 	uint32_t addSurface(const Surface& wall);
 	void addBGTexture(const glm::vec2& thisposition, const glm::mat2& transform, const std::string& fname);
 	void WriteToFile(const std::string& filename);
+	void setTM(const std::string& id, const TileMap& tm);
+	TileMap getTM(const std::string& id);
 	glm::vec2 position;
 	google::dense_hash_map<int, Surface> surfaces;
 	std::vector<glm::vec2> ledges; // top left corners

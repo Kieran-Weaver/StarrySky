@@ -6,6 +6,16 @@
 #include "ImGuiHelper.hpp"
 #include <sstream>
 #include <minilog/minilog.h>
+TileMap ObjMap::getTM(const std::string& id){
+	if (this->internal_tms.count(id) == 0){
+		return TileMap();
+	} else {
+		return this->internal_tms[id];
+	}
+}
+void ObjMap::setTM(const std::string& id, const TileMap& tm){
+	this->internal_tms[id] = tm;
+}
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->internal_tms.set_empty_key("");
 	this->surfaces.set_empty_key(-1);
