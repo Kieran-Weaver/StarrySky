@@ -1,15 +1,12 @@
 [submodule "stb"]
 	path = stb
-	url = git@github.com:nothings/stb.git
+	url = https://github.com/nothings/stb.git
 [submodule "imgui"]
 	path = imgui
-	url = git@github.com:ocornut/imgui.git
+	url = https://github.com/ocornut/imgui.git
 [submodule "galogen"]
 	path = galogen
-	url = git@github.com:google/galogen.git
+	url = https://github.com/google/galogen.git
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/Tencent/rapidjson/
-[submodule "minilog"]
-	path = minilog
-	url = https://github.com/ST64/minilog

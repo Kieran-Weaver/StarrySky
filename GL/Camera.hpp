@@ -9,11 +9,11 @@ public:
 	void Scroll(const glm::vec2& direction);
 	glm::mat4 getVP();
 	void reset();
-	Rect<float> current_bounds = Rect<float>(0.f,0.f,1280.f,800.f);
+	Rect<float> current_bounds = Rect<float>(0.f,0.f,1280.f,720.f);
 	Rect<float> scroll_bounds; // When you leave this, camera starts scrolling
 private:
 	glm::mat4 View = glm::mat4(1.0f);
-	glm::mat4 Projection = glm::ortho(0.f,1280.f,800.f,0.f);
+	glm::mat4 Projection = glm::ortho(0.f,1280.f,720.f,0.f);
 	glm::mat4 CachedVP = Projection * View;
 	Rect<float> camera_bounds; // The camera cannot scroll past this
 	bool viewHasChanged = false;

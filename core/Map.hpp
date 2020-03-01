@@ -9,15 +9,11 @@
 #include <GL/Tilemap.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
-#include <glm/gtx/matrix_decompose.hpp>
 #include <rapidjson/document.h>
-enum WallType { LWALL, RWALL, CEIL, FLOOR, ONEWAY  };
-enum MenuType { SURFACE, LEDGE, TEXTURE, TILES, NONE };
+enum WallType { LWALL=1, RWALL=2, CEIL=4, FLOOR=8, ONEWAY=16  };
 struct Surface{
-	float x;
-	float y;
-	float length;
-	WallType type;
+	Rect<float> hitbox;
+	int flags;
 };
 struct MapSprite{
 	glm::vec2 iPosition;

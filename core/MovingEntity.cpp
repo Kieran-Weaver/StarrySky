@@ -26,59 +26,35 @@ void MovingEntity::Update(float dt) {
 	this->isAtCeiling=false;
 	this->isOnGround=false;
 	this->onOneWayPlatform = false;
+	Rect<float> hitbox = {m_position.x - m_width/2.f, m_position.y - m_height/2.f, static_cast<float>(m_width), static_cast<float>(m_height)};
+	Rect<float> lastHitbox = {m_lastPosition.x - m_width/2.f, m_lastPosition.y - m_height/2.f, static_cast<float>(m_width), static_cast<float>(m_height)}; 
 	for (auto& surf : m_map.surfaces){
 		auto& i = surf.second;
-		switch (i.type){
-		case WallType::RWALL:
-			if ((m_lastPosition.x + (m_width/2)) <= i.x){
-				if (i.x <= (m_position.x + (m_width/2))){
-					if (((i.y + i.length) > (m_position.y-(m_height/2)))&&(i.y < (m_position.y+(m_height/2)))){
-						m_position.x = i.x - (m_width/2);
-						m_speed.x = 0.0f;
-						this->pushesRightWall=true;
-					}
+		Rect<float> collision;
+		if (hitbox.RIntersects(i.hitbox, collision) && !lastHitbox.Intersects(i.hitbox)){
+			if ((i.flags & WallType::RWALL)&&(lastHitbox.left + lastHitbox.width <= i.hitbox.left)){
+				m_position.x = i.hitbox.left - (m_width/2);
+				m_speed.x = 0.0f;
+				this->pushesRightWall=true;				
+			}
+			if ((i.flags & WallType::LWALL)&&(lastHitbox.left >= i.hitbox.left + i.hitbox.width)){
+				m_position.x = i.hitbox.left + i.hitbox.width + (m_width/2);
+				m_speed.x = 0.0f;
+				this->pushesLeftWall=true;
+			}
+			if ((i.flags & WallType::CEIL) && (lastHitbox.top >= i.hitbox.top + i.hitbox.height)){
+				m_position.y = i.hitbox.top + i.hitbox.height + (m_height/2);
+				this->isAtCeiling=true;
+				m_speed.y = 0;
+			}
+			if ((i.flags & WallType::FLOOR) || ((i.flags & WallType::ONEWAY)&&(this->dropFromOneWay))){
+				if (lastHitbox.top + lastHitbox.height <= i.hitbox.top){
+					m_position.y = i.hitbox.top-(m_height/2);
+					this->isOnGround=true;
+					this->onOneWayPlatform = (i.flags & WallType::ONEWAY);
+					m_speed.y = 0;
 				}
 			}
-			break;
-		case WallType::LWALL:
-			if ((m_lastPosition.x - (m_width/2)) >= i.x){
-				if (i.x >= (m_position.x - (m_width/2))){
-					if (((i.y+i.length) > (m_position.y-(m_height/2)))&&(i.y < (m_position.y+(m_height/2)))){
-						m_position.x = i.x + (m_width/2);
-						m_speed.x = 0.0f;
-						this->pushesLeftWall=true;
-					}
-				}
-			}
-			break;
-		case WallType::CEIL:
-			if (m_lastPosition.y-(m_height/2) >= i.y){
-				if ((i.y >= (m_position.y-(m_height/2)))){
-					if ((((i.x+i.length) > (m_position.x-(m_width/2)))&&(i.x < (m_position.x+(m_width/2))))){
-						m_position.y = i.y+(m_height/2);
-						this->isAtCeiling=true;
-						m_speed.y = 0;
-					}
-				}
-			}
-			break;
-		case WallType::ONEWAY:
-			if (this->dropFromOneWay){
-				break;
-			}
-			__attribute__((fallthrough));
-		case WallType::FLOOR:
-			if (m_lastPosition.y+(m_height/2) <= i.y){
-				if ((i.y <= (m_position.y+(m_height/2)))){
-					if (((i.x+i.length) > (m_position.x-(m_width/2)))&&(i.x < (m_position.x+(m_width/2)))){
-						m_position.y = i.y-(m_height/2);
-						this->isOnGround=true;
-						this->onOneWayPlatform = (i.type == WallType::ONEWAY);
-						m_speed.y = 0;
-					}
-				}
-			}
-			break;
 		}
 	}
 	if (m_position.y > (m_map.position.y + m_map.height)){

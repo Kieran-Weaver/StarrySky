@@ -10,6 +10,9 @@ in Vertex
 out vec2 Texcoord;
 layout (std140) uniform VP{
 	mat4 globalVP;
+	vec4 AffineV; // 16 bytes
+	vec4 packedtileSize; // 16 bytes
+	vec4 tileData[256];
 };
 void main() {
 	vec2 texlt = in_data[0].packedtexpos.xy;

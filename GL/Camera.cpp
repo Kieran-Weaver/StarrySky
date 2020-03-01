@@ -20,8 +20,8 @@ glm::mat4 Camera::getVP(){
 	return CachedVP;
 }
 void Camera::reset(){
-	current_bounds = Rect<float>(0.f,0.f,1280.f,800.f);
+	current_bounds = Rect<float>(0.f,0.f,1280.f,720.f);
 	View = glm::mat4(1.0f);
-	Projection = glm::ortho(0.f,1280.f,800.f,0.f);
+	Projection = glm::ortho(0.f,1280.f,720.f,0.f);
 	viewHasChanged = true;
 }

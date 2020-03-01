@@ -9,11 +9,7 @@
 #include "GL/WindowState.h"
 #include "GL/Window.hpp"
 #include "core/Map.hpp"
-#define MINILOG_IMPLEMENTATION
-#include "minilog/minilog.h"
 int main(){
-	MiniLog::current_level() = logINFO;
-	MiniLog::set_stream(&std::cerr);
 	const float frametime = 1.f/60.f;
 	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Starry Sky");
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f));
@@ -44,7 +40,6 @@ int main(){
 			camera.reset();
 		}else if (testEnemy.dead){
 			objects.clear();
-			MINILOG(logINFO) << "You Win" << std::endl;
 			window.close();
 		}
 		batch.Draw(window);

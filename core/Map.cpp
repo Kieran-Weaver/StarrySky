@@ -5,7 +5,9 @@
 #include "Map.hpp"
 #include "ImGuiHelper.hpp"
 #include <sstream>
-#include <minilog/minilog.h>
+#ifndef NDEBUG
+#include <iostream>
+#endif
 TileMap ObjMap::getTM(const std::string& id){
 	if (this->internal_tms.count(id) == 0){
 		return TileMap();
@@ -71,7 +73,9 @@ void ObjMap::loadFromFile(const std::string& filename){
 	rapidjson::Document document;
 	rapidjson::ParseResult result = document.Parse(jsondata.c_str());
 	if (!result) {
-		MINILOG(logERROR) << "ERROR: Invalid JSON file " << filename;
+#ifndef NDEBUG
+		std::cerr << "ERROR: Invalid JSON file " << filename << std::endl; 
+#endif
 		std::exit(1);
 	}
 	const rapidjson::Value& surfacesNode = document["surfaces"];
@@ -80,30 +84,13 @@ void ObjMap::loadFromFile(const std::string& filename){
 	const rapidjson::Value& tilemapsNode = document["tilemaps"];
 	for (auto& surfaceNode : surfacesNode.GetArray()){
 		Surface s;
-		s.x = surfaceNode["x"].GetFloat();
-		s.y = surfaceNode["y"].GetFloat();
-		s.length = surfaceNode["l"].GetInt();
-		std::string type = surfaceNode["t"].GetString();
-		switch (type[0]){
-		case 'F':
-			s.type = WallType::FLOOR;
-			break;
-		case 'C':
-			s.type = WallType::CEIL;
-			break;
-		case 'L':
-			s.type = WallType::LWALL;
-			break;
-		case 'R':
-			s.type = WallType::RWALL;
-			break;
-		case 'O':
-			s.type = WallType::ONEWAY;
-			break;
-		default:
-			MINILOG(logWARNING) << "Unknown type: " << type;
-			s.type = WallType::FLOOR;
-			break;
+		s.hitbox = {surfaceNode["x"].GetFloat(),surfaceNode["y"].GetFloat(),surfaceNode["w"].GetFloat(),surfaceNode["h"].GetFloat()};
+		s.flags = surfaceNode["f"].GetInt() & 0x1F;
+		if (s.flags == 0){
+#ifndef NDEBUG
+			std::cerr << " Warning: Invalid surface flags: " << surfaceNode["f"].GetInt() << std::endl;
+#endif
+			s.flags = 1;
 		}
 		addSurface(s);
 	}
@@ -176,32 +163,21 @@ void ObjMap::WriteToFile(const std::string& filename){
 		auto& i = surf.second;
 		writer.StartObject();
 		writer.Key("x");
-		writer.Int(i.x);
+		writer.Int(i.hitbox.left);
 		writer.Key("y");
-		writer.Int(i.y);
-		writer.Key("l");
-		writer.Int(i.length);
-		writer.Key("t");
-		switch (i.type){
-		case LWALL:
-			writer.String("L");
-			break;
-		case RWALL:
-			writer.String("R");
-			break;
-		case FLOOR:
-			writer.String("F");
-			break;
-		case CEIL:
-			writer.String("C");
-			break;
-		case ONEWAY:
-			writer.String("O");
-			break;
-		default:
-			MINILOG(logWARNING) << "Unknown type: " << i.type;
-			break;
+		writer.Int(i.hitbox.top);
+		writer.Key("w");
+		writer.Int(i.hitbox.width);
+		writer.Key("h");
+		writer.Int(i.hitbox.height);
+		if (i.flags == 0){
+#ifndef NDEBUG
+			std::cerr << "Unknown surface flags: " << i.flags << std::endl;
+#endif
+			i.flags = 1;
 		}
+		writer.Key("f");
+		writer.Int(i.flags);
 		writer.EndObject();
 	}
 	writer.EndArray();
