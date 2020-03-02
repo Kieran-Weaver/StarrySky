@@ -13,7 +13,7 @@ ifdef OS
 	CPPFLAGS += -I/mingw64/include/GLFW
 else
 	LDFLAGS=-lGL -lglfw -lz -Wl,-O1
-	CPPFLAGS += -I/usr/include/GLFW
+#	CPPFLAGS += -I/usr/include/GLFW
 endif
 all: gl.h $(TARGET)
 

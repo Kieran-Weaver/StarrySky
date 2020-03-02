@@ -84,9 +84,13 @@ void Window::close() const{
 bool Window::isOpen() const{
 	return (glfwWindowShouldClose(windowImpl.get()) == GLFW_FALSE);
 }
-void Window::setWindowState(WindowState* ws){
-	glfwSetWindowUserPointer(windowImpl.get(),ws);
+void Window::setWindowState(const WindowState& ws){
+	this->internal_state = ws;
+	glfwSetWindowUserPointer(windowImpl.get(),&internal_state);
 }
-WindowState* Window::getWindowState() const{
-	return static_cast<WindowState*>(glfwGetWindowUserPointer(windowImpl.get()));
+WindowState Window::getWindowState() const{
+	return internal_state;
+}
+void Window::getWindowSize(int& width, int& height) const{
+	glfwGetFramebufferSize(windowImpl.get(), &width, &height);
 }

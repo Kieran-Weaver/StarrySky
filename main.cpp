@@ -12,10 +12,10 @@
 int main(){
 	const float frametime = 1.f/60.f;
 	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Starry Sky");
-	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f));
+	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f), window);
 	WindowState ws;
 	ws.camera = &camera;
-	window.setWindowState(&ws);
+	window.setWindowState(ws);
 	glm::mat4 m(1.0f);
 	TextureAtlas atlas("data/atlas.json");
 	ObjMap map("map.json",atlas);

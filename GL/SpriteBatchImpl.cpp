@@ -48,7 +48,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std
 	glBindVertexArray(glPrograms[TILEMAP].VAO);
 	glUseProgram(glPrograms[TILEMAP].programHandle);
 	glBindBuffer(GL_UNIFORM_BUFFER, matrixbuffer.m_handle);
-	ws.MatrixID = ubos.size() - 1;
+	this->MatrixID = ubos.size() - 1;
 	delete[] VAOs;
 	
 	glEnable(GL_STENCIL_TEST);
@@ -157,8 +157,8 @@ void SpriteBatchImpl::Draw(const Window& target){
 	target.makeCurrent();
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
 	auto ws = target.getWindowState();
-	glBindBuffer(GL_UNIFORM_BUFFER, ubos[ws->MatrixID].m_handle);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &ws->camera->getVP()[0][0]);
+	glBindBuffer(GL_UNIFORM_BUFFER, ubos[this->MatrixID].m_handle);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &ws.camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
@@ -203,7 +203,7 @@ void SpriteBatchImpl::Draw(const Window& target){
 	}
 	setStencil(false);
 	for (auto& tmap : m_Maps){
-		drawTileMap(tmap.second, ws->MatrixID);
+		drawTileMap(tmap.second, this->MatrixID);
 	}
 	glStencilFunc(GL_ALWAYS, 1, 255);
 }

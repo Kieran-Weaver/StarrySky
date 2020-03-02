@@ -11,14 +11,14 @@
 #include <array>
 #include <vector>
 struct Controls{
-	int upkey = GLFW_KEY_UP;
-	int downkey = GLFW_KEY_DOWN;
-	int leftkey = GLFW_KEY_LEFT;
-	int rightkey = GLFW_KEY_RIGHT;
-	int swordkey = GLFW_KEY_Z;
-	int jumpkey = GLFW_KEY_X;
-	int shieldkey = GLFW_KEY_LEFT_SHIFT;
-	int ledgekey = GLFW_KEY_C;
+	int upkey;
+	int downkey;
+	int leftkey;
+	int rightkey;
+	int swordkey;
+	int jumpkey;
+	int shieldkey;
+	int ledgekey;
 };
 class Character : public MovingEntity {
 public:
@@ -32,7 +32,7 @@ public:
 	void Update(float dt, const std::vector<MovingEntity *>& objects, const Window& window);
 	void Draw(SpriteBatch& mframe);
 private:
-	const Controls defaultcontrols;
+	Controls defaultcontrols;
 	const float jumpSpeed = 1500.0f;
 	const float walkSpeed = 900.0f;
 	const float lowJumpSpeed = -400.0f;

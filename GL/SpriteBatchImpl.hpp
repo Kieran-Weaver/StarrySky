@@ -37,6 +37,7 @@ private:
 		GLuint VBO;
 		GLuint VBO_size = 0;
 	};
+	int MatrixID;
 	void setStencil(bool new_state);
 	void drawTileMap(const TileMap& tilemap, const GLuint& UBOHandle);
 	std::vector<GLProgram> glPrograms;
