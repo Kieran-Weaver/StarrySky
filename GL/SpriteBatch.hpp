@@ -1,6 +1,5 @@
 #ifndef STARRYSKY_SPRITEBATCH_H
 #define STARRYSKY_SPRITEBATCH_H
-#include "WindowState.h"
 #include "TextureAtlas.hpp"
 #include "Window.hpp"
 // Rendering Modes

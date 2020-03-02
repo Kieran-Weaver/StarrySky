@@ -7,9 +7,6 @@
 #include <GL/TextureAtlas.hpp>
 #include <GL/Window.hpp>
 #include <core/Map.hpp>
-#include <cmath>
-#include <array>
-#include <vector>
 struct Controls{
 	int upkey;
 	int downkey;

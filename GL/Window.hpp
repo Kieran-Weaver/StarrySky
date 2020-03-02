@@ -5,10 +5,10 @@
 #include <memory>
 #define MAX_KEYCODE 1023
 class GLFWwindow;
+class Camera;
 struct GLFWwindowDeleter{
 	void operator()(GLFWwindow *p);
 };
-class Camera;
 struct WindowState{
 	Camera* camera;
 	std::bitset<MAX_KEYCODE + 1> keyboardState;

@@ -1,6 +1,5 @@
 #include "Window.hpp"
 #include "gl.h"
-#include "GL/WindowState.h"
 #include <GLFW/glfw3.h>
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"

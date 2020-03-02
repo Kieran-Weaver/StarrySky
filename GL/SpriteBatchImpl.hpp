@@ -5,7 +5,6 @@
 #include "Tilemap.hpp"
 #include <gl.h>
 #include <sparsehash/dense_hash_map>
-#include "WindowState.h"
 #include "TextureAtlas.hpp"
 #include "Window.hpp"
 #include <rapidjson/document.h>

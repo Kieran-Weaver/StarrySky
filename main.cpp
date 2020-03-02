@@ -6,7 +6,6 @@
 #include "GL/Camera.hpp"
 #include "GL/TextureAtlas.hpp"
 #include "GL/SpriteBatch.hpp"
-#include "GL/WindowState.h"
 #include "GL/Window.hpp"
 #include "core/Map.hpp"
 int main(){

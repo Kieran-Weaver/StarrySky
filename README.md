@@ -1,11 +1,16 @@
 # StarrySky
-A platformer game, written in C++11, using GLFW.
+A WIP platformer game, written in C++11, using GLFW.
 
 It uses sprite-batching and texture atlases to recreate the experience of games from the 16-bit and 32-bit eras, but with a maintainable, modern code-base.
 
 This game was designed from the ground up to have optimal performance. The performance goals are:
 - To run at 60fps on a Raspberry Pi Zero
 - To keep the total binary size less than 100 MB
+
+The code for this project is split into three main paths:
+- GL contains the graphics backend, which is currently based on OpenGL 3.x and GLFW
+- core contains the physics and map system and any helper files.
+- game contains the game's AI and higher-level game mechanics.
 
 GL/Sprite.h, GL/SpriteBatch.h, GL/Texture.h, GL/TextureAtlas.h, and GL/TextureAtlas.cpp are originally from https://github.com/ricanteja/Moony-SpriteBatch, but were rewritten for Starry Sky.
 

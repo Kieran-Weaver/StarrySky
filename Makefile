@@ -10,10 +10,8 @@ OBJS := $(addsuffix .o,$(basename $(SRCS)))
 DEPS := $(OBJS:.o=.d)
 ifdef OS
 	LDFLAGS=-lopengl32 -lglfw3 -lz -Wl,-O1 -mwindows -static-libstdc++ -static-libgcc -static
-	CPPFLAGS += -I/mingw64/include/GLFW
 else
 	LDFLAGS=-lGL -lglfw -lz -Wl,-O1
-#	CPPFLAGS += -I/usr/include/GLFW
 endif
 all: gl.h $(TARGET)
 
