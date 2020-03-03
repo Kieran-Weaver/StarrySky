@@ -10,3 +10,6 @@
 [submodule "rapidjson"]
 	path = rapidjson
 	url = https://github.com/Tencent/rapidjson/
+[submodule "parallel_hashmap"]
+	path = parallel_hashmap
+	url = https://github.com/greg7mdp/parallel-hashmap.git

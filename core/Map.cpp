@@ -19,9 +19,6 @@ void ObjMap::setTM(const std::string& id, const TileMap& tm){
 	this->internal_tms[id] = tm;
 }
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
-	this->internal_tms.set_empty_key("");
-	this->surfaces.set_empty_key(-1);
-	this->sprs.set_empty_key(-1);
 	this->rng = SeedRNG();
 	this->loadFromFile(filename);
 }
@@ -154,7 +151,7 @@ void ObjMap::SetPosition(float x, float y) {
 void ObjMap::WriteToFile(const std::string& filename){
 	std::ofstream ofs(filename);
 	rapidjson::StringBuffer s;
-    rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
 	writer.StartObject();
 	writer.Key("surfaces");
 	

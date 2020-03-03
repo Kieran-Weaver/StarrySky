@@ -14,9 +14,6 @@ glm::mat2 unpackmat2(const std::array<float,4>& array){
 	return {array[0], array[1], array[2], array[3]};
 }
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){
-	m_texData.set_empty_key(std::numeric_limits<GLuint>::max());
-	m_Maps.set_empty_key("");
-
 	std::string shaderdata = readWholeFile(shaderfile);
 	document.Parse(shaderdata.c_str());
 	glEnable(GL_DEPTH_TEST);

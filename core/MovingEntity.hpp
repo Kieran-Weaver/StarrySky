@@ -1,7 +1,6 @@
 #ifndef MovingEntity_hpp
 #define MovingEntity_hpp
 #include <GL/Sprite.hpp>
-#include <GL/SpriteBatch.hpp>
 #include "Map.hpp"
 class MovingEntity {
 public:

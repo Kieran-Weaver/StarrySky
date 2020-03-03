@@ -4,7 +4,6 @@
 #include <rapidjson/document.h>
 #include <fstream>
 TextureAtlas::TextureAtlas(const std::string& file_path){
-	Bitmasks.set_empty_key(std::numeric_limits<GLuint>::max());
 	std::string jsondata = readWholeFile(file_path);
 	rapidjson::Document document;
 	document.Parse(jsondata.c_str());

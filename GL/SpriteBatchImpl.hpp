@@ -4,7 +4,7 @@
 #include "Helpers.hpp"
 #include "Tilemap.hpp"
 #include <gl.h>
-#include <sparsehash/dense_hash_map>
+#include <parallel_hashmap/phmap_fwd_decl.h>
 #include "TextureAtlas.hpp"
 #include "Window.hpp"
 #include <rapidjson/document.h>
@@ -12,6 +12,8 @@
 #define SPRITE2D 0
 #define TILEMAP 1
 #define SPRITE3D 2
+
+using phmap::parallel_flat_hash_map;
 struct Sprite;
 class SpriteBatchImpl{
 public:
@@ -41,8 +43,8 @@ private:
 	void drawTileMap(const TileMap& tilemap, const GLuint& UBOHandle);
 	std::vector<GLProgram> glPrograms;
 	std::vector<GLBuffer<float>> ubos;
-	google::dense_hash_map<std::string, TileMap> m_Maps;
-	google::dense_hash_map<GLuint,TextureData> m_texData;
+	parallel_flat_hash_map<std::string, TileMap> m_Maps;
+	parallel_flat_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;
 	std::array<GLenum,3> stencil_state{GL_KEEP,GL_KEEP,GL_KEEP};
 	rapidjson::Document document;

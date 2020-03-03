@@ -3,13 +3,14 @@
 #include <vector>
 #include <string>
 #include <random>
-#include <sparsehash/dense_hash_map>
+#include <parallel_hashmap/phmap.h>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/Tilemap.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
 #include <rapidjson/document.h>
+using phmap::parallel_flat_hash_map;
 enum WallType { LWALL=1, RWALL=2, CEIL=4, FLOOR=8, ONEWAY=16  };
 struct Surface{
 	Rect<float> hitbox;
@@ -32,7 +33,7 @@ public:
 	void setTM(const std::string& id, const TileMap& tm);
 	TileMap getTM(const std::string& id);
 	glm::vec2 position;
-	google::dense_hash_map<int, Surface> surfaces;
+	parallel_flat_hash_map<int, Surface> surfaces;
 	std::vector<glm::vec2> ledges; // top left corners
 	std::mt19937 rng;
 	int width = 1280;
@@ -41,10 +42,10 @@ public:
 	float ledgeheight = 8.f;
 	
 private:
-	google::dense_hash_map<std::string, TileMap> internal_tms;
+	parallel_flat_hash_map<std::string, TileMap> internal_tms;
+	parallel_flat_hash_map<int, MapSprite> sprs;
 	bool tm_changed = false;
 	TextureAtlas& m_atlas;
-	google::dense_hash_map<int, MapSprite> sprs;
 	std::string loadTileMap(TileMap& tomodify, const rapidjson::Value& tilemapNode);
 };
 #endif
