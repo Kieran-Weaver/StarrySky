@@ -105,7 +105,7 @@ bool Sprite::PPCollidesWith(const Sprite& Object2){
 					o1v.x < 0.5f && o1v.y < 0.5f && o2v.x < 0.5f && o2v.y < 0.5f) {
 					glm::ivec2 pixel1 = o1t_subrect_to_pixel * o1v + o1t_subrect_center;
 					glm::ivec2 pixel2 = o2t_subrect_to_pixel * o2v + o2t_subrect_center;
-					if ((*(mask1.mask))[pixel1.x+pixel1.y*mask1.width] && (*(mask2.mask))[pixel2.x+pixel2.y*mask2.width]){
+					if (mask1.get(pixel1.x,pixel1.y) && mask2.get(pixel2.x,pixel2.y)){
 						return true;
 					}
 				}

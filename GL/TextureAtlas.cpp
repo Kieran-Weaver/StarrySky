@@ -131,15 +131,14 @@ bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
 	gzhandle = gzopen(path.c_str(),"rb");
 	bool return_code = false;
 	if (gzhandle != nullptr){
-		auto *data = new boost::dynamic_bitset<>::block_type[atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type))];
-		if (gzread(gzhandle,data,atlas.width*atlas.height/8) != -1){
-			maskwrapper.mask.reset(new boost::dynamic_bitset<>(atlas.width*atlas.height));
-			boost::from_block_range(data,data+atlas.width*atlas.height/(8*sizeof(boost::dynamic_bitset<>::block_type)),*maskwrapper.mask);
+		size_t bytes = atlas.width*atlas.height/8;
+		auto *data = new uint64_t[bytes/sizeof(uint64_t)];
+		if (gzread(gzhandle,data,bytes) != -1){
+			maskwrapper.mask = std::shared_ptr<uint64_t>(data, std::default_delete<uint64_t[]>());
 			Bitmasks.insert(std::make_pair(atlas.m_texture,maskwrapper));
 			return_code = true;
 		}
 		gzclose_r(gzhandle);
-		delete[] data;
 	}
 	return return_code;
 }

@@ -46,10 +46,10 @@
 	    {
           "name" : "packedpos",
           "location" : 0,
-		  "components" : 1,
+		  "components" : 2,
 		  "type" : 2,
 		  "norm" : false,
-		  "stride" : 4,
+		  "stride" : 0,
 		  "start" : 0
 		}
 	  ],
