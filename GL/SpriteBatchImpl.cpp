@@ -160,6 +160,8 @@ void SpriteBatchImpl::Draw(const Window& target){
 	glActiveTexture(GL_TEXTURE0);
 	glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
 	glStencilFunc(GL_ALWAYS, 1, 255);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
 		size_t spriteIndex = 0, stencil_stop = 0;

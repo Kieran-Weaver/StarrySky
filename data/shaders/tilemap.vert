@@ -12,5 +12,5 @@ void main(){
 	vec2 position = vec2(packedpos.x & 0xFFFFu, packedpos.x / 65536u);
 	position = vec2(position.x * packedtileSize.x, position.y * packedtileSize.y);
 	mat2 tempMat = mat2(AffineV);
-	gl_Position = vec4(tempMat*position + packedtileSize.zw, 0.0, 1.0);
+	gl_Position = vec4(tempMat*position + packedtileSize.zw, -1.0, 1.0);
 }

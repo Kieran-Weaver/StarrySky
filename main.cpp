@@ -18,8 +18,8 @@ int main(){
 	glm::mat4 m(1.0f);
 	TextureAtlas atlas("data/atlas.json");
 	ObjMap map("map.json",atlas);
-	Character player(300, 300, map, "lesserdog", "sword2", "sword", atlas);
-	Enemy testEnemy(900, 300, map, "birdo1", "birdo3", 10, atlas);
+	Character player(300, 300, map, "player", "sword1", "sword2", atlas);
+	Enemy testEnemy(900, 300, map, "robot", "robot", 10, atlas);
 	std::vector<MovingEntity*> objects;
 	objects.push_back(&testEnemy);
 	SpriteBatch batch(atlas, ws, "data/shaders.json");

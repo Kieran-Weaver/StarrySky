@@ -20,15 +20,19 @@ void main(){
 	texposition = texTopLeft + texSize.xz;
 	vec2 halfTileSize = packedtileSize.xy / 2.0;
 	gl_Position = globalVP * vec4(doTransform(vec2(halfTileSize.x,-halfTileSize.y), AffineT, default_pos),0.f,1.f);
+	gl_Position.z = 1.0f;
 	EmitVertex();
 	texposition = texTopLeft;
 	gl_Position = globalVP * vec4(doTransform(-halfTileSize, AffineT, default_pos),0.f,1.f);
+	gl_Position.z = 1.0f;
 	EmitVertex();
 	texposition = texTopLeft + texSize.xy;
 	gl_Position = globalVP * vec4(doTransform(halfTileSize, AffineT, default_pos),0.f,1.f);
+	gl_Position.z = 1.0f;
 	EmitVertex();
 	texposition = texTopLeft + texSize.zy;
 	gl_Position = globalVP * vec4(doTransform(vec2(-halfTileSize.x,halfTileSize.y), AffineT, default_pos),0.f,1.f);
+	gl_Position.z = 1.0f;
 	EmitVertex();
 	EndPrimitive();
 }

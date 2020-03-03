@@ -194,6 +194,7 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, cons
 	}else if (this->m_position.y < curScrollRect.top){
 		scrollVec.y = -vScrollSpd;
 	}
+	this->dropFromOneWay = ws.keyboardState[controls.downkey];
 	ws.camera->Scroll(scrollVec);
 }
 void Character::Draw(SpriteBatch& mframe) {
