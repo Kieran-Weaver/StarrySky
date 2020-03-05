@@ -49,6 +49,7 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	ImGui_ImplOpenGL3_Init("#version 150");
 	io.Fonts->AddFontFromFileTTF(fontfile.c_str(),20.f);
 	glfwSetKeyCallback(windowImpl.get(),key_callback);
+	glfwSetWindowUserPointer(windowImpl.get(), &internal_state);
 }
 Window::~Window(){
 	if (this->isOpen()){
@@ -83,11 +84,10 @@ void Window::close() const{
 bool Window::isOpen() const{
 	return (glfwWindowShouldClose(windowImpl.get()) == GLFW_FALSE);
 }
-void Window::setWindowState(const WindowState& ws){
-	this->internal_state = ws;
-	glfwSetWindowUserPointer(windowImpl.get(),&internal_state);
+WindowState& Window::getWindowState() {
+	return internal_state;
 }
-WindowState Window::getWindowState() const{
+const WindowState& Window::getWindowState() const{
 	return internal_state;
 }
 void Window::getWindowSize(int& width, int& height) const{

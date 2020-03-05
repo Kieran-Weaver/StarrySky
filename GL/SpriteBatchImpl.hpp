@@ -17,7 +17,7 @@ using phmap::parallel_flat_hash_map;
 struct Sprite;
 class SpriteBatchImpl{
 public:
-	SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile);
+	SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderfile);
 	~SpriteBatchImpl();
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void addMap(const std::string& id, const TileMap& tm);

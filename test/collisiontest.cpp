@@ -1,17 +1,10 @@
-#include <gl.h>
 #include <iostream>
-#include <zlib.h>
-#include <cstring>
-#include <GL/Shader.hpp>
-#include <GL/Camera.hpp>
-#include <GL/Window.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/SpriteBatch.hpp>
+#include <GL/Camera.hpp>
+#include <GL/Window.hpp>
 #include <GL/Sprite.hpp>
 #include <GLFW/glfw3.h>
-#include <imgui/imgui.h>
-#include <imgui/examples/imgui_impl_glfw.h>
-#include <imgui/examples/imgui_impl_opengl3.h>
 int main(int, char const**) {
 	float x1=0.0,x2=0.0,y1=0.0,y2=0.0;
 	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Collision Test");
@@ -55,8 +48,6 @@ int main(int, char const**) {
 		ImGui::Text("%s",colstr.c_str());
 		ImGui::End();
 
-		glClearColor(0.0f,0.0f,0.0f,1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		batch.Draw(&s);
 		batch.Draw(&s2);
 		batch.Draw(window);

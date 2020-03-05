@@ -3,15 +3,76 @@ A WIP platformer game, written in C++11, using GLFW.
 
 It uses sprite-batching and texture atlases to recreate the experience of games from the 16-bit and 32-bit eras, but with a maintainable, modern code-base.
 
-This game was designed from the ground up to have optimal performance. The performance goals are:
-- To run at 60fps on a Raspberry Pi Zero
-- To keep the total binary size less than 100 MB
+Design Philosophy:
+- Inspired by the Suckless project's minimalist design philosophy
+- Data-oriented design in the backend, hidden behind object-oriented abstraction layers in an API
+- Focus on balancing performance and easy-to-read code
+Performance goals:
+  - To run at 60fps on a Raspberry Pi Zero
+  - To keep the total binary size less than 100 MB
 
-The code for this project is split into three main paths:
+Features:
+- Pixel-perfect collision
+- DDS/DXT5 Textures
+- Custom sprite-batching algorithm
+- RAII classes:
+  - Sprite and Texture
+  - Window and Camera
+  - Map and MovingEntity
+  - SpriteBatch and TextureAtlas
+
+Todo:
+- Add proper unit tests
+- Implement editor functionality
+- Add documentation for APIs
+- Add plugin system
+- Replace imgui example files with custom implementations
+  - Render through the sprite-batching API
+  - Handle input through the Window class
+- Improve graphics backend:
+  - Add 3D functionality
+- Add game features:
+  - Sprites
+  - Enemy AI
+  - Dynamically load resources
+
+Project Layout:
 - GL contains the graphics backend, which is currently based on OpenGL 3.x and GLFW
 - core contains the physics and map system and any helper files.
-- game contains the game's AI and higher-level game mechanics.
+- game contains the game's AI and higher-level game concepts such as game mechanics.
 
+Example code:
+```C++
+#include <GL/TextureAtlas.hpp>
+#include <GL/SpriteBatch.hpp>
+#include <GL/Camera.hpp>
+#include <GL/Window.hpp>
+#include <GL/Sprite.hpp>
+#include <GLFW/glfw3.h>
+int main(int, char const**) {
+	float x1=0.0, y1=360.0;
+	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Example");
+	window.getWindowState() = { new Camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f), window) };
+	TextureAtlas atlas("data/atlas.json");
+	SpriteBatch batch(atlas, "data/shaders.json");
+	Texture t = atlas.findSubTexture("test1");
+	Sprite s;
+	s.setTexture(t);
+	while (window.isOpen()){
+		s.setPosition(x1,y1);
+		x1 += 1.0f;
+		s.rotate(0.1f);
+		window.startFrame();
+		batch.Draw(&s);
+		batch.Draw(window);
+		window.endFrame();
+	}
+	return 0;
+}
+```
+
+
+Acknowledgements and Links:
 GL/Sprite.h, GL/SpriteBatch.h, GL/Texture.h, GL/TextureAtlas.h, and GL/TextureAtlas.cpp are originally from https://github.com/ricanteja/Moony-SpriteBatch, but were rewritten for Starry Sky.
 
 The original engine for Starry Sky was based off of https://github.com/pixelpicosean/PlatformerEngine, but it was also rewritten.

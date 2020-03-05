@@ -19,9 +19,9 @@ public:
 	~Window();
 	void startFrame() const;
 	void makeCurrent() const;
-	void setWindowState(const WindowState& ws);
 	void getWindowSize(int& width, int& height) const;
-	WindowState getWindowState() const;
+	WindowState& getWindowState();
+	const WindowState& getWindowState() const;
 	void endFrame() const;
 	void close() const;
 	bool isOpen() const;

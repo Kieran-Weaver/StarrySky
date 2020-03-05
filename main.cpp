@@ -14,7 +14,7 @@ int main(){
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f), window);
 	WindowState ws;
 	ws.camera = &camera;
-	window.setWindowState(ws);
+	window.getWindowState() = {&camera};
 	glm::mat4 m(1.0f);
 	TextureAtlas atlas("data/atlas.json");
 	ObjMap map("map.json",atlas);
@@ -22,7 +22,7 @@ int main(){
 	Enemy testEnemy(900, 300, map, "robot", "robot", 10, atlas);
 	std::vector<MovingEntity*> objects;
 	objects.push_back(&testEnemy);
-	SpriteBatch batch(atlas, ws, "data/shaders.json");
+	SpriteBatch batch(atlas, "data/shaders.json");
 	while (window.isOpen()){
 		window.startFrame();
 		window.makeCurrent();

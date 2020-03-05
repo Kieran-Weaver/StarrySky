@@ -26,7 +26,7 @@ public:
 	Character(const Character&) = delete;
 	Character& operator=(const Character&) = delete;
 	Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas);
-	void Update(float dt, const std::vector<MovingEntity *>& objects, const Window& window);
+	void Update(float dt, const std::vector<MovingEntity *>& objects, Window& window);
 	void Draw(SpriteBatch& mframe);
 private:
 	Controls defaultcontrols;

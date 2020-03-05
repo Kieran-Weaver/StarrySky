@@ -31,8 +31,8 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 
 	controls = defaultcontrols;
 }
-void Character::Update(float dt, const std::vector<MovingEntity*>& objects, const Window& window) {
-	WindowState ws = window.getWindowState();
+void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Window& window) {
+	WindowState& ws = window.getWindowState();
 	if (!ws.keyboardState[controls.jumpkey]){
 		this->jumped = false;
 	}

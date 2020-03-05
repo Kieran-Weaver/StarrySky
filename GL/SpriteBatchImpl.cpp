@@ -13,7 +13,7 @@ std::array<float,4> packmat2(const glm::mat2& matrix){
 glm::mat2 unpackmat2(const std::array<float,4>& array){
 	return {array[0], array[1], array[2], array[3]};
 }
-SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile) : m_atlas(atlas){
+SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderfile) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile(shaderfile);
 	document.Parse(shaderdata.c_str());
 	glEnable(GL_DEPTH_TEST);

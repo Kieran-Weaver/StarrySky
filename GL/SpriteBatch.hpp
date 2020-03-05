@@ -15,7 +15,7 @@ struct SpriteBatchImplDeleter{
 };
 class SpriteBatch{
 public:
-	SpriteBatch(TextureAtlas& atlas, WindowState& ws, const std::string& shaderfile);
+	SpriteBatch(TextureAtlas& atlas, const std::string& shaderfile);
 	~SpriteBatch() = default;
 	SpriteBatch(SpriteBatch &&) noexcept;
 	SpriteBatch& operator=(SpriteBatch &&) noexcept;
