@@ -7,9 +7,17 @@ Design Philosophy:
 - Inspired by the Suckless project's minimalist design philosophy
 - Data-oriented design in the backend, hidden behind object-oriented abstraction layers in an API
 - Focus on balancing performance and easy-to-read code
-Performance goals:
+- Performance goals:
   - To run at 60fps on a Raspberry Pi Zero
   - To keep the total binary size less than 100 MB
+
+Building:
+```
+git clone https://github.com/Kieran-Weaver/StarrySky
+cd StarrySky
+git submodule update --init
+make
+```
 
 Features:
 - Pixel-perfect collision
