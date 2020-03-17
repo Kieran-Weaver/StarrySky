@@ -93,7 +93,7 @@ bool SpriteCMP(const Sprite* a, const Sprite* b){
 }
 int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 	rapidjson::Value& node = document["shaders"];
-	for (rapidjson::SizeType ind = 0; ind < num_shaders; ind++){
+	for (int ind = 0; ind < num_shaders; ind++){
 		glPrograms.emplace_back();
 		GLProgram& currentProgram = glPrograms.back();
 		currentProgram.VAO = VAOs[ind];
@@ -173,7 +173,7 @@ void SpriteBatchImpl::Draw(const Window& target){
 			spriteIndex++;
 		}
 		std::sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(),SpriteCMP);
-		size_t skippedSprites = spriteIndex;
+//		size_t skippedSprites = spriteIndex;
 		if (currentTexData.vertices.size() > spriteIndex){
 			currentTexData.vertices.erase(currentTexData.vertices.begin() + spriteIndex,currentTexData.vertices.end());
 		}

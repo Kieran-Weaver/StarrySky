@@ -11,7 +11,7 @@
 int main(){
 	const float frametime = 1.f/60.f;
 	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Starry Sky");
-	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(200.f,200.f,800.f,400.f), window);
+	Camera camera(Rect<float>(0.f,0.f,1400.f,800.f),Rect<float>(200.f,200.f,800.f,400.f), window);
 	WindowState ws;
 	ws.camera = &camera;
 	window.getWindowState() = {&camera};

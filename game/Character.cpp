@@ -2,6 +2,7 @@
 #include <GL/Camera.hpp>
 #include <imgui/imgui.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 #define LASERW 25
 #define LASERH 10
 Character::Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas): MovingEntity(x, y, map), m_atlas(atlas) {
@@ -32,6 +33,10 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 	controls = defaultcontrols;
 }
 void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Window& window) {
+	MovingEntity::Update(dt);
+	if (this->m_speed.y == 0){
+		this->isOnGround |= this->wasOnGround;
+	}
 	WindowState& ws = window.getWindowState();
 	if (!ws.keyboardState[controls.jumpkey]){
 		this->jumped = false;
@@ -57,13 +62,15 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 		if (shieldmeter >= shieldmax){
 			shieldbroken = false;
 		}
-	}else if (!ws.keyboardState[controls.shieldkey]){
-		shieldmeter = std::min(shieldmeter + 1.0f, shieldmax);
-		shieldout = false;
-	}else if (this->isOnGround){
+	}
+	if (ws.keyboardState[controls.shieldkey] && this->isOnGround){
 		shieldout = true;
 		shieldmeter = shieldmeter - 1.0f;
+	}else{
+		shieldmeter = std::min(shieldmeter + 1.0f, shieldmax);
+		shieldout = false;
 	}
+	this->m_speed.y += this->gravity * dt;
 	if (this->isOnGround){
 		if (ws.keyboardState[controls.leftkey] == ws.keyboardState[controls.rightkey]) {
 			this->m_speed.x = 0.0f;
@@ -76,7 +83,6 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 		this->walljumpstate = WallType::FLOOR;
 	}else{
 		shieldout = false;
-		this->m_speed.y += this->gravity * dt;
 		if (this->m_speed.y > 0.f){
 			this->m_speed.y = std::min(this->m_speed.y, this->maxFallSpeed);
 		}else if (!ws.keyboardState[controls.jumpkey]){
@@ -139,7 +145,6 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 			this->m_spr2.transform(this->flipped_mat);
 		}
 	}
-	MovingEntity::Update(dt);
 	this->m_shieldspr.setPosition(this->m_position);
 	int posx = this->m_position.x;
 	int posy = this->m_position.y;
@@ -200,13 +205,16 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 void Character::Draw(SpriteBatch& mframe) {
 	mframe.Draw(&m_spr);
 	mframe.Draw(&m_spr2);
+	std::string colstr = "no";
 	if ((shieldout)&&(!shieldbroken)){
 		m_shieldspr.rotate(0.1f);
 		mframe.Draw(&m_shieldspr);
+		colstr = "yes";
 	}
 	ImGui::SetNextWindowPos(ImVec2(0.f,0.f),ImGuiCond_Always);
 	ImGui::Begin("Shield");
 	ImGui::ProgressBar(shieldmeter/shieldmax);
+	ImGui::Text("Shield Out and not Broken: %s",colstr.c_str());
 	ImGui::End();
 	ImGui::Begin("InvlTimer");
 	ImGui::ProgressBar(invltimer.getTime()/20.f);

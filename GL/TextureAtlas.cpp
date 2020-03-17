@@ -28,7 +28,7 @@ TextureAtlas::TextureAtlas(const std::string& file_path){
 		}
 
 		const rapidjson::Value& filenamesNode = textureNode["images"];
-		auto num_images = filenamesNode.Size();
+		int num_images = filenamesNode.Size();
 		for (int imageindex = 0; imageindex < num_images; imageindex++){
 			const rapidjson::Value& imageNode = filenamesNode[imageindex];
 			std::string img_name = imageNode["n"].GetString();
@@ -132,9 +132,9 @@ bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
 	bool return_code = false;
 	if (gzhandle != nullptr){
 		size_t bytes = atlas.width*atlas.height/8;
-		auto *data = new uint64_t[bytes/sizeof(uint64_t)];
+		auto *data = new uint32_t[bytes/sizeof(uint32_t)];
 		if (gzread(gzhandle,data,bytes) != -1){
-			maskwrapper.mask = std::shared_ptr<uint64_t>(data, std::default_delete<uint64_t[]>());
+			maskwrapper.mask = std::shared_ptr<uint32_t>(data, std::default_delete<uint32_t[]>());
 			Bitmasks.insert(std::make_pair(atlas.m_texture,maskwrapper));
 			return_code = true;
 		}

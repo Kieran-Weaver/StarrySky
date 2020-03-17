@@ -4,7 +4,6 @@
 #include "Rect.hpp"
 #include "Mat2D.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
 void Sprite::setStencil(bool stencil_state){
 	this->uses_stencil = stencil_state;
 }

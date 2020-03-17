@@ -30,7 +30,7 @@ std::string ObjMap::loadTileMap(TileMap& tomodify, const rapidjson::Value& tilem
 	const rapidjson::Value& tilesNode = tilemapNode["tiles"];
 	rapidjson::SizeType numTiles = tilesNode.Size() & 0xff;
 	tomodify.numTiles = numTiles;
-	for (int i = 0; i < numTiles; i++){
+	for (rapidjson::SizeType i = 0; i < numTiles; i++){
 		const Texture tempTex = this->m_atlas.findSubTexture(tilesNode[i].GetString());
 		tomodify.tiles[i][0] = tempTex.m_rect.left / 65536.f;
 		tomodify.tiles[i][1] = tempTex.m_rect.top / 65536.f;
@@ -124,7 +124,7 @@ void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::mat2& sprTran
 	std::string filename(fname);
 	auto end_pos = std::remove(filename.begin(),filename.end(),' ');
 	filename.erase(end_pos,filename.end());
-	sprs[i] = {sprPosition,filename};
+	sprs[i] = {sprPosition,filename,{}};
 	Texture temp = m_atlas.findSubTexture(filename);
 	sprs[i].spr.setTexture(temp);
 	sprs[i].spr.setPosition(sprPosition);
