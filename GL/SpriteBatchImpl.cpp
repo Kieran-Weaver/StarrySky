@@ -80,17 +80,6 @@ void SpriteBatchImpl::Draw(Sprite* spr){
 		}
 	}
 }
-bool SpriteCMP(const Sprite* a, const Sprite* b){
-	if (a->m_drawn && b->m_drawn){
-		if (a->uses_stencil && b->uses_stencil){
-			return (!a->m_changed && b->m_changed);
-		} else {
-			return (a->uses_stencil);
-		}
-	}else{
-		return (a->m_drawn);
-	}
-}
 int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 	rapidjson::Value& node = document["shaders"];
 	for (int ind = 0; ind < num_shaders; ind++){
@@ -166,13 +155,13 @@ void SpriteBatchImpl::Draw(const Window& target){
 		auto& currentTexData = texturepair.second;
 		size_t spriteIndex = 0, stencil_stop = 0;
 		size_t num_sprites = currentTexData.sprites.size();
+		std::stable_sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(), [](const Sprite* a, const Sprite* b){return *a < *b; });
 		while ((spriteIndex<currentTexData.sprites.size())&&(currentTexData.sprites[spriteIndex]->m_drawn)&&(!currentTexData.sprites[spriteIndex]->m_changed)){
 			if (currentTexData.sprites[spriteIndex]->uses_stencil){
 				stencil_stop = spriteIndex + 1;
 			}
 			spriteIndex++;
 		}
-		std::sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(),SpriteCMP);
 //		size_t skippedSprites = spriteIndex;
 		if (currentTexData.vertices.size() > spriteIndex){
 			currentTexData.vertices.erase(currentTexData.vertices.begin() + spriteIndex,currentTexData.vertices.end());

@@ -25,6 +25,7 @@
 			],
 			"tileSize" : [50.0, 640.0],
 			"position" : [125.0, 350.0],
+			"metadata" : [1.0, 0.0, 0.0, 0.0],
 			"drawntiles" : [
 				{ "x" : 0, "y" : 0, "index" : 0},
 				{ "x" : 1, "y" : 0, "index" : 0},
@@ -61,6 +62,7 @@
 			],
 			"tileSize" : [2000.0, 2000.0],
 			"position" : [0.0, 0.0],
+			"metadata" : [-1.0, 0.0, 0.0, 0.0],
 			"drawntiles" : [
 				{ "x" : 0, "y" : 0, "index" : 0},
 				{ "x" : 1, "y" : 0, "index" : 0},

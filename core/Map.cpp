@@ -46,6 +46,10 @@ std::string ObjMap::loadTileMap(TileMap& tomodify, const rapidjson::Value& tilem
 	for (int i = 0; i < 2; i++){
 		tomodify.packedtileSize[2 + i] = posNode[i].GetFloat();
 	}
+	const rapidjson::Value& metaNode = tilemapNode["metadata"];
+	for (int i = 0; i < 4; i++){
+		tomodify.metadata[i] = metaNode[i].GetFloat();
+	}
 	const rapidjson::Value& drawnNode = tilemapNode["drawntiles"];
 	for (auto& tileNode : drawnNode.GetArray()){
 		int px = tileNode["x"].GetInt();

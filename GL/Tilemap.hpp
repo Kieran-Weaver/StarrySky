@@ -20,6 +20,7 @@ struct TileMap{
 	// UBO Data
 	std::array<float,4> affineT; // 16 bytes
 	std::array<float,4> packedtileSize; // 16 bytes
+	std::array<float,4> metadata; // Layer/Z, 3x Unused 
 	std::array<std::array<float,4>,256> tiles; // Max 255 tile types
 	// Internal Data
 	int numTiles;

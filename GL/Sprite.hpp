@@ -15,6 +15,11 @@ struct Sprite{
 	void rotate(const float& degrees);
 	void transform(const glm::mat2& matrix);
 	bool PPCollidesWith(const Sprite& Object2);
+	bool operator<(const Sprite& r) const{
+		bool l_stencil = !this->uses_stencil;
+		bool r_stencil = !r.uses_stencil;
+		return std::tie(this->m_drawn, l_stencil, this->layer, this->m_changed) < std::tie(r.m_drawn, r_stencil, r.layer, r.m_changed);
+	}
 	Rect<float> getAABB() const;
 	void render();
 	glm::mat2 getMat2(){
@@ -24,6 +29,7 @@ struct Sprite{
 	Texture m_subtexture = {};
 	bool m_drawn = false;
 	bool m_changed = true;
+	int layer = 0;
 	bool uses_stencil = false;
 	GLRect2D cached_vtx_data = GLRect2D(); // used for opengl's drawelements
 private:
