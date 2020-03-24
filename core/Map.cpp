@@ -283,7 +283,7 @@ void ObjMap::WriteToFile(const std::string& filename){
 }
 void ObjMap::Draw(SpriteBatch& frame) {
 	for (auto& i : sprs){
-		frame.Draw(&(i.second.spr));
+		frame.Draw(i.second.spr);
 	}
 	if (tm_changed){
 		for (auto& tmap : internal_tms){

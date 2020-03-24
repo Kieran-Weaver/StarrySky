@@ -21,7 +21,7 @@ struct Sprite{
 		return std::tie(this->m_drawn, l_stencil, this->layer, this->m_changed) < std::tie(r.m_drawn, r_stencil, r.layer, r.m_changed);
 	}
 	Rect<float> getAABB() const;
-	void render();
+	const GLRect2D& render();
 	glm::mat2 getMat2(){
 		return this->m_model;
 	}

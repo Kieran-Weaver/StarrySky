@@ -45,8 +45,7 @@ void Sprite::transform(const glm::mat2& matrix){
 	this->m_model = matrix*this->m_model;
 	this->m_changed = true;
 }
-void Sprite::render(){
-	this->m_drawn = true;
+const GLRect2D& Sprite::render(){
 	if (m_changed){
 		this->cached_vtx_data.sprPos[0] = center.x;
 		this->cached_vtx_data.sprPos[1] = center.y;
@@ -55,6 +54,7 @@ void Sprite::render(){
 		this->cached_vtx_data.packedMat[2] = this->m_model[1][0];
 		this->cached_vtx_data.packedMat[3] = this->m_model[1][1];
 	}
+	return this->cached_vtx_data;
 }
 bool compareX(const glm::vec2& lhs,const glm::vec2& rhs){
 	return lhs.x < rhs.x;

@@ -9,7 +9,7 @@ int SpriteBatch::loadPrograms(int num_shaders,GLuint* VAOs){
 void SpriteBatch::addMap(const std::string& id, const TileMap& tm){
 	Pimpl()->addMap(id, tm);
 }
-void SpriteBatch::Draw(Sprite* spr){
+void SpriteBatch::Draw(Sprite& spr){
 	Pimpl()->Draw(spr);
 }
 void SpriteBatch::Draw(const Window& target){

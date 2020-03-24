@@ -64,20 +64,16 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 		glDeleteBuffers(1,&i.ebo.m_handle);
 	}
 }
-void SpriteBatchImpl::Draw(Sprite* spr){
-	spr->render();
-	GLuint& m_tex = spr->m_subtexture.m_texture;
+void SpriteBatchImpl::Draw(Sprite& spr){
+	GLuint& m_tex = spr.m_subtexture.m_texture;
 	if (m_texData.find(m_tex) == m_texData.end()){
 		m_texData[m_tex] = TextureData();
 	}
-	if (std::find(m_texData[m_tex].sprites.begin(),m_texData[m_tex].sprites.end(),spr) == m_texData[m_tex].sprites.end()){
-		m_texData[m_tex].sprites.emplace_back(spr);
-		m_texData[m_tex].vertices.emplace_back(spr->cached_vtx_data);
-		if (m_texData[m_tex].vertices.size() * sizeof(GLRect2D) > glPrograms[SPRITE2D].VBO_size){
-			glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
-			glBufferData(GL_ARRAY_BUFFER,m_texData[m_tex].vertices.size()*sizeof(GLRect2D),nullptr,GL_DYNAMIC_DRAW);
-			glPrograms[SPRITE2D].VBO_size = m_texData[m_tex].vertices.size() * sizeof(GLRect2D);
-		}
+	const GLRect2D& data = spr.render();
+	if (spr.uses_stencil){
+		m_texData[m_tex].stencilSprites.emplace_back(data);
+	} else {
+		m_texData[m_tex].sprites.emplace_back(data);
 	}
 }
 int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
@@ -142,7 +138,7 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 void SpriteBatchImpl::Draw(const Window& target){
 	target.makeCurrent();
 	glUseProgram(glPrograms[SPRITE2D].programHandle);
-	auto ws = target.getWindowState();
+	auto& ws = target.getWindowState();
 	glBindBuffer(GL_UNIFORM_BUFFER, ubos[this->MatrixID].m_handle);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &ws.camera->getVP()[0][0]);
 	glBindVertexArray(glPrograms[SPRITE2D].VAO);
@@ -153,47 +149,31 @@ void SpriteBatchImpl::Draw(const Window& target){
 	glDepthFunc(GL_LEQUAL);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
-		size_t spriteIndex = 0, stencil_stop = 0;
-		size_t num_sprites = currentTexData.sprites.size();
-		std::stable_sort(currentTexData.sprites.begin()+spriteIndex,currentTexData.sprites.end(), [](const Sprite* a, const Sprite* b){return *a < *b; });
-		while ((spriteIndex<currentTexData.sprites.size())&&(currentTexData.sprites[spriteIndex]->m_drawn)&&(!currentTexData.sprites[spriteIndex]->m_changed)){
-			if (currentTexData.sprites[spriteIndex]->uses_stencil){
-				stencil_stop = spriteIndex + 1;
-			}
-			spriteIndex++;
-		}
-//		size_t skippedSprites = spriteIndex;
-		if (currentTexData.vertices.size() > spriteIndex){
-			currentTexData.vertices.erase(currentTexData.vertices.begin() + spriteIndex,currentTexData.vertices.end());
-		}
-		for (;spriteIndex < num_sprites;spriteIndex++){
-			if (!currentTexData.sprites[spriteIndex]->m_drawn){
-				currentTexData.sprites[spriteIndex]->m_changed = false;
-				continue;
-			}else{
-				currentTexData.vertices.emplace_back(currentTexData.sprites[spriteIndex]->cached_vtx_data);
-				currentTexData.sprites[spriteIndex]->m_drawn = false;
-				currentTexData.sprites[spriteIndex]->m_changed = false;
-				if (currentTexData.sprites[spriteIndex]->uses_stencil){
-					stencil_stop = spriteIndex + 1;
-				}
-			}
-		}
+		size_t buffersize = std::max(currentTexData.sprites.size(), currentTexData.stencilSprites.size())*sizeof(GLRect2D);
 		glBindTexture(GL_TEXTURE_2D,texturepair.first);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindVertexArray(glPrograms[SPRITE2D].VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[SPRITE2D].VBO);
-		glBufferSubData(GL_ARRAY_BUFFER,0,currentTexData.vertices.size()*sizeof(GLRect2D),currentTexData.vertices.data());
+
+		if (glPrograms[SPRITE2D].VBO_size < buffersize){
+			glBufferData(GL_ARRAY_BUFFER, buffersize, NULL, GL_DYNAMIC_DRAW);
+		}
 		setStencil(true);
-		glDrawArrays(GL_POINTS,0,stencil_stop);
+		this->drawSprites(currentTexData.stencilSprites);
+		currentTexData.stencilSprites.clear();
 		setStencil(false);
-		glDrawArrays(GL_POINTS,stencil_stop,currentTexData.vertices.size()-stencil_stop);
+		this->drawSprites(currentTexData.sprites);
+		currentTexData.sprites.clear();
 	}
 	setStencil(false);
 	for (auto& tmap : m_Maps){
 		drawTileMap(tmap.second, this->MatrixID);
 	}
 	glStencilFunc(GL_ALWAYS, 1, 255);
+}
+void SpriteBatchImpl::drawSprites(const std::vector<GLRect2D>& data){
+	glBufferSubData(GL_ARRAY_BUFFER,0,data.size()*sizeof(GLRect2D),data.data());
+	glDrawArrays(GL_POINTS,0,data.size());
 }
 void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, const GLuint& UBOIndex){
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

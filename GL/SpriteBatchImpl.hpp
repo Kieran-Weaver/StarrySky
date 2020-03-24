@@ -21,13 +21,9 @@ public:
 	~SpriteBatchImpl();
 	int loadPrograms(int num_shaders,GLuint* VAOs);
 	void addMap(const std::string& id, const TileMap& tm);
-	void Draw(Sprite* spr);
+	void Draw(Sprite& spr);
 	void Draw(const Window& target);
 private:
-	struct TextureData{
-		std::vector<Sprite*> sprites;
-		std::vector<GLRect2D> vertices;
-	};
 	struct GLProgram{
 		Shader vxShader;
 		Shader fgShader;
@@ -38,8 +34,13 @@ private:
 		GLuint VBO;
 		GLuint VBO_size = 0;
 	};
+	struct TextureData{
+		std::vector<GLRect2D> sprites;         // Stencil off
+		std::vector<GLRect2D> stencilSprites;  // Stencil on
+	};
 	int MatrixID;
 	void setStencil(bool new_state);
+	void drawSprites(const std::vector<GLRect2D>& data);
 	void drawTileMap(const TileMap& tilemap, const GLuint& UBOHandle);
 	std::vector<GLProgram> glPrograms;
 	std::vector<GLBuffer<float>> ubos;

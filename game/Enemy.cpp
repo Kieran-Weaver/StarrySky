@@ -71,6 +71,6 @@ void Enemy::Update(float dt, Character* player) {
 }
 void Enemy::Draw(SpriteBatch& frame) {
 	if (!dead){
-		frame.Draw(&m_spr);
+		frame.Draw(m_spr);
 	}
 }

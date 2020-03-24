@@ -203,12 +203,12 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 	ws.camera->Scroll(scrollVec);
 }
 void Character::Draw(SpriteBatch& mframe) {
-	mframe.Draw(&m_spr);
-	mframe.Draw(&m_spr2);
+	mframe.Draw(m_spr);
+	mframe.Draw(m_spr2);
 	std::string colstr = "no";
 	if ((shieldout)&&(!shieldbroken)){
 		m_shieldspr.rotate(0.1f);
-		mframe.Draw(&m_shieldspr);
+		mframe.Draw(m_shieldspr);
 		colstr = "yes";
 	}
 	ImGui::SetNextWindowPos(ImVec2(0.f,0.f),ImGuiCond_Always);
