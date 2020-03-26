@@ -9,6 +9,7 @@ void Sprite::setStencil(bool stencil_state){
 }
 void Sprite::setTexture(const Texture& tex){
 	this->m_changed = true;
+	this->m_cached = false;
 	if (this->m_subtexture.m_texture == 0) {
 		this->m_model = glm::mat2(1.f);
 	} else {
@@ -32,6 +33,7 @@ void Sprite::setPosition(const float& x, const float& y){
 		this->center.x = x;
 		this->center.y = y;
 		this->m_changed = true;
+		this->m_cached = false;
 	}
 }
 void Sprite::setPosition(const glm::vec2& pos){
@@ -40,10 +42,12 @@ void Sprite::setPosition(const glm::vec2& pos){
 void Sprite::rotate(const float& radians){
 	this->m_model = RotMat(radians)*this->m_model;
 	this->m_changed = true;
+	this->m_cached = false;
 }
 void Sprite::transform(const glm::mat2& matrix){
 	this->m_model = matrix*this->m_model;
 	this->m_changed = true;
+	this->m_cached = false;
 }
 const GLRect2D& Sprite::render(){
 	if (m_changed){
@@ -56,13 +60,19 @@ const GLRect2D& Sprite::render(){
 	}
 	return this->cached_vtx_data;
 }
-bool compareX(const glm::vec2& lhs,const glm::vec2& rhs){
+static bool compareX(const glm::vec2& lhs,const glm::vec2& rhs){
 	return lhs.x < rhs.x;
 }
-bool compareY(const glm::vec2& lhs,const glm::vec2& rhs){
+static bool compareY(const glm::vec2& lhs,const glm::vec2& rhs){
 	return lhs.y < rhs.y;
 }
-Rect<float> Sprite::getAABB() const{
+const Rect<float>& Sprite::getAABB(){
+	if (!m_cached){
+		this->renderAABB();
+	}
+	return cached_aabb;
+}
+void Sprite::renderAABB(){
 	const std::array<glm::vec2, 4> rectCorners{{{-0.5f,-0.5f},{0.5f,-0.5f},{0.5f,0.5f},{-0.5f,0.5f}}};
 	glm::vec2 vertices[4];
 	for (int8_t i=0;i<4;i++){
@@ -70,13 +80,14 @@ Rect<float> Sprite::getAABB() const{
 	}
 	auto xExtremes = std::minmax_element(vertices,vertices+4,compareX);
 	auto yExtremes = std::minmax_element(vertices,vertices+4,compareY);
-	return Rect<float>(xExtremes.first->x,yExtremes.first->y,xExtremes.second->x-xExtremes.first->x,yExtremes.second->y-yExtremes.first->y);
+	this->cached_aabb = Rect<float>(xExtremes.first->x,yExtremes.first->y,xExtremes.second->x-xExtremes.first->x,yExtremes.second->y-yExtremes.first->y);
+	this->m_cached = true;
 }
 
-bool Sprite::PPCollidesWith(const Sprite& Object2){
+bool Sprite::PPCollidesWith(Sprite& Object2){
 	Rect<float> Intersection; 
-	const Rect<float> o1globalbounds = this->getAABB();
-	const Rect<float> o2globalbounds = Object2.getAABB();
+	const Rect<float>& o1globalbounds = this->getAABB();
+	const Rect<float>& o2globalbounds = Object2.getAABB();
 	if (o1globalbounds.RIntersects(o2globalbounds, Intersection)) {
 		auto& mask1 = this->m_subtexture.m_bitmask;
 		auto& mask2 = Object2.m_subtexture.m_bitmask;

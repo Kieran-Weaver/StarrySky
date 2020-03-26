@@ -2,6 +2,7 @@
 #define RECT_H
 #include <algorithm>
 #include <cstdint>
+#include <vector>
 template<typename T>
 struct Rect{
 	Rect() : left(0), top(0), width(0), height(0){
@@ -53,15 +54,16 @@ struct Rect{
 inline Rect<float> Normalize(const Rect<uint16_t>& texrect){
 	return Rect<float>(texrect.left/65536.f,texrect.top/65536.f,texrect.width/65536.f,texrect.height/65536.f);
 }
-template<class T, class Container>
-Rect<T> join(Container items){
+template<class T, class Iter>
+Rect<T> join(Iter i, Iter last){
 	T minX = std::numeric_limits<T>::max(), maxX = std::numeric_limits<T>::min();
 	T minY = std::numeric_limits<T>::max(), maxY = std::numeric_limits<T>::min();
-	for (auto& i : items){
-		minX = std::min(i.left, minX);
-		maxX = std::max(i.left + i.width, maxX);
-		minY = std::min(i.top, minY);
-		maxY = std::max(i.top + i.height, maxY);
+	while (i != last){
+		minX = std::min(i->left, minX);
+		maxX = std::max(i->left + i->width, maxX);
+		minY = std::min(i->top, minY);
+		maxY = std::max(i->top + i->height, maxY);
+		i++;
 	}
 	return {minX, minY, maxX - minX, maxY - minY};
 }
