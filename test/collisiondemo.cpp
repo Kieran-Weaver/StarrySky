@@ -47,8 +47,8 @@ int main(int, char const**) {
 		ImGui::Text("%s",colstr.c_str());
 		ImGui::End();
 
-		batch.Draw(&s);
-		batch.Draw(&s2);
+		batch.Draw(s);
+		batch.Draw(s2);
 		batch.Draw(window);
 		window.endFrame();
 	}

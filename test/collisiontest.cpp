@@ -45,8 +45,8 @@ int main(int, char const**) {
 	bool collided = s.PPCollidesWith(s2);
 	window.startFrame();
 	window.makeCurrent();
-	batch.Draw(&s);
-	batch.Draw(&s2);
+	batch.Draw(s);
+	batch.Draw(s2);
 	batch.Draw(window);
 	window.endFrame();
 	glFinish();

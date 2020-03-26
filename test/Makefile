@@ -17,4 +17,4 @@ all: $(OBJS)  debugcollision.o collisiontest.o mat2test.o collisiondemo.o offscr
 	$(CXX) $(CXXFLAGS) ../GL/Mat2D.o mat2test.o -o mat2test $(LDFLAGS)
 	$(CXX) $(CXXFLAGS) debugcollision.o -o debugcollision $(LDFLAGS) ../gl.o ../GL/Helpers.o
 clean:
-	rm -fr $(OBJS) collisiontest collisiondemo mat2test debugcollision
+	rm -fr $(OBJS) collisiontest collisiondemo mat2test debugcollision *.o

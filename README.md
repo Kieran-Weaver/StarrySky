@@ -71,7 +71,7 @@ int main(int, char const**) {
 		x1 += 1.0f;
 		s.rotate(0.1f);
 		window.startFrame();
-		batch.Draw(&s);
+		batch.Draw(s);
 		batch.Draw(window);
 		window.endFrame();
 	}
