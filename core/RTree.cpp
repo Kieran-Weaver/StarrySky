@@ -76,6 +76,7 @@ void RTree<T,M,Dim>::omt(RNode* subroot, size_t N, size_t level, std::vector<siz
 		}
 		subroot->children[i/K].parent = subroot;
 		this->omt(subroot->children + (i/K), N - i, level - 1, iter); 
+		aabbs.emplace_back(subroot->children[i/K].AABB);
 		subroot->AABB = join<Dim>(aabbs.begin(), aabbs.end());
 	}
 }
@@ -111,17 +112,20 @@ std::vector<std::reference_wrapper<T>> RTree<T,M,Dim>::intersect(const T& object
 	std::vector<std::reference_wrapper<T>> leaf_nodes;
 	to_search.emplace_back(&root);
 	const Rect<Dim> aabb = object.getAABB();
+//	int visited = 1;
 	while (!to_search.empty()){
 		RNode* node = to_search.back();
 		to_search.pop_back();
 		if (node->level == 0){
 			for (auto& i : node->element_indices){
+//				visited++;
 				if (aabb.Intersects(m_elements[i].getAABB())){
 					leaf_nodes.emplace_back(m_elements[i]);
 				}
 			}
 		} else {
 			for (size_t i = 0; i < node->size; i++){
+//				visited++;
 				RNode* cnode = node->children + i;
 				if (aabb.Intersects(cnode->AABB)){
 					to_search.emplace_back(cnode);
@@ -129,6 +133,7 @@ std::vector<std::reference_wrapper<T>> RTree<T,M,Dim>::intersect(const T& object
 			}
 		}
 	}
+//	std::cout << visited << std::endl;
 	return leaf_nodes;
 }
 
@@ -138,8 +143,32 @@ void RTree<T,M,Dim>::insert(const T& element){
 		m_elements.emplace_back(element);
 		root.size = 1;
 		root.element_indices.emplace_back(0);
+	} else {
+		size_t index;
+		if (empty_elements.empty()){
+			index = m_elements.size();
+			m_elements.emplace_back(element);
+		} else {
+			index = empty_elements.back();
+			m_elements[index] = element;
+			empty_elements.pop_back();
+		}
+		Rect<Dim> aabb = m_elements[index].getAABB();
+		this->insertRecursive(&root, index, aabb);
 	}
 }
+
+template<class T, size_t M, typename Dim>
+void RTree<T,M,Dim>::insertRecursive(RNode* node, size_t index, const Rect<Dim>& aabb){
+	if (node->level == 0){
+	} else if (node->level == 1) {
+		std::vector<double> overlaps;
+	} else {
+		std::vector<double> currentAreas;
+		std::vector<double> nextAreas;
+	}
+}
+
 template<class T, size_t M, typename Dim>
 RTree<T,M,Dim>::~RTree(){
 	clear_rnode(&root);

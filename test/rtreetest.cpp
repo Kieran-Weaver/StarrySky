@@ -17,17 +17,17 @@ bool refsort(const std::reference_wrapper<AABBWrapper>& a, const std::reference_
 	return a.get() < b.get();
 }
 Rect<uint64_t> randomRect(std::mt19937& rng){
-	return {rng() & 0xFF, rng() & 0xFF, rng() & 0xFF, rng() & 0xFF};
+	return {rng() & 0xFF, rng() & 0xFF, rng() & 0x1F, rng() & 0x1F};
 }
 int main(int argc, char **argv){
 	(void)argc;
 	(void)argv;
 	std::mt19937 rng = SeedRNG();
 	std::vector<AABBWrapper> elements;
-	for (int i = 0; i < 50; i++){
+	for (int i = 0; i < 5000; i++){
 		elements.emplace_back(AABBWrapper({randomRect(rng)}));
 	}
-	RTree<AABBWrapper, 4, uint64_t> tree(elements);
+	RTree<AABBWrapper, 20, uint64_t> tree(elements);
 	tree.print();
 	AABBWrapper ab = {randomRect(rng)};
 	auto collision_vec = tree.intersect(ab);
