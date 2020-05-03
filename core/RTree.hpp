@@ -7,7 +7,10 @@
  * 2D R-Tree Implementation
  * Requirements for T:
  * Has a function with signature
- *     Rect<Dim> getAABB();
+ *     Rect<Dim> getAABB() const;
+ * This is not a true R-Tree:
+ *	Not all leaf nodes are required to be at the lowest level
+ * However, height is still bounded by O(log n)
  */
 template<class T, size_t M, typename Dim = float>
 class RTree{
@@ -21,15 +24,14 @@ public:
 	size_t size() const{
 		return m_elements.size();
 	}
-	std::vector<T> intersect(const T& object);
+	std::vector<std::reference_wrapper<T>> intersect(const T& object);
 	size_t height = 0;
 private:
 	struct RNode{
 		RNode* parent = nullptr;
 		RNode* children = nullptr;
-		bool leaf = false;
-		int level = 0;
-		int size = 0;
+		size_t level = 0;
+		size_t size = 0;
 		Rect<Dim> AABB;
 		std::vector<size_t> element_indices;
 	};
@@ -38,5 +40,6 @@ private:
 	std::vector<T> m_elements;
 	void printNode(RNode* node);
 	void clear_rnode(RNode* node);
+	std::optional<RNode*> find(const T& object);
 };
 #endif
