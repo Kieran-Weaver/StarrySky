@@ -1,3 +1,5 @@
+#ifndef RTREE_IMPL
+#define RTREE_IMPL
 #include "RTree.hpp"
 #include "RectCompare.hpp"
 #include <numeric>
@@ -6,6 +8,11 @@
 #include <cassert>
 template<class T, size_t M, typename Dim>
 RTree<T,M,Dim>::RTree(const std::vector<T>& elements){
+	this->load(elements);
+}
+
+template<class T, size_t M, typename Dim>
+void RTree<T,M,Dim>::load(const std::vector<T>& elements){
 	m_elements = elements;
 	size_t N = m_elements.size();
 	size_t H = std::ceil(std::log2(N) / std::log2(M));
@@ -107,11 +114,10 @@ void RTree<T,M,Dim>::printNode(RNode* node){
 }
 
 template<class T, size_t M, typename Dim>
-std::vector<std::reference_wrapper<T>> RTree<T,M,Dim>::intersect(const T& object){
+std::vector<std::reference_wrapper<T>> RTree<T,M,Dim>::intersect(const Rect<Dim>& aabb){
 	std::vector<RNode*> to_search;
 	std::vector<std::reference_wrapper<T>> leaf_nodes;
 	to_search.emplace_back(&root);
-	const Rect<Dim> aabb = object.getAABB();
 //	int visited = 1;
 	while (!to_search.empty()){
 		RNode* node = to_search.back();
@@ -138,38 +144,6 @@ std::vector<std::reference_wrapper<T>> RTree<T,M,Dim>::intersect(const T& object
 }
 
 template<class T, size_t M, typename Dim>
-void RTree<T,M,Dim>::insert(const T& element){
-	if (m_elements.empty()){
-		m_elements.emplace_back(element);
-		root.size = 1;
-		root.element_indices.emplace_back(0);
-	} else {
-		size_t index;
-		if (empty_elements.empty()){
-			index = m_elements.size();
-			m_elements.emplace_back(element);
-		} else {
-			index = empty_elements.back();
-			m_elements[index] = element;
-			empty_elements.pop_back();
-		}
-		Rect<Dim> aabb = m_elements[index].getAABB();
-		this->insertRecursive(&root, index, aabb);
-	}
-}
-
-template<class T, size_t M, typename Dim>
-void RTree<T,M,Dim>::insertRecursive(RNode* node, size_t index, const Rect<Dim>& aabb){
-	if (node->level == 0){
-	} else if (node->level == 1) {
-		std::vector<double> overlaps;
-	} else {
-		std::vector<double> currentAreas;
-		std::vector<double> nextAreas;
-	}
-}
-
-template<class T, size_t M, typename Dim>
 RTree<T,M,Dim>::~RTree(){
 	clear_rnode(&root);
 }
@@ -183,3 +157,4 @@ void RTree<T,M,Dim>::clear_rnode(RNode* node){
 		delete[] node->children;
 	}
 }
+#endif

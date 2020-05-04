@@ -5,6 +5,7 @@
 #include "Map.hpp"
 #include "ImGuiHelper.hpp"
 #include <sstream>
+#include <core/RTree.cpp>
 #ifndef NDEBUG
 #include <iostream>
 #endif
@@ -67,7 +68,6 @@ std::string ObjMap::loadTileMap(TileMap& tomodify, const rapidjson::Value& tilem
 }
 void ObjMap::loadFromFile(const std::string& filename){
 	ledges.clear();
-	surfaces.clear();
 	sprs.clear();
 
 	std::string jsondata = readWholeFile(filename);
@@ -83,6 +83,7 @@ void ObjMap::loadFromFile(const std::string& filename){
 	const rapidjson::Value& spritesNode = document["sprites"];
 	const rapidjson::Value& ledgesNode = document["ledges"];
 	const rapidjson::Value& tilemapsNode = document["tilemaps"];
+	std::vector<Surface> tempSurfaces;
 	for (auto& surfaceNode : surfacesNode.GetArray()){
 		Surface s;
 		s.hitbox = {surfaceNode["x"].GetFloat(),surfaceNode["y"].GetFloat(),surfaceNode["w"].GetFloat(),surfaceNode["h"].GetFloat()};
@@ -93,8 +94,9 @@ void ObjMap::loadFromFile(const std::string& filename){
 #endif
 			s.flags = 1;
 		}
-		addSurface(s);
+		tempSurfaces.emplace_back(s);
 	}
+	this->surfaces.load(tempSurfaces);
 	for (auto& spriteNode : spritesNode.GetArray()){
 		glm::mat2 sprtransform;
 		glm::vec2 sprposition;
@@ -134,14 +136,6 @@ void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::mat2& sprTran
 	sprs[i].spr.setPosition(sprPosition);
 	sprs[i].spr.transform(sprTransform);
 }
-uint32_t ObjMap::addSurface(const Surface& wall){
-	uint32_t seed;
-	do{
-		seed = rng();
-	} while (surfaces.count(seed) != 0);
-	surfaces[seed] = wall;
-	return seed;
-}
 void ObjMap::SetPosition(float x, float y) {
 	this->position.x = x;
 	this->position.y = y;
@@ -160,8 +154,7 @@ void ObjMap::WriteToFile(const std::string& filename){
 	writer.Key("surfaces");
 	
 	writer.StartArray();
-	for (auto& surf : surfaces){
-		auto& i = surf.second;
+	for (const auto& i : surfaces.get_elements()){
 		writer.StartObject();
 		writer.Key("x");
 		writer.Int(i.hitbox.left);
@@ -171,14 +164,15 @@ void ObjMap::WriteToFile(const std::string& filename){
 		writer.Int(i.hitbox.width);
 		writer.Key("h");
 		writer.Int(i.hitbox.height);
+		writer.Key("f");
 		if (i.flags == 0){
 #ifndef NDEBUG
 			std::cerr << "Unknown surface flags: " << i.flags << std::endl;
 #endif
-			i.flags = 1;
+			writer.Int(1);
+		} else {
+			writer.Int(i.flags);
 		}
-		writer.Key("f");
-		writer.Int(i.flags);
 		writer.EndObject();
 	}
 	writer.EndArray();

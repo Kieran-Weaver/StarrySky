@@ -30,7 +30,7 @@ int main(int argc, char **argv){
 	RTree<AABBWrapper, 20, uint64_t> tree(elements);
 	tree.print();
 	AABBWrapper ab = {randomRect(rng)};
-	auto collision_vec = tree.intersect(ab);
+	auto collision_vec = tree.intersect(ab.internal);
 	std::sort(collision_vec.begin(), collision_vec.end(), refsort);
 	std::vector<AABBWrapper> collided;
 	for (auto& vec : elements){

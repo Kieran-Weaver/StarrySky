@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <random>
-#include <parallel_hashmap/phmap.h>
+#include <core/RTree.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/Tilemap.hpp>
@@ -15,6 +15,9 @@ enum WallType { LWALL=1, RWALL=2, CEIL=4, FLOOR=8, ONEWAY=16  };
 struct Surface{
 	Rect<float> hitbox;
 	int flags;
+	Rect<float> getAABB() const{
+		return hitbox;
+	}
 };
 struct MapSprite{
 	glm::vec2 iPosition;
@@ -33,7 +36,7 @@ public:
 	void setTM(const std::string& id, const TileMap& tm);
 	TileMap getTM(const std::string& id);
 	glm::vec2 position;
-	parallel_flat_hash_map<int, Surface> surfaces;
+	RTree<Surface, 20> surfaces;
 	std::vector<glm::vec2> ledges; // top left corners
 	std::mt19937 rng;
 	int width = 1280;

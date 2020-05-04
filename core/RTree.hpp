@@ -10,15 +10,12 @@
  *     Rect<Dim> getAABB() const;
  * The algorithms are combinations of many different R-Tree algorithms:
  * 	- The bulk loading algorithm is OMT (Overlap Minimizing Top-down Bulk Loading Algorithm for R-Tree, from CAiSE Short Paper Proceedings)
- *  - To find the optimal subtree for insertion, the R*-Tree algorithm is used
- *  - The overflow handling from Compact R-Trees is used
- *  - The splitting algorithm from the NR-Tree is used ("A new enhancement to the R-Tree node splitting")
  * TODO:
  *  - Implement OMT - Done
  *  - Implement Intersection/Collision - Done
- *  - Implement Insertion - In Progress
- *  - Implement Removal - Not Started
- *  - Implement Replacement - Not Started
+ *  - Implement Insertion - Further research needed
+ *  - Implement Removal - Further research needed
+ *  - Implement Replacement - Further research needed
  *  - Optimize finished R-Tree implementation - Not Started
  */
 template<class T, size_t M, typename Dim = float>
@@ -26,14 +23,26 @@ class RTree{
 public:
 	RTree() = default;
 	RTree(const std::vector<T>& elements);
+	RTree(const RTree& other) = delete;
+	RTree(RTree&& other){
+		this->root = other->root;
+		this->empty_elements = other->empty_elements;
+		this->m_elements = other->m_elements;
+		other->m_elements = {};
+		other->root = RNode();
+		this->height = other->height;
+		other->height = 0;
+	}
 	~RTree();
 	void print();
-	void insert(const T& element);
-	void remove(const T& element);
 	size_t size() const{
 		return m_elements.size();
 	}
-	std::vector<std::reference_wrapper<T>> intersect(const T& object);
+	std::vector<std::reference_wrapper<T>> intersect(const Rect<Dim>& object);
+	void load(const std::vector<T>& elements);
+	const std::vector<T>& get_elements(){
+		return m_elements;
+	}
 	size_t height = 0;
 private:
 	struct RNode{
@@ -50,7 +59,5 @@ private:
 	std::vector<T> m_elements;
 	void printNode(RNode* node);
 	void clear_rnode(RNode* node);
-	void insertRecursive(RNode* node, size_t index, const Rect<Dim>& aabb);
-	std::optional<RNode*> find(const T& object);
 };
 #endif
