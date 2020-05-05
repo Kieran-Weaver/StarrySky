@@ -36,8 +36,7 @@ void LevelEditor::Draw(SpriteBatch& batch){
 	for (auto& sprite : sprites){
 		batch.Draw(sprite);
 	}
-	TileMap temp_tm = map.getTM("Editor");
+	TileMap& temp_tm = map.getTM("Editor");
 	temp_tm.drawn = tiles;
-	map.setTM("Editor", temp_tm);
 	tiles.clear();
 }

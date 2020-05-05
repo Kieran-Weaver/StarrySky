@@ -29,7 +29,7 @@ private:
 		Shader fgShader;
 		Shader gsShader;
 		GLuint programHandle;
-		GLBuffer<uint16_t> ebo;
+		GLuint ebo;
 		GLuint VAO;
 		GLuint VBO;
 		GLuint VBO_size = 0;
@@ -38,12 +38,11 @@ private:
 		std::vector<GLRect2D> sprites;         // Stencil off
 		std::vector<GLRect2D> stencilSprites;  // Stencil on
 	};
-	int MatrixID;
+	GLuint MatrixID;
 	void setStencil(bool new_state);
 	void drawSprites(const std::vector<GLRect2D>& data);
 	void drawTileMap(const TileMap& tilemap, const GLuint& UBOHandle);
 	std::vector<GLProgram> glPrograms;
-	std::vector<GLBuffer<float>> ubos;
 	parallel_flat_hash_map<std::string, TileMap> m_Maps;
 	parallel_flat_hash_map<GLuint,TextureData> m_texData;
 	TextureAtlas& m_atlas;

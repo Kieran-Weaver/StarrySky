@@ -3,29 +3,27 @@
 #include <cstdint>
 #include <vector>
 #include <array>
-using Tile = std::array<uint32_t, 2>; // 16 bits X-pos, 16 bits Y-pos, 24 bits data, 8 bits index
+using Tile = uint16_t;
 enum TMType{
 	Normal,
 	Effect
 };
-inline Tile makeTile(uint16_t x, uint16_t y, uint8_t index){
-	return {static_cast<uint32_t>(x) | (static_cast<uint32_t>(y) << 16),  index};
-}
-inline void unpackTile(const Tile& tile, uint16_t& x, uint16_t& y, uint8_t& index){
-	index = tile[1] & 0xFF;
-	x = tile[0] & 0xFFFF;
-	y = tile[0] >> 16;
-}
 struct TileMap{
 	// UBO Data
-	std::array<float,4> affineT; // 16 bytes
-	std::array<float,4> packedtileSize; // 16 bytes
-	std::array<float,4> metadata; // Layer/Z, 3x Unused 
-	std::array<std::array<float,4>,256> tiles; // Max 255 tile types
+	std::array<float,4> affineT; // Mat2 transformation of tilemap
+	std::array<float,4> packedtileSize; // Tile w, h, tilemap x, y
+	std::array<float,4> metadata; // Layer/Z, 3x Unused
+	std::array<uint32_t,4> texdata; // Tile texture w, h, 2x unused
+	GLuint tileBufferTBO; // Max 2^16 - 1 tile types
+	GLuint tileTextureTBO; // Texture 
 	// Internal Data
+	std::vector<std::array<float, 4>> tileData;
+	std::vector<Tile> drawn;
+	GLuint tileBuffer; // Buffer for tileBufferTBO
+	GLuint tileTexture;// Buffer for tileTextureTBO
 	int numTiles;
 	std::vector<std::string> filenames;
-	std::vector<Tile> drawn;
 	TMType type = TMType::Normal;
+	bool initialized = false;
 };
 #endif

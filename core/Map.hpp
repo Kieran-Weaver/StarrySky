@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <random>
-#include <core/RTree.hpp>
+#include <core/RTree.cpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/Tilemap.hpp>
@@ -27,14 +27,14 @@ struct MapSprite{
 class ObjMap {
 public:
 	ObjMap(const std::string& filename, TextureAtlas& atlas);
+	~ObjMap();
 	void loadFromFile(const std::string& filename);
 	void SetPosition(float x, float y);
 	void Draw(SpriteBatch& frame);
 	uint32_t addSurface(const Surface& wall);
 	void addBGTexture(const glm::vec2& thisposition, const glm::mat2& transform, const std::string& fname);
 	void WriteToFile(const std::string& filename);
-	void setTM(const std::string& id, const TileMap& tm);
-	TileMap getTM(const std::string& id);
+	TileMap& getTM(const std::string& id);
 	glm::vec2 position;
 	RTree<Surface, 20> surfaces;
 	std::vector<glm::vec2> ledges; // top left corners

@@ -9,61 +9,85 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
-TileMap ObjMap::getTM(const std::string& id){
+TileMap& ObjMap::getTM(const std::string& id){
 	if (this->internal_tms.count(id) == 0){
-		return TileMap();
-	} else {
-		return this->internal_tms[id];
+		this->internal_tms[id] = TileMap();
 	}
-}
-void ObjMap::setTM(const std::string& id, const TileMap& tm){
-	this->internal_tms[id] = tm;
+	return this->internal_tms[id];
 }
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->rng = SeedRNG();
 	this->loadFromFile(filename);
 }
+ObjMap::~ObjMap(){
+	for (auto& i : internal_tms){
+		TileMap& tmap = i.second;
+		glDeleteTextures(1, &tmap.tileBufferTBO);
+		glDeleteTextures(1, &tmap.tileTextureTBO);
+		glDeleteBuffers(1, &tmap.tileBuffer);
+		glDeleteBuffers(1, &tmap.tileTexture);
+	}
+}
 std::string ObjMap::loadTileMap(TileMap& tomodify, const rapidjson::Value& tilemapNode){
-	const rapidjson::Value& ATNode = tilemapNode["AffineT"];
+	if (!tomodify.initialized){
+		glGenTextures(1, &tomodify.tileBufferTBO);
+		glGenTextures(1, &tomodify.tileTextureTBO);
+		glGenBuffers(1, &tomodify.tileBuffer);
+		glGenBuffers(1, &tomodify.tileTexture);
+		tomodify.initialized = true;
+	}
+	const auto& ATNode = tilemapNode["AffineT"];
 	for (int i = 0; i < 4; i++){
 		tomodify.affineT[i] = ATNode[i].GetFloat();
 	}
-	const rapidjson::Value& tilesNode = tilemapNode["tiles"];
-	rapidjson::SizeType numTiles = tilesNode.Size() & 0xff;
+	const auto& tilesNode = tilemapNode["tiles"];
+	rapidjson::SizeType numTiles = tilesNode.Size();
 	tomodify.numTiles = numTiles;
 	for (rapidjson::SizeType i = 0; i < numTiles; i++){
 		const Texture tempTex = this->m_atlas.findSubTexture(tilesNode[i].GetString());
-		tomodify.tiles[i][0] = tempTex.m_rect.left / 65536.f;
-		tomodify.tiles[i][1] = tempTex.m_rect.top / 65536.f;
-		tomodify.tiles[i][2] = tempTex.m_rect.width / 65536.f;
-		tomodify.tiles[i][3] = tempTex.m_rect.height / 65536.f;
+		tomodify.tileData.emplace_back();
+		tomodify.tileData[i][0] = tempTex.m_rect.left / 65536.f;
+		tomodify.tileData[i][1] = tempTex.m_rect.top / 65536.f;
+		tomodify.tileData[i][2] = tempTex.m_rect.width / 65536.f;
+		tomodify.tileData[i][3] = tempTex.m_rect.height / 65536.f;
 		tomodify.filenames.emplace_back(tilesNode[i].GetString());
 	}
-	const rapidjson::Value& sizeNode = tilemapNode["tileSize"];
+	
+	const auto& sizeNode = tilemapNode["tileSize"];
 	for (int i = 0; i < 2; i++){
 		tomodify.packedtileSize[i] = sizeNode[i].GetFloat();
 	}
-	const rapidjson::Value& posNode = tilemapNode["position"];
+	const auto& posNode = tilemapNode["position"];
 	for (int i = 0; i < 2; i++){
 		tomodify.packedtileSize[2 + i] = posNode[i].GetFloat();
 	}
-	const rapidjson::Value& metaNode = tilemapNode["metadata"];
+	const auto& metaNode = tilemapNode["metadata"];
 	for (int i = 0; i < 4; i++){
 		tomodify.metadata[i] = metaNode[i].GetFloat();
 	}
-	const rapidjson::Value& drawnNode = tilemapNode["drawntiles"];
-	for (auto& tileNode : drawnNode.GetArray()){
-		int px = tileNode["x"].GetInt();
-		int py = tileNode["y"].GetInt();
-		int index = tileNode["index"].GetInt();
-		tomodify.drawn.emplace_back(makeTile(px, py, index));
+
+	const auto& tDataNode = tilemapNode["texData"];
+	for (int i = 0; i < 4; i++){
+		tomodify.texdata[i] = tDataNode[i].GetInt();
 	}
+	
+	const auto& drawnNode = tilemapNode["drawntiles"];
+	for (auto& tileNode : drawnNode.GetArray()){
+		tomodify.drawn.emplace_back(tileNode.GetInt());
+	}
+
 	std::string temptype = tilemapNode["type"].GetString();
 	if (temptype == "normal"){
 		tomodify.type = TMType::Normal;
 	} else if (temptype == "effect"){
 		tomodify.type = TMType::Effect;
 	}
+	glBindBuffer(GL_TEXTURE_BUFFER, tomodify.tileBuffer);
+	glBufferData(GL_TEXTURE_BUFFER, tomodify.tileData.size() * 4 * sizeof(uint32_t), tomodify.tileData.data(), GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, tomodify.tileTexture);
+	glBufferData(GL_TEXTURE_BUFFER, tomodify.drawn.size() * sizeof(uint16_t), tomodify.drawn.data(), GL_DYNAMIC_DRAW);
+
 	return tilemapNode["name"].GetString();
 }
 void ObjMap::loadFromFile(const std::string& filename){
@@ -233,8 +257,8 @@ void ObjMap::WriteToFile(const std::string& filename){
 		
 		writer.Key("tiles");
 		writer.StartArray();
-		for (int i = 0; i < internal_tm.numTiles; i++){
-			writer.String(internal_tm.filenames[i].c_str());
+		for (auto& fname : internal_tm.filenames){
+			writer.String(fname.c_str());
 		}
 		writer.EndArray();
 	
@@ -253,17 +277,7 @@ void ObjMap::WriteToFile(const std::string& filename){
 		writer.Key("drawntiles");
 		writer.StartArray();
 		for (auto& i : internal_tm.drawn){
-			uint16_t x, y;
-			uint8_t index;
-			unpackTile(i, x, y, index);
-			writer.StartObject();
-			writer.Key("x");
-			writer.Int(x);
-			writer.Key("y");
-			writer.Int(y);
-			writer.Key("index");
-			writer.Int(index);
-			writer.EndObject();
+			writer.Int(i);
 		}
 		writer.EndArray();
 

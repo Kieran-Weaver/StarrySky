@@ -2,6 +2,7 @@
 #define TEXTURE_H
 #include "Rect.hpp"
 #include "Bitmask.hpp"
+#include <gl.h>
 struct Texture{
 	GLuint m_texture = 0;
 	Rect<uint16_t> m_rect = Rect<uint16_t>(0,0,0,0);

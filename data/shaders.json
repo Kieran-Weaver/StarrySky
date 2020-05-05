@@ -44,9 +44,9 @@
 	  "usesGS" : true,
 	  "layout" : [
 	    {
-          "name" : "packedpos",
+          "name" : "dummy",
           "location" : 0,
-		  "components" : 2,
+		  "components" : 1,
 		  "type" : 2,
 		  "norm" : false,
 		  "stride" : 0,
