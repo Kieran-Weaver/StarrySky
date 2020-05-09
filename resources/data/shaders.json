@@ -2,9 +2,9 @@
   "shaders.len" : 2,
   "shaders": [
     {
-      "gsFile" : "data/shaders/default.geom",
-      "vxFile" : "data/shaders/default.vert",
-      "fgFile" : "data/shaders/default.frag",
+      "gsFile" : "resources/data/shaders/default.geom",
+      "vxFile" : "resources/data/shaders/default.vert",
+      "fgFile" : "resources/data/shaders/default.frag",
 	  "usesGS" : true,
       "layout" : [
         {
@@ -38,9 +38,9 @@
       "output" : "outColor"
     },
 	{
-	  "gsFile" : "data/shaders/tilemap.geom",
-	  "vxFile" : "data/shaders/tilemap.vert",
-	  "fgFile" : "data/shaders/tilemap.frag",
+	  "gsFile" : "resources/data/shaders/tilemap.geom",
+	  "vxFile" : "resources/data/shaders/tilemap.vert",
+	  "fgFile" : "resources/data/shaders/tilemap.frag",
 	  "usesGS" : true,
 	  "layout" : [
 	    {

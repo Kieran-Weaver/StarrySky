@@ -1,9 +1,9 @@
 # StarrySky
-A WIP platformer game, written in C++11, using GLFW.
+A WIP platformer game, written in C++17, using GLFW.
 
 It uses sprite-batching and texture atlases to recreate the experience of games from the 16-bit and 32-bit eras, but with a maintainable, modern code-base.
 
-Design Philosophy:
+## Design Philosophy:
 - Inspired by the Suckless project's minimalist design philosophy
 - Data-oriented design in the backend, hidden behind object-oriented abstraction layers in an API
 - Focus on balancing performance and easy-to-read code
@@ -11,15 +11,17 @@ Design Philosophy:
   - To run at 60fps on a Raspberry Pi Zero
   - To keep the total binary size less than 100 MB
 
-Building:
+## Building:
 ```
-git clone https://github.com/Kieran-Weaver/StarrySky
+git clone --recursive https://github.com/Kieran-Weaver/StarrySky
 cd StarrySky
-git submodule update --init
 make
 ```
 
-Features:
+## Usage:
+`./Platformer`
+
+## Features:
 - Pixel-perfect collision
 - DDS/DXT5 Textures
 - Custom sprite-batching algorithm
@@ -29,7 +31,7 @@ Features:
   - Map and MovingEntity
   - SpriteBatch and TextureAtlas
 
-Todo:
+## Todo:
 - Add proper unit tests
 - Implement editor functionality
 - Add documentation for APIs
@@ -44,12 +46,12 @@ Todo:
   - Enemy AI
   - Dynamically load resources
 
-Project Layout:
-- GL contains the graphics backend, which is currently based on OpenGL 3.x and GLFW
-- core contains the physics and map system and any helper files.
-- game contains the game's AI and higher-level game concepts such as game mechanics.
+## Project Layout:
+- src/GL contains the graphics backend, which is currently based on OpenGL 3.x and GLFW
+- src/core contains the physics and map system and any helper files.
+- src/game contains the game's AI and higher-level game concepts such as game mechanics.
 
-Example code:
+## Example code:
 ```C++
 #include <GL/TextureAtlas.hpp>
 #include <GL/SpriteBatch.hpp>
@@ -80,8 +82,8 @@ int main(int, char const**) {
 ```
 
 
-Acknowledgements and Links:
-GL/Sprite.h, GL/SpriteBatch.h, GL/Texture.h, GL/TextureAtlas.h, and GL/TextureAtlas.cpp are originally from https://github.com/ricanteja/Moony-SpriteBatch, but were rewritten for Starry Sky.
+## Acknowledgements and Links:
+src/GL/Sprite.h, src/GL/SpriteBatch.h, src/GL/Texture.h, src/GL/TextureAtlas.h, and src/GL/TextureAtlas.cpp are originally from https://github.com/ricanteja/Moony-SpriteBatch, but were rewritten for Starry Sky.
 
 The original engine for Starry Sky was based off of https://github.com/pixelpicosean/PlatformerEngine, but it was also rewritten.
 

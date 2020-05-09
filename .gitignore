@@ -10,10 +10,8 @@
 # ImGui Config
 *.ini
 
-# GL Temp files
-gl.c
-gl.h
-galogen_exe*
+# Build files
+build/*
 
 # Executable on Linux
 Platformer*

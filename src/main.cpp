@@ -10,19 +10,19 @@
 #include "core/Map.hpp"
 int main(){
 	const float frametime = 1.f/60.f;
-	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Starry Sky");
+	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Starry Sky");
 	Camera camera(Rect<float>(0.f,0.f,1400.f,800.f),Rect<float>(200.f,200.f,800.f,400.f), window);
 	WindowState ws;
 	ws.camera = &camera;
 	window.getWindowState() = {&camera};
 	glm::mat4 m(1.0f);
-	TextureAtlas atlas("data/atlas.json");
-	ObjMap map("map.json",atlas);
+	TextureAtlas atlas("resources/data/atlas.json");
+	ObjMap map("resources/map.json",atlas);
 	Character player(300, 300, map, "player", "sword1", "sword2", atlas);
 	Enemy testEnemy(900, 300, map, "robot", "robot", 10, atlas);
 	std::vector<MovingEntity*> objects;
 	objects.push_back(&testEnemy);
-	SpriteBatch batch(atlas, "data/shaders.json");
+	SpriteBatch batch(atlas, "resources/data/shaders.json");
 	while (window.isOpen()){
 		window.startFrame();
 		window.makeCurrent();

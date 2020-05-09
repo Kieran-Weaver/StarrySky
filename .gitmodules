@@ -1,15 +1,15 @@
 [submodule "stb"]
-	path = stb
+	path = submodules/stb
 	url = https://github.com/nothings/stb.git
 [submodule "imgui"]
-	path = imgui
+	path = submodules/imgui
 	url = https://github.com/ocornut/imgui.git
 [submodule "galogen"]
-	path = galogen
+	path = submodules/galogen
 	url = https://github.com/google/galogen.git
 [submodule "rapidjson"]
-	path = rapidjson
+	path = submodules/rapidjson
 	url = https://github.com/Tencent/rapidjson/
 [submodule "parallel_hashmap"]
-	path = parallel_hashmap
+	path = submodules/parallel_hashmap
 	url = https://github.com/greg7mdp/parallel-hashmap.git
