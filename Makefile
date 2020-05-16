@@ -1,7 +1,7 @@
 CC=gcc
 CXX=g++
 TARGET=Platformer
-INC_FLAGS := -iquote submodules/imgui -I src -I build -I submodules -I submodules/rapidjson/include -I submodules/parallel_hashmap
+INC_FLAGS := -iquote submodules/imgui -I include -I build
 CFLAGS := -O2 -march=native
 CXXFLAGS := -O2 -march=native -fno-rtti -std=c++17
 CPPFLAGS = $(INC_FLAGS) -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -MT $@ -MMD -MP -MF build/$*.d
@@ -47,7 +47,7 @@ build/galogen_exe:
 
 build:
 	mkdir build
-	cd build && mkdir -p build src submodules src/core src/game src/GL submodules/imgui/examples test
+	cd build && mkdir -p build src/core src/game src/GL src/util submodules/imgui/examples test
 
 test: $(TEST_OBJS) $(TEST_TARGETS)
 

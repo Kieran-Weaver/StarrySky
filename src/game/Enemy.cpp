@@ -1,5 +1,5 @@
-#include "Enemy.hpp"
-#include "Character.hpp"
+#include <game/Enemy.hpp>
+#include <game/Character.hpp>
 #include <cmath>
 #include <array>
 #define GRAVITY 4000.0f

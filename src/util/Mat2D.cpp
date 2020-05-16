@@ -1,4 +1,4 @@
-#include "Mat2D.hpp"
+#include <util/Mat2D.hpp>
 glm::mat2 RotMat(const float& angle) {
 	return glm::mat2(std::cos(angle), -std::sin(angle), std::sin(angle), std::cos(angle));
 }

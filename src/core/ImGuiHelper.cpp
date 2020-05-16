@@ -1,4 +1,5 @@
-#include "ImGuiHelper.hpp"
+#include <core/ImGuiHelper.hpp>
+#include <imgui/imgui.h>
 void SliderTLeftLabel(const char* label, int* tpointer, int lower_bound, int upper_bound){
 	ImGui::Text("%s",label);
 	ImGui::SameLine();

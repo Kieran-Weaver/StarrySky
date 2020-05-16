@@ -1,8 +1,8 @@
-#include "Bitmask.hpp"
-#include "Sprite.hpp"
-#include "Texture.hpp"
-#include "Rect.hpp"
-#include "Mat2D.hpp"
+#include <util/Bitmask.hpp>
+#include <util/Rect.hpp>
+#include <util/Mat2D.hpp>
+#include <GL/Sprite.hpp>
+#include <GL/Texture.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 void Sprite::setStencil(bool stencil_state){
 	this->uses_stencil = stencil_state;

@@ -1,8 +1,7 @@
-#include "Character.hpp"
+#include <game/Character.hpp>
 #include <GL/Camera.hpp>
 #include <imgui/imgui.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
 #define LASERW 25
 #define LASERH 10
 Character::Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas): MovingEntity(x, y, map), m_atlas(atlas) {

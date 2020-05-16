@@ -1,7 +1,7 @@
 #ifndef MovingEntity_hpp
 #define MovingEntity_hpp
 #include <GL/Sprite.hpp>
-#include "Map.hpp"
+#include <core/Map.hpp>
 class MovingEntity {
 public:
 	glm::vec2 m_position;

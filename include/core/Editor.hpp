@@ -1,7 +1,7 @@
 #ifndef EDITOR_HPP
 #define EDITOR_HPP
 #include <glm/glm.hpp>
-#include "Map.hpp"
+#include <core/Map.hpp>
 #include <GL/Window.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/Sprite.hpp>

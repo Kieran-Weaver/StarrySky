@@ -1,4 +1,4 @@
-#include "Shader.hpp"
+#include <GL/Shader.hpp>
 #include <fstream>
 #include <array>
 #ifndef NDEBUG

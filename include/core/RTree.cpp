@@ -1,11 +1,10 @@
 #ifndef RTREE_IMPL
 #define RTREE_IMPL
-#include "RTree.hpp"
-#include "RectCompare.hpp"
+#include <core/RTree.hpp>
+#include <util/RectCompare.hpp>
 #include <numeric>
 #include <cmath>
 #include <iostream>
-#include <cassert>
 template<class T, size_t M, typename Dim>
 RTree<T,M,Dim>::RTree(const std::vector<T>& elements){
 	this->load(elements);

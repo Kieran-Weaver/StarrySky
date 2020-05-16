@@ -2,9 +2,9 @@
 #define SPRITE_H
 #include <glm/glm.hpp>
 #include <memory>
-#include "Helpers.hpp"
-#include "Texture.hpp"
-#include "Rect.hpp"
+#include <GL/Helpers.hpp>
+#include <GL/Texture.hpp>
+#include <util/Rect.hpp>
 #include <array>
 #define WH_EPSILON 0.01
 struct Sprite{

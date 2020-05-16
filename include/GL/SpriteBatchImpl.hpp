@@ -1,12 +1,12 @@
 #ifndef STARRYSKY_SPRITEBATCH_IMPL_H
 #define STARRYSKY_SPRITEBATCH_IMPL_H
-#include "Shader.hpp"
-#include "Helpers.hpp"
-#include "Tilemap.hpp"
+#include <GL/Shader.hpp>
+#include <GL/Helpers.hpp>
+#include <GL/Tilemap.hpp>
+#include <GL/TextureAtlas.hpp>
+#include <GL/Window.hpp>
 #include <gl.h>
 #include <parallel_hashmap/phmap_fwd_decl.h>
-#include "TextureAtlas.hpp"
-#include "Window.hpp"
 #include <rapidjson/document.h>
 // Rendering Modes
 #define SPRITE2D 0

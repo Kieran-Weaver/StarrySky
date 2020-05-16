@@ -1,13 +1,13 @@
-#include "gl.h"
+#include <gl.h>
 #include <zlib.h>
-#include "game/Character.hpp"
-#include "game/Enemy.hpp"
-#include "GL/Shader.hpp"
-#include "GL/Camera.hpp"
-#include "GL/TextureAtlas.hpp"
-#include "GL/SpriteBatch.hpp"
-#include "GL/Window.hpp"
-#include "core/Map.hpp"
+#include <game/Character.hpp>
+#include <game/Enemy.hpp>
+#include <GL/Shader.hpp>
+#include <GL/Camera.hpp>
+#include <GL/TextureAtlas.hpp>
+#include <GL/SpriteBatch.hpp>
+#include <GL/Window.hpp>
+#include <core/Map.hpp>
 int main(){
 	const float frametime = 1.f/60.f;
 	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Starry Sky");

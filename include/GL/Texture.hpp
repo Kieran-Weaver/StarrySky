@@ -1,7 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
-#include "Rect.hpp"
-#include "Bitmask.hpp"
+#include <util/Rect.hpp>
+#include <util/Bitmask.hpp>
 #include <gl.h>
 struct Texture{
 	GLuint m_texture = 0;

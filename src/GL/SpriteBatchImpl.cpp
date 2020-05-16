@@ -1,6 +1,6 @@
-#include "SpriteBatchImpl.hpp"
-#include "Camera.hpp"
-#include "Sprite.hpp"
+#include <GL/SpriteBatchImpl.hpp>
+#include <GL/Camera.hpp>
+#include <GL/Sprite.hpp>
 #include <core/Editor.hpp>
 #include <rapidjson/document.h>
 #include <string>

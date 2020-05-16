@@ -1,11 +1,11 @@
 #include <fstream>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-#include "PRNG.hpp"
-#include "Map.hpp"
-#include "ImGuiHelper.hpp"
+#include <core/Map.hpp>
+#include <core/ImGuiHelper.hpp>
 #include <sstream>
 #include <core/RTree.cpp>
+#include <util/PRNG.hpp>
 #ifndef NDEBUG
 #include <iostream>
 #endif

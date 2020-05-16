@@ -1,4 +1,4 @@
-#include "Helpers.hpp"
+#include <GL/Helpers.hpp>
 #include <fstream>
 std::string readWholeFile(const std::string& filename){
 	std::ifstream infile(filename,std::ios::in | std::ios::binary | std::ios::ate);

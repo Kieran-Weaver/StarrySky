@@ -1,7 +1,7 @@
 #ifndef STARRYSKY_SPRITEBATCH_H
 #define STARRYSKY_SPRITEBATCH_H
-#include "TextureAtlas.hpp"
-#include "Window.hpp"
+#include <GL/TextureAtlas.hpp>
+#include <GL/Window.hpp>
 // Rendering Modes
 #define SPRITE2D 0
 #define TILEMAP 1

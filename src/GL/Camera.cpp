@@ -1,4 +1,4 @@
-#include "Camera.hpp"
+#include <GL/Camera.hpp>
 #include <algorithm>
 #include <iosfwd>
 #include <glm/gtc/matrix_transform.hpp>

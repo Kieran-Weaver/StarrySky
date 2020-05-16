@@ -1,8 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 #include <glm/glm.hpp>
-#include "Window.hpp"
-#include "Rect.hpp"
+#include <GL/Window.hpp>
+#include <util/Rect.hpp>
 class Camera{
 public:
 	Camera(const Rect<float>& cbounds, const Rect<float>& sbounds, const Window& window);

@@ -1,3 +1,5 @@
+#ifndef MAT2D_H
+#define MAT2D_H
 #include <glm/glm.hpp>
 #include <cmath>
 #include <array>
@@ -9,3 +11,4 @@ glm::vec2 scale(const glm::mat2& matrix);
 glm::vec2 shear(const glm::mat2& matrix);
 std::array<float, 5> decomp(const glm::mat2& matrix);
 glm::mat2 recompose(const std::array<float,5>& data);
+#endif

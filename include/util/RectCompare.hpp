@@ -1,6 +1,6 @@
 #ifndef STARRYSKY_RECTCOMPARE_H
 #define STARRYSKY_RECTCOMPARE_H
-#include <GL/Rect.hpp>
+#include <util/Rect.hpp>
 #include <tuple>
 template<typename T, bool D>
 struct rectCompareImpl{

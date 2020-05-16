@@ -2,7 +2,7 @@
 #define STARRYSKY_RTREE_H
 #include <vector>
 #include <array>
-#include <GL/Rect.hpp>
+#include <util/Rect.hpp>
 /*
  * 2D R-Tree Implementation
  * Requirements for T:

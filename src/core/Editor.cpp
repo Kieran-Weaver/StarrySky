@@ -1,7 +1,7 @@
-#include "Editor.hpp"
-#include <imgui/imgui.h>
-#include <GL/Mat2D.hpp>
+#include <core/Editor.hpp>
 #include <GL/Tilemap.hpp>
+#include <util/Mat2D.hpp>
+#include <imgui/imgui.h>
 #include <vector>
 static bool map_changed = false;
 bool Mat2GUI(glm::mat2& mdata, const std::string& tag, const float& max_value){
