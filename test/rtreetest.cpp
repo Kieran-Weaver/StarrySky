@@ -1,6 +1,7 @@
 #include <core/RTree.hpp>
-#include <core/PRNG.hpp>
+#include <util/PRNG.hpp>
 #include <core/RTree.cpp>
+#include <cassert>
 struct AABBWrapper{
 	Rect<uint64_t> internal;
 	Rect<uint64_t> getAABB() const{

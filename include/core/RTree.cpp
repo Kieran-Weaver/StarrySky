@@ -64,7 +64,6 @@ void RTree<T,M,Dim>::omt(RNode* subroot, size_t N, size_t level, std::vector<siz
 			subroot = subroot->children;
 		}
 		*subroot = leaf;
-		assert(level == 0);
 	} else {
 		subroot->level = level;
 		std::sort(iter, iter + N, [&](const size_t& lhs, const size_t& rhs){

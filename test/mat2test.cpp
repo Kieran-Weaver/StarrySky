@@ -1,5 +1,5 @@
-#include <GL/Mat2D.hpp>
-#include <core/PRNG.hpp>
+#include <util/Mat2D.hpp>
+#include <util/PRNG.hpp>
 #include <iostream>
 void printMat2(const glm::mat2& m2){
 	for (int i = 0; i < 2; i++){

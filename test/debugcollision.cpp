@@ -1,7 +1,7 @@
 /* Collision Debugger
  * Converts bin.gz files to plain PBMs (netpbm format, magic P1)
  */
-#include <GL/TextureAtlas.cpp>
+#include <GL/TextureAtlas.hpp>
 #include <iostream>
 int main(int argc, char **argv){
 	TextureAtlas atlas("data/atlas.json");

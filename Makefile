@@ -12,7 +12,7 @@ TEST_SRCS := $(shell find test -path "*.cpp")
 TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS))
 TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision
 TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/core/Editor.o build/src/GL/Helpers.o build/src/GL/SpriteBatchImpl.o \
-build/src/GL/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS)) \
+build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS)) \
 build/src/GL/Sprite.o build/src/GL/SpriteBatch.o
 DEPS := $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
@@ -27,7 +27,7 @@ endif
 all: build build/gl.h $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $(OBJS) -o $(TARGET) $(LDFLAGS)
+	$(CXX) $^ -o $(TARGET) $(LDFLAGS)
 
 ./build/%.o : ./%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
@@ -42,29 +42,29 @@ build/gl.c: build/gl.h
 build/gl.h: build/galogen_exe
 	cd build && ./galogen_exe ../submodules/galogen/third_party/gl.xml --api gl --ver 3.3 --profile core --exts EXT_texture_compression_s3tc,EXT_texture_sRGB,EXT_texture_filter_anisotropic --filename gl 
 
-build/galogen_exe:
-	$(CXX) $(CXXFLAGS) submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp -o build/galogen_exe
+build/galogen_exe: submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp
+	$(CXX) $(CXXFLAGS) $^ -o build/galogen_exe
 
 build:
 	mkdir build
 	cd build && mkdir -p build src/core src/game src/GL src/util submodules/imgui/examples test
 
-test: $(TEST_OBJS) $(TEST_TARGETS)
+test: build build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
 
 test/collisiontest: $(TEST_COMMON_OBJS) build/test/offscreenWindow.o build/test/collisiontest.o
-	$(CXX) $(CXXFLAGS) $(TEST_COMMON_OBJS) build/test/offscreenWindow.o build/test/collisiontest.o -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 test/collisiondemo: $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisiondemo.o
-	$(CXX) $(CXXFLAGS) $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisiondemo.o -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test/mat2test: build/src/GL/Mat2D.o build/test/mat2test.o
-	$(CXX) $(CXXFLAGS) build/src/GL/Mat2D.o build/test/mat2test.o -o $@ $(LDFLAGS)
+test/mat2test: build/src/util/Mat2D.o build/test/mat2test.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 test/rtreetest: build/test/rtreetest.o
-	$(CXX) $(CXXFLAGS) build/test/rtreetest.o -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/GL/Helpers.o
-	$(CXX) $(CXXFLAGS) build/test/debugcollision.o -o $@ $(LDFLAGS) build/build/gl.o build/src/GL/Helpers.o
+test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/GL/Helpers.o build/src/GL/TextureAtlas.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 -include $(DEPS)
 

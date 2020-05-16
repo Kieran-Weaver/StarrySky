@@ -1,5 +1,5 @@
 #include <GL/Window.hpp>
-#include "gl.h"
+#include <gl.h>
 #include <GLFW/glfw3.h>
 void GLFWwindowDeleter::operator()(GLFWwindow* ptr){
 	glfwDestroyWindow(ptr);
