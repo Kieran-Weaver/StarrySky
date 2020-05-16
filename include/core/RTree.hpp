@@ -23,17 +23,6 @@ class RTree{
 public:
 	RTree() = default;
 	RTree(const std::vector<T>& elements);
-	RTree(const RTree& other) = delete;
-	RTree(RTree&& other){
-		this->root = other->root;
-		this->empty_elements = other->empty_elements;
-		this->m_elements = other->m_elements;
-		other->m_elements = {};
-		other->root = RNode();
-		this->height = other->height;
-		other->height = 0;
-	}
-	~RTree();
 	void print();
 	size_t size() const{
 		return m_elements.size();
@@ -46,18 +35,15 @@ public:
 	size_t height = 0;
 private:
 	struct RNode{
-		RNode* parent = nullptr;
-		RNode* children = nullptr;
+		int parent = -1;
 		size_t level = 0;
 		size_t size = 0;
+		std::array<size_t, M> children;
 		Rect<Dim> AABB;
-		std::vector<size_t> element_indices;
 	};
-	RNode root;
-	void omt(RNode* subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
-	std::vector<size_t> empty_elements;
+	void omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
+	void printNode(int node);
+	std::vector<RNode> m_nodes;
 	std::vector<T> m_elements;
-	void printNode(RNode* node);
-	void clear_rnode(RNode* node);
 };
 #endif

@@ -29,10 +29,10 @@ all: build build/gl.h $(TARGET)
 $(TARGET): $(OBJS)
 	$(CXX) $^ -o $(TARGET) $(LDFLAGS)
 
-./build/%.o : ./%.cpp
+./build/%.o : ./%.cpp build/gl.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-./build/%.o : ./%.c
+./build/%.o : ./%.c build/gl.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 clean:
@@ -42,8 +42,8 @@ build/gl.c: build/gl.h
 build/gl.h: build/galogen_exe
 	cd build && ./galogen_exe ../submodules/galogen/third_party/gl.xml --api gl --ver 3.3 --profile core --exts EXT_texture_compression_s3tc,EXT_texture_sRGB,EXT_texture_filter_anisotropic --filename gl 
 
-build/galogen_exe: submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp
-	$(CXX) $(CXXFLAGS) $^ -o build/galogen_exe
+build/galogen_exe: build
+	$(CXX) $(CXXFLAGS) submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp -o build/galogen_exe
 
 build:
 	mkdir build

@@ -40,6 +40,7 @@ int main(int argc, char **argv){
 		}
 	}
 	std::sort(collided.begin(), collided.end());
+	assert(collided.size() == collision_vec.size());
 	for (size_t i=0; i < collided.size(); i++){
 		assert(collided[i] == collision_vec[i].get());
 	}
