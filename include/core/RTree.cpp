@@ -29,12 +29,13 @@ void RTree<T,M,Dim>::load(const std::vector<T>& elements){
 	auto iter = tempVec.begin();
 	size_t i;
 	std::vector<Rect<Dim>> aabbs;
+	std::iota(this->m_nodes[0].children.begin(), this->m_nodes[0].children.end(), this->m_nodes.size());
+	this->m_nodes.resize(this->m_nodes.size() + S);
 	for (i = 0; i < S; i++){
-		this->m_nodes[0].children[i] = this->m_nodes.size();
-		this->m_nodes.emplace_back();
-		this->m_nodes.back().parent = 0;
-		this->omt(this->m_nodes[0].children[i], std::min(N/S, static_cast<size_t>(tempVec.end() - iter)), H-1, iter);
-		aabbs.emplace_back(this->m_nodes[this->m_nodes[0].children[i]].AABB);
+		int nodeIdx = m_nodes[0].children[i];
+		this->m_nodes[nodeIdx].parent = 0;
+		this->omt(nodeIdx, std::min(N/S, static_cast<size_t>(tempVec.end() - iter)), H-1, iter);
+		aabbs.emplace_back(this->m_nodes[nodeIdx].AABB);
 	}
 	this->m_nodes[0].size = S;
 	this->m_nodes[0].AABB = join<Dim>(aabbs.begin(), aabbs.end());
@@ -74,13 +75,14 @@ void RTree<T,M,Dim>::omt(int subroot, size_t N, size_t level, std::vector<size_t
 		size_t K = (N + M - 1)/M;
 		m_nodes[subroot].size = (N+K-1)/K;
 		size_t i;
+		std::iota(this->m_nodes[subroot].children.begin(), this->m_nodes[subroot].children.end(), this->m_nodes.size());
+		this->m_nodes.resize(this->m_nodes.size() + m_nodes[subroot].size);
 		for (i = 0; i < N; i+=K){
 			size_t j = i/K;
-			m_nodes[subroot].children[j] = m_nodes.size();
-			m_nodes.emplace_back();
-			m_nodes.back().parent = subroot;
-			this->omt(m_nodes[subroot].children[j], std::min(K, N-i), level - 1, iter);
-			aabbs.emplace_back(m_nodes[m_nodes[subroot].children[j]].AABB);
+			int nodeIdx = m_nodes[subroot].children[j];
+			m_nodes[nodeIdx].parent = subroot;
+			this->omt(nodeIdx, std::min(K, N-i), level - 1, iter);
+			aabbs.emplace_back(m_nodes[nodeIdx].AABB);
 		}
 		m_nodes[subroot].AABB = join<Dim>(aabbs.begin(), aabbs.end());
 	}
