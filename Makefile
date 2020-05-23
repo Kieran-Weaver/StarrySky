@@ -4,8 +4,8 @@ TARGET=Platformer
 INC_FLAGS := -iquote submodules/imgui -I include -I build
 CFLAGS := -O2 -march=native
 CXXFLAGS := -O2 -march=native -fno-rtti -std=c++17
-CPPFLAGS = $(INC_FLAGS) -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<gl.h>" -MT $@ -MMD -MP -MF build/$*.d
-IMGUI_SRCS := submodules/imgui/examples/imgui_impl_glfw.cpp submodules/imgui/examples/imgui_impl_opengl3.cpp $(shell find submodules/imgui -path "submodules/imgui/imgui*.cpp")
+CPPFLAGS = $(INC_FLAGS) -MT $@ -MMD -MP -MF build/$*.d
+IMGUI_SRCS := submodules/imgui/examples/imgui_impl_glfw.cpp $(shell find submodules/imgui -path "submodules/imgui/imgui*.cpp")
 SRCS := build/gl.c $(shell find src -path "*.cpp") $(IMGUI_SRCS)
 OBJS := $(patsubst %.c, ./build/%.o, $(patsubst %.cpp, ./build/%.o, $(SRCS)))
 TEST_SRCS := $(shell find test -path "*.cpp")

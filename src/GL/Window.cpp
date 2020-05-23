@@ -1,9 +1,9 @@
 #include <GL/Window.hpp>
 #include <gl.h>
 #include <GLFW/glfw3.h>
+#include <GL/SpriteBatch.hpp>
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"
-#include "imgui/examples/imgui_impl_opengl3.h"
 void GLFWwindowDeleter::operator()(GLFWwindow* ptr){
 	glfwDestroyWindow(ptr);
 }
@@ -46,7 +46,6 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(windowImpl.get(),true);
-	ImGui_ImplOpenGL3_Init("#version 150");
 	io.Fonts->AddFontFromFileTTF(fontfile.c_str(),20.f);
 	glfwSetKeyCallback(windowImpl.get(),key_callback);
 	glfwSetWindowUserPointer(windowImpl.get(), &internal_state);
@@ -55,7 +54,6 @@ Window::~Window(){
 	if (this->isOpen()){
 		this->close();
 	}
-	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 	glfwTerminate();
@@ -63,7 +61,6 @@ Window::~Window(){
 void Window::startFrame() const{
 	this->makeCurrent();
 	glfwPollEvents();
-	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
@@ -72,10 +69,10 @@ void Window::startFrame() const{
 void Window::makeCurrent() const{
 	glfwMakeContextCurrent(windowImpl.get());
 }
-void Window::endFrame() const{
+void Window::endFrame(SpriteBatch* batch) const{
 	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	this->makeCurrent();
+	batch->Draw(ImGui::GetDrawData());
 	glfwSwapBuffers(windowImpl.get());
 }
 void Window::close() const{

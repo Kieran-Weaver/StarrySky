@@ -1,5 +1,5 @@
 {
-  "shaders.len" : 2,
+  "shaders.len" : 3,
   "shaders": [
     {
       "gsFile" : "resources/data/shaders/default.geom",
@@ -54,6 +54,41 @@
 		}
 	  ],
 	  "output" : "outColor"
+	},
+	{
+		"vxFile" : "resources/data/shaders/imgui.vert",
+		"fgFile" : "resources/data/shaders/imgui.frag",
+		"usesGS" : false,
+		"layout" : [
+			{
+				"name" : "Position",
+				"location" : 0,
+				"components" : 2,
+				"type" : 0,
+				"norm" : false,
+				"stride" : 0,
+				"start" : 0
+			},
+			{
+				"name" : "UV",
+				"location" : 1,
+				"components" : 2,
+				"type" : 0,
+				"norm" : false,
+				"stride" : 0,
+				"start" : 0
+			},
+			{
+				"name" : "Color",
+				"location" : 2,
+				"components" : 4,
+				"type" : 3,
+				"norm" : true,
+				"stride" : 0,
+				"start" : 0
+			}
+		],
+		"output" : "Out_Color"
 	}
   ]
 }

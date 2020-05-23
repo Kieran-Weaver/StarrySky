@@ -11,10 +11,12 @@
 // Rendering Modes
 #define SPRITE2D 0
 #define TILEMAP 1
-#define SPRITE3D 2
-
+#define OVERLAY 2
+#define SPRITE3D 3
+// This SpriteBatchImpl implementation requires OpenGL 3.3+
 using phmap::parallel_flat_hash_map;
 struct Sprite;
+struct ImDrawData;
 class SpriteBatchImpl{
 public:
 	SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderfile);
@@ -23,16 +25,17 @@ public:
 	void addMap(const std::string& id, const TileMap& tm);
 	void Draw(Sprite& spr);
 	void Draw(const Window& target);
+	void Draw(const ImDrawData* draw_data);
 private:
 	struct GLProgram{
 		Shader vxShader;
 		Shader fgShader;
 		Shader gsShader;
 		GLuint programHandle;
-		GLuint ebo;
 		GLuint VAO;
 		GLuint VBO;
 		GLuint VBO_size = 0;
+		std::vector<GLuint> extra_data;
 	};
 	struct TextureData{
 		std::vector<GLRect2D> sprites;         // Stencil off
@@ -42,6 +45,8 @@ private:
 	void setStencil(bool new_state);
 	void drawSprites(const std::vector<GLRect2D>& data);
 	void drawTileMap(const TileMap& tilemap, const GLuint& UBOHandle);
+	void setAttrib(GLProgram& currentProgram, rapidjson::Value& node, GLuint start, GLuint stride);
+	void setAttrib(GLProgram& currentProgram, rapidjson::Value& node);
 	std::vector<GLProgram> glPrograms;
 	parallel_flat_hash_map<std::string, TileMap> m_Maps;
 	parallel_flat_hash_map<GLuint,TextureData> m_texData;

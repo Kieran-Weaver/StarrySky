@@ -42,7 +42,7 @@ int main(){
 			window.close();
 		}
 		batch.Draw(window);
-		window.endFrame();
+		window.endFrame(&batch);
 	}
 	return 0;
 }

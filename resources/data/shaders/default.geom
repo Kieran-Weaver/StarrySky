@@ -19,23 +19,21 @@ void main() {
 	vec3 texwh = vec3(in_data[0].packedtexpos.zw, 0.0);
 	mat2 datamat = mat2(in_data[0].packedmat2);
 
-	vec2 pos = datamat * vec2(-0.5, -0.5);
-	Texcoord = texlt;
-	gl_Position = globalVP * vec4(in_data[0].center + pos,0.0,1.0);
-	EmitVertex();
-	
-	Texcoord = texlt + texwh.xz;
-	pos = datamat * vec2(0.5,-0.5);
-	gl_Position = globalVP * vec4(in_data[0].center + pos,0.0,1.0);
-	EmitVertex();
-	
+	vec2 pos[4] = vec2[4](datamat * vec2(-0.5,0.5), datamat * vec2(-0.5, -0.5), datamat * vec2(0.5,0.5), datamat * vec2(0.5,-0.5));
+
 	Texcoord = texlt + texwh.zy;
-	pos = datamat * vec2(-0.5,0.5);
-	gl_Position = globalVP * vec4(in_data[0].center + pos,0.0,1.0);
+	gl_Position = globalVP * vec4(in_data[0].center + pos[0],0.0,1.0);
 	EmitVertex();
 
+	Texcoord = texlt;
+	gl_Position = globalVP * vec4(in_data[0].center + pos[1],0.0,1.0);
+	EmitVertex();
+	
 	Texcoord = texlt + texwh.xy;
-	pos = datamat * vec2(0.5,0.5);
-	gl_Position = globalVP * vec4(in_data[0].center + pos,0.0,1.0);
+	gl_Position = globalVP * vec4(in_data[0].center + pos[2],0.0,1.0);
+	EmitVertex();
+
+	Texcoord = texlt + texwh.xz;
+	gl_Position = globalVP * vec4(in_data[0].center + pos[3],0.0,1.0);
 	EmitVertex();
 }

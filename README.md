@@ -37,7 +37,7 @@ make
 - Add documentation for APIs
 - Add plugin system
 - Replace imgui example files with custom implementations
-  - Render through the sprite-batching API
+  - Render through the sprite-batching API - Done
   - Handle input through the Window class
 - Improve graphics backend:
   - Add 3D functionality
@@ -51,6 +51,9 @@ make
 - src/core contains the physics and map system and any helper files.
 - src/game contains the game's AI and higher-level game concepts such as game mechanics.
 
+## Using Starry Sky as a Library
+Parts of Starry Sky function as a standalone rendering library. Eventually, they will be separated from the main engine and given a different Makefile, but that is fairly low priority.
+
 ## Example code:
 ```C++
 #include <GL/TextureAtlas.hpp>
@@ -63,8 +66,8 @@ int main(int, char const**) {
 	float x1=0.0, y1=360.0;
 	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Example");
 	window.getWindowState() = { new Camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f), window) };
-	TextureAtlas atlas("data/atlas.json");
-	SpriteBatch batch(atlas, "data/shaders.json");
+	TextureAtlas atlas("resources/data/atlas.json");
+	SpriteBatch batch(atlas, "resources/data/shaders.json");
 	Texture t = atlas.findSubTexture("test1");
 	Sprite s;
 	s.setTexture(t);

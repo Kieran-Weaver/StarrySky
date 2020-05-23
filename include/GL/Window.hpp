@@ -6,6 +6,7 @@
 #define MAX_KEYCODE 1023
 class GLFWwindow;
 class Camera;
+class SpriteBatch;
 struct GLFWwindowDeleter{
 	void operator()(GLFWwindow *p);
 };
@@ -22,7 +23,7 @@ public:
 	void getWindowSize(int& width, int& height) const;
 	WindowState& getWindowState();
 	const WindowState& getWindowState() const;
-	void endFrame() const;
+	void endFrame(SpriteBatch* batch) const;
 	void close() const;
 	bool isOpen() const;
 private:
