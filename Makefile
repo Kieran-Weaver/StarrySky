@@ -17,9 +17,11 @@ build/src/GL/Sprite.o
 DEPS := $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 ifdef OS
-	LDFLAGS=-lopengl32 -lglfw3 -lz -Wl,-O1 -mwindows -static-libstdc++ -static-libgcc -static
+	LDFLAGS=-Wl,-O1 -static-libstdc++ -static-libgcc -static -lz
+	GL_FLAGS=-lopengl32 -lglfw3 -mwindows
 else
-	LDFLAGS=-lGL -lglfw -lz -Wl,-O1
+	LDFLAGS=-lz -Wl,-O1
+	GL_FLAGS=-lGL -lglfw
 endif
 
 .PHONY: all clean test
@@ -27,7 +29,7 @@ endif
 all: build build/gl.h $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CXX) $^ -o $(TARGET) $(LDFLAGS)
+	$(CXX) $^ -o $(TARGET) $(GL_FLAGS) $(LDFLAGS)
 
 ./build/%.o : ./%.cpp build/gl.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
@@ -43,7 +45,7 @@ build/gl.h: build/galogen_exe
 	cd build && ./galogen_exe ../submodules/galogen/third_party/gl.xml --api gl --ver 3.3 --profile core --exts EXT_texture_compression_s3tc,EXT_texture_sRGB,EXT_texture_filter_anisotropic --filename gl 
 
 build/galogen_exe: build
-	$(CXX) $(CXXFLAGS) submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp -o build/galogen_exe
+	$(CXX) $(CXXFLAGS) submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp -o build/galogen_exe $(LDFLAGS)
 
 build:
 	mkdir build
@@ -52,10 +54,10 @@ build:
 test: build build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
 
 test/collisiontest: $(TEST_COMMON_OBJS) build/test/offscreenWindow.o build/test/collisiontest.o build/test/noimgui/SpriteBatch.o
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
 test/collisiondemo: $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisiondemo.o  build/src/GL/SpriteBatchImpl.o build/src/GL/SpriteBatch.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS))
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
 test/mat2test: build/src/util/Mat2D.o build/test/mat2test.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
@@ -64,10 +66,10 @@ test/rtreetest: build/test/rtreetest.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file/PlainText.o build/src/GL/TextureAtlas.o
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
 test/mmaptest: build/test/mmaptest.o build/src/file/PlainText.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 -include $(DEPS)
 
