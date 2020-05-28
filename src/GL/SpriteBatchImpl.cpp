@@ -1,9 +1,12 @@
 #include <GL/SpriteBatchImpl.hpp>
 #include <GL/Camera.hpp>
 #include <GL/Sprite.hpp>
-#include <core/Editor.hpp>
+#include <file/PlainText.hpp>
 #include <rapidjson/document.h>
+#ifndef NO_IMGUI
 #include <imgui/imgui.h>
+#include <core/Editor.hpp>
+#endif
 #include <string>
 #ifndef NDEBUG
 #include <iostream>
@@ -62,7 +65,8 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glDisable(GL_CULL_FACE);
-	
+
+#ifndef NO_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendRendererName = "imgui_impl_starrysky";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
@@ -87,6 +91,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	for (int i = 0; i < 3; i++){
 		this->setAttrib(glPrograms[OVERLAY], paramNode[i], imguiVertexAttrs[i][1], imguiVertexAttrs[i][0]);
 	}
+#endif
 }
 
 SpriteBatchImpl::~SpriteBatchImpl(){
@@ -95,10 +100,12 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 		glDeleteBuffers(1,&i.VBO);
 		glDeleteProgram(i.programHandle);
 	}
+#ifndef NO_IMGUI
 	glDeleteTextures(1, &glPrograms[OVERLAY].extra_data[0]);
 	glDeleteBuffers(1, &glPrograms[OVERLAY].extra_data[1]);
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->TexID = 0;
+#endif
 }
 
 void SpriteBatchImpl::Draw(Sprite& spr){
@@ -114,6 +121,7 @@ void SpriteBatchImpl::Draw(Sprite& spr){
 	}
 }
 
+#ifndef NO_IMGUI
 // Ported from submodules/imgui/examples/imgui_impl_opengl3.cpp
 void SpriteBatchImpl::Draw(const ImDrawData* draw_data){
 	int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
@@ -187,6 +195,7 @@ void SpriteBatchImpl::Draw(const ImDrawData* draw_data){
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_SCISSOR_TEST);
 }
+#endif
 
 void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, rapidjson::Value& node, GLuint start, GLuint stride){
 	glBindVertexArray(currentProgram.VAO);

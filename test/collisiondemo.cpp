@@ -8,12 +8,12 @@
 #include <imgui/imgui.h>
 int main(int, char const**) {
 	float x1=0.0,x2=0.0,y1=0.0,y2=0.0;
-	Window window(1280, 720, 3, 3, "data/fonts/boxfont_round.ttf", "Collision Test");
+	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Collision Test");
 	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f), window);
 	bool paused = false;
 	window.getWindowState().camera = &camera;
-	TextureAtlas atlas("data/atlas.json");
-	SpriteBatch batch(atlas, "data/shaders.json");
+	TextureAtlas atlas("resources/data/atlas.json");
+	SpriteBatch batch(atlas, "resources/data/shaders.json");
 	Texture t = atlas.findSubTexture("test1");
 	Texture t2 = atlas.findSubTexture("test2");
 	Sprite s;
@@ -50,7 +50,7 @@ int main(int, char const**) {
 		batch.Draw(s);
 		batch.Draw(s2);
 		batch.Draw(window);
-		window.endFrame();
+		window.endFrame(&batch);
 	}
 	return 0;
 }

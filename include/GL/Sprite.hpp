@@ -2,7 +2,6 @@
 #define SPRITE_H
 #include <glm/glm.hpp>
 #include <memory>
-#include <GL/Helpers.hpp>
 #include <GL/Texture.hpp>
 #include <util/Rect.hpp>
 #include <array>

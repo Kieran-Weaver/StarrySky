@@ -10,10 +10,10 @@ SRCS := build/gl.c $(shell find src -path "*.cpp") $(IMGUI_SRCS)
 OBJS := $(patsubst %.c, ./build/%.o, $(patsubst %.cpp, ./build/%.o, $(SRCS)))
 TEST_SRCS := $(shell find test -path "*.cpp")
 TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS))
-TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision
-TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/core/Editor.o build/src/GL/Helpers.o build/src/GL/SpriteBatchImpl.o \
-build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS)) \
-build/src/GL/Sprite.o build/src/GL/SpriteBatch.o
+TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision test/mmaptest
+TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
+build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
+build/src/GL/Sprite.o
 DEPS := $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 ifdef OS
@@ -47,14 +47,14 @@ build/galogen_exe: build
 
 build:
 	mkdir build
-	cd build && mkdir -p build src/core src/game src/GL src/util submodules/imgui/examples test
+	cd build && mkdir -p build src/core src/game src/GL src/util src/file submodules/imgui/examples test test/noimgui
 
 test: build build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
 
-test/collisiontest: $(TEST_COMMON_OBJS) build/test/offscreenWindow.o build/test/collisiontest.o
+test/collisiontest: $(TEST_COMMON_OBJS) build/test/offscreenWindow.o build/test/collisiontest.o build/test/noimgui/SpriteBatch.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test/collisiondemo: $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisiondemo.o
+test/collisiondemo: $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisiondemo.o  build/src/GL/SpriteBatchImpl.o build/src/GL/SpriteBatch.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS))
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 test/mat2test: build/src/util/Mat2D.o build/test/mat2test.o
@@ -63,8 +63,11 @@ test/mat2test: build/src/util/Mat2D.o build/test/mat2test.o
 test/rtreetest: build/test/rtreetest.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/GL/Helpers.o build/src/GL/TextureAtlas.o
+test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file/PlainText.o build/src/GL/TextureAtlas.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+test/mmaptest: build/test/mmaptest.o build/src/file/PlainText.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 -include $(DEPS)
 

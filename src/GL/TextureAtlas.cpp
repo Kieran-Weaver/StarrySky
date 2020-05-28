@@ -1,5 +1,5 @@
 #include <GL/TextureAtlas.hpp>
-#include <GL/Helpers.hpp>
+#include <file/PlainText.hpp>
 #include <zlib.h>
 #include <rapidjson/document.h>
 #include <fstream>

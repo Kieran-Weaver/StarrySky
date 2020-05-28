@@ -1,7 +1,7 @@
 #ifndef STARRYSKY_SHADER_HPP
 #define STARRYSKY_SHADER_HPP
 #include <gl.h>
-#include <GL/Helpers.hpp>
+#include <string>
 class Shader
 {
 public:

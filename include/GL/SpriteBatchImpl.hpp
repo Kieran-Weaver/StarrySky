@@ -1,7 +1,6 @@
 #ifndef STARRYSKY_SPRITEBATCH_IMPL_H
 #define STARRYSKY_SPRITEBATCH_IMPL_H
 #include <GL/Shader.hpp>
-#include <GL/Helpers.hpp>
 #include <GL/Tilemap.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Window.hpp>

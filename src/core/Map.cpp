@@ -6,6 +6,7 @@
 #include <sstream>
 #include <core/RTree.cpp>
 #include <util/PRNG.hpp>
+#include <file/PlainText.hpp>
 #ifndef NDEBUG
 #include <iostream>
 #endif

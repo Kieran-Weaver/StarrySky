@@ -4,7 +4,7 @@
 #include <GL/TextureAtlas.hpp>
 #include <iostream>
 int main(int argc, char **argv){
-	TextureAtlas atlas("data/atlas.json");
+	TextureAtlas atlas("resources/data/atlas.json");
 	Texture t = atlas.findSubTexture("test1");
 	std::cout << "P1" << std::endl;
 	std::cout << t.m_bitmask.width << " " << t.m_bitmask.height << std::endl;

@@ -1,6 +1,7 @@
 #include <GL/Window.hpp>
 #include <gl.h>
 #include <GLFW/glfw3.h>
+struct SpriteBatch;
 void GLFWwindowDeleter::operator()(GLFWwindow* ptr){
 	glfwDestroyWindow(ptr);
 }
@@ -46,7 +47,7 @@ void Window::startFrame() const{
 void Window::makeCurrent() const{
 	glfwMakeContextCurrent(windowImpl.get());
 }
-void Window::endFrame() const{
+void Window::endFrame(SpriteBatch* batch) const{
 	this->makeCurrent();
 	glfwSwapBuffers(windowImpl.get());
 }
