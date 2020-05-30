@@ -9,7 +9,7 @@
 #include <GL/Tilemap.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
-#include <file/JSON.hpp>
+#include <file/JSONReader.hpp>
 #include <visit_struct/visit_struct.hpp>
 enum WallType { LWALL=1, RWALL=2, CEIL=4, FLOOR=8, ONEWAY=16  };
 struct Surface{

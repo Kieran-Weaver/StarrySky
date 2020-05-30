@@ -4,29 +4,10 @@
 #include <zlib.h>
 #include <fstream>
 template<>
-void JSONParser::load<Texture>(Texture& data){
-	Rect<uint16_t> tmp = {
-		static_cast<uint16_t>(internal["x"].GetInt()), static_cast<uint16_t>(internal["y"].GetInt()),
-		static_cast<uint16_t>(internal["w"].GetInt()), static_cast<uint16_t>(internal["h"].GetInt())
-	};
-	auto width = static_cast<float>(data.width);
-	auto height = static_cast<float>(data.height);
-	data.m_rect = Rect<uint16_t>(
-		static_cast<uint16_t>(tmp.left/width*65536.f),
-		static_cast<uint16_t>(tmp.top/height*65536.f),
-		static_cast<uint16_t>(tmp.width/width*65536.f),
-		static_cast<uint16_t>(tmp.height/height*65536.f));
-	data.width = tmp.width;
-	data.height = tmp.height;
-	data.rotated = internal["r"].GetBool();
-	if (data.rotated){
-		data.m_rect = {
-			static_cast<uint16_t>(tmp.left/width*65536.f),
-			static_cast<uint16_t>(tmp.top/height*65536.f),
-			static_cast<uint16_t>(tmp.height/width*65536.f),
-			static_cast<uint16_t>(tmp.width/height*65536.f)
-		};
-	}
+JSONParser::operator Texture(){
+	Texture data;
+
+	return data;
 }
 TextureAtlas::TextureAtlas(const std::string& file_path){
 	std::string jsondata = readWholeFile(file_path);
@@ -45,12 +26,28 @@ TextureAtlas::TextureAtlas(const std::string& file_path){
 			throw std::invalid_argument("Invalid hitbox file: " + path + textureName + ".bin.gz");
 		}
 		for (auto& textureNode : atlasNode["images"].GetArray()){
-			JSONParser par(textureNode);
-			std::string tname(textureNode["n"].GetString());
+			JSONParser tNode(textureNode);
+			std::string tname(tNode["n"]);
 			auto& tex = data.m_texture_table[tname];
-			tex.width = data.width;
-			tex.height = data.height;
-			par.load(tex);
+			Rect<uint16_t> tmp = {
+				tNode["x"], tNode["y"],
+				tNode["w"], tNode["h"]
+			};
+			float width = data.width;
+			float height = data.height;
+			tex.m_rect = {
+				static_cast<uint16_t>(tmp.left/width*65536.f), static_cast<uint16_t>(tmp.top/height*65536.f),
+				static_cast<uint16_t>(tmp.width/width*65536.f), static_cast<uint16_t>(tmp.height/height*65536.f)
+			};
+			tex.width = tmp.width;
+			tex.height = tmp.height;
+			tex.rotated = tNode["r"];
+			if (tex.rotated){
+				tex.m_rect = {
+					static_cast<uint16_t>(tmp.left/width*65536.f), static_cast<uint16_t>(tmp.top/height*65536.f),
+					static_cast<uint16_t>(tmp.height/width*65536.f), static_cast<uint16_t>(tmp.width/height*65536.f)
+				};
+			}
 		}
 	}
 	if (m_atlas_list.empty()){

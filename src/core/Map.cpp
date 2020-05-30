@@ -19,20 +19,24 @@ TileMap& ObjMap::getTM(const std::string& id){
 	return this->internal_tms[id];
 }
 template<>
-void JSONParser::load<TMType>(TMType& i){
-	std::string data(internal.GetString());
+JSONParser::operator TMType(){
+	std::string data{internal.GetString()};
 	if (data == "normal"){
-		i = TMType::Normal;
+		return TMType::Normal;
 	} else if (data == "effect"){
-		i = TMType::Effect;
+		return TMType::Effect;
+	} else {
+		return TMType::Normal;
 	}
 }
 template<>
-void JSONParser::load<glm::mat2>(glm::mat2& data){
+JSONParser::operator glm::mat2(){
+	glm::mat2 data;
 	data[0][0] = internal[0].GetFloat();
 	data[0][1] = internal[1].GetFloat();
 	data[1][0] = internal[2].GetFloat();
 	data[1][1] = internal[3].GetFloat();
+	return data;
 }
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->rng = SeedRNG();
@@ -48,6 +52,7 @@ ObjMap::~ObjMap(){
 	}
 }
 void ObjMap::loadTileMap(TileMap& tomodify, JSONParser tilemapNode){
+	tomodify = tilemapNode;
 	if (!tomodify.initialized){
 		glGenTextures(1, &tomodify.tileBufferTBO);
 		glGenTextures(1, &tomodify.tileTextureTBO);
@@ -55,7 +60,6 @@ void ObjMap::loadTileMap(TileMap& tomodify, JSONParser tilemapNode){
 		glGenBuffers(1, &tomodify.tileTexture);
 		tomodify.initialized = true;
 	}
-	tilemapNode.load(tomodify);
 	for (auto& tfile : tomodify.filenames){
 		const Texture tempTex = this->m_atlas.findSubTexture(tfile);
 		tomodify.tileData.emplace_back();
@@ -78,10 +82,8 @@ void ObjMap::loadFromFile(const std::string& filename){
 
 	std::string jsondata = readWholeFile(filename);
 	JSONReader document(jsondata.c_str());
-	std::vector<Surface> tempSurfaces;
-
-	document["surfaces"].load(tempSurfaces);
-	document["ledges"].load(ledges);
+	std::vector<Surface> tempSurfaces = document["surfaces"];
+	ledges = static_cast<decltype(ledges)>(document["ledges"]);
 	rapidjson::Value& spritesNode = document["sprites"];
 	rapidjson::Value& tilemapsNode = document["tilemaps"];
 
@@ -92,8 +94,8 @@ void ObjMap::loadFromFile(const std::string& filename){
 		JSONParser tnode(spriteNode["t"]);
 		glm::mat2 sprtransform;
 		glm::vec2 sprposition;
-		posnode.load(sprposition);
-		tnode.load(sprtransform);
+		sprposition = posnode;
+		sprtransform = tnode;
 		std::string fname = spriteNode["name"].GetString();
 		this->addBGTexture(sprposition,sprtransform,fname);
 	}

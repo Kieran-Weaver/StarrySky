@@ -21,8 +21,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	document = {shaderdata.c_str()};
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	int num_shaders;
-	document["shaders.len"].load(num_shaders);
+	int num_shaders = document["shaders.len"];
 	GLuint* VAOs = new GLuint[num_shaders];
 	glGenVertexArrays(num_shaders,VAOs);
 	glBindVertexArray(VAOs[0]);
@@ -199,16 +198,11 @@ void SpriteBatchImpl::Draw(const ImDrawData* draw_data){
 
 void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, JSONParser node, GLuint start, GLuint stride){
 	glBindVertexArray(currentProgram.VAO);
-	std::string input_name = "";
-	GLuint components = 2;
-	GLuint type = GL_FLOAT;
-	bool normalized = false;
-	GLint inputHandle = 0;
-	node["name"].load(input_name);
-	node["location"].load(inputHandle);
-	node["components"].load(components);
-	node["type"].load(type);
-	node["norm"].load(normalized);
+	std::string input_name = node["name"];
+	GLuint components = node["components"];
+	GLuint type = node["type"];
+	bool normalized = node["norm"];
+	GLint inputHandle = node["location"];
 
 	switch (type){
 	case 0:
@@ -238,14 +232,12 @@ void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, JSONParser node, GLui
 }
 
 void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, JSONParser node){
-	int start, stride;
-	node["start"].load(start);
-	node["stride"].load(stride);
-	this->setAttrib(currentProgram, node, start, stride);
+	this->setAttrib(currentProgram, node, node["start"], node["stride"]);
 }
 
 template<>
-void JSONParser::load<GLProgram>(GLProgram& data){
+JSONParser::operator GLProgram(){
+	GLProgram data;
 	data.fgShader = Shader(GL_FRAGMENT_SHADER, internal["fgFile"].GetString());
 	data.vxShader = Shader(GL_VERTEX_SHADER, internal["vxFile"].GetString());
 	bool usesGS = internal["usesGS"].GetBool();
@@ -253,6 +245,7 @@ void JSONParser::load<GLProgram>(GLProgram& data){
 		data.gsShader = Shader(GL_GEOMETRY_SHADER, internal["gsFile"].GetString());
 	}
 	data.programHandle = CreateProgram(data.vxShader,data.gsShader,data.fgShader,internal["output"].GetString());
+	return data;
 }
 
 int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
@@ -260,11 +253,11 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 	for (int ind = 0; ind < num_shaders; ind++){
 		glPrograms.emplace_back();
 		GLProgram& currentProgram = glPrograms.back();
+		currentProgram = node[ind];
 		currentProgram.VAO = VAOs[ind];
 		glBindVertexArray(currentProgram.VAO);
 		glGenBuffers(1,&currentProgram.VBO);
 		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[ind].VBO);
-		node[ind].load(currentProgram);
 
 		auto layoutNode = node[ind]["layout"];
 		for (auto& parameterNode : layoutNode.GetArray()){

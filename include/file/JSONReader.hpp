@@ -28,59 +28,62 @@ public:
 	template<typename T, std::enable_if_t< \
 	!(visit_struct::traits::is_visitable<T>::value || is_json_literal<T>() || is_std_array<T>::value) \
 	, int> = 0>
-	void load(T& data);
+	operator T();
 	
 	template<typename T,  std::enable_if_t<visit_struct::traits::is_visitable<T>::value, int> = 0>
-	void load(T& data){
+	operator T(){
+		T data;
 		visit_struct::for_each(data, [&](const char* name, auto& value){
-			JSONParser j(internal[name]);
-			j.load(value);
+			value = static_cast<std::decay_t<decltype(value)>>((*this)[name]);
 		});
+		return data;
 	}
 	
 	template<typename T>
-	void load(std::unordered_map<std::string, T>& data){
+	operator std::unordered_map<std::string, T>(){
+		std::unordered_map<std::string, T> data;
 		for (auto& m : internal.GetObject()){
-			data[m.name.GetString()] = {};
-			JSONParser j(internal[m.name.GetString()]);
-			j.load(data[m.name.GetString()]);
+			const std::string& key = m.name.GetString();
+			data[key] = static_cast<T>((*this)[key]);
 		}
+		return data;
 	}
 	
 	template<typename T>
-	void load(std::vector<T>& data){
-		for (auto& v : internal.GetArray()){
-			data.emplace_back();
-			JSONParser j(v);
-			j.load(data.back());
+	operator std::vector<T>(){
+		std::vector<T> data;
+		for (auto& v : this->GetArray()){
+			data.push_back((*this)[data.size()]);
 		}
+		return data;
 	}
 	
 	template<typename T, std::size_t N>
-	void load(std::array<T,N>& data){
+	operator std::array<T,N>(){
+		std::array<T,N> data;
 		for (int i = 0; i < data.size(); i++){
-			JSONParser j(internal[i]);
-			j.load(data[i]);
+			data[i] = static_cast<T>((*this)[i]);
 		}
+		return data;
 	}
 
 	template<typename T, std::enable_if_t<std::is_integral<T>::value, int> = 0>
-	void load(T& data){
-		if constexpr (std::is_same<T, bool>::value){
-			data = internal.GetBool();
+	operator T(){
+		if (internal.IsBool()){
+			return internal.GetBool();
 		} else {
-			data = internal.GetInt64();
+			return internal.GetInt64();
 		}
 	}
 	
 	template<typename T, std::enable_if_t<std::is_floating_point<T>::value, int> = 0>
-	void load(T& data){
-		data = internal.GetDouble();
+	operator T(){
+		return internal.GetDouble();
 	}
 
 	template<typename T, std::enable_if_t<std::is_same<T, std::string>::value, int> = 0>
-	void load(T& data){
-		data = internal.GetString();
+	operator T(){
+		return internal.GetString();
 	}
 
 private:
