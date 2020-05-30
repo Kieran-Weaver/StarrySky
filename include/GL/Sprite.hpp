@@ -21,7 +21,7 @@ struct Sprite{
 	}
 	const Rect<float>& getAABB();
 	const GLRect2D& render();
-	glm::mat2 getMat2(){
+	glm::mat2 getMat2() const{
 		return this->m_model;
 	}
 

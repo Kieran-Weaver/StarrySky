@@ -1,11 +1,29 @@
 {
 	"surfaces" : [
-		{ "x" : 100, "y" : 600, "w" : 1200, "h" : 2, "f" : 8 },
-		{ "x" : 100, "y" : 100, "w" : 1, "h" : 500, "f" : 1 },
-		{ "x" : 100, "y" : 100, "w" : 1200, "h" : 2, "f" : 4 },
-		{ "x" : 1300, "y" : 100, "w" : 1, "h" : 500, "f" : 2 },
-		{ "x" : 200, "y" : 450, "w" : 150, "h" : 2, "f" : 16 },
-		{ "x" : 900, "y" : 450, "w" : 150, "h" : 2, "f" : 16 }
+		{ 
+			"hitbox" : { "left" : 100, "top" : 600, "width" : 1200, "height" : 2 },
+			"flags" : 8
+		},
+		{
+			"hitbox" : { "left" : 100, "top" : 100, "width" : 1, "height" : 500},
+			"flags" : 1
+		},
+		{
+			"hitbox" : { "left" : 100, "top" : 100, "width" : 1200, "height" : 2},
+			"flags" : 4
+		},
+		{
+			"hitbox" : { "left" : 1300, "top" : 100, "width" : 1, "height" : 500},
+			"flags" : 2
+		},
+		{
+			"hitbox" : { "left" : 200, "top" : 450, "width" : 150, "height" : 2},
+			"flags" : 16
+		},
+		{
+			"hitbox" : { "left" : 900, "top" : 450, "width" : 150, "height" : 2},
+			"flags" : 16
+		}
 	],
 	"sprites" : [
 		{ "x" : 275, "y" : 522, "t" : [0.652, 0.0, 0.0, 0.23], "name" : "bookshelf"},
@@ -16,18 +34,16 @@
 		{ "x" : 100, "y" : 600},
 		{ "x" : 1128, "y" : 600}
 	],
-	"tilemaps" : [
-		{
-			"name" : "default",
+	"tilemaps" : {
+		"default" : {
 			"AffineT" : [1.0, 0.0, 0.0, 0.782],
-			"tiles" : [
-				"wood"
-			],
-			"tileSize" : [50.0, 640.0],
-			"position" : [125.0, 350.0],
+			"Attrs" : [50.0, 640.0, 125.0, 350.0],
 			"metadata" : [1.0, 0.0, 0.0, 0.0],
 			"texData" : [24, 1, 0, 0],
-			"drawntiles" : [
+			"filenames" : [
+				"wood"
+			],
+			"drawn" : [
 				0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0,
 				0, 0, 0, 0, 0, 0,
@@ -35,21 +51,19 @@
 			],
 			"type" : "normal"
 		},
-		{
-			"name" : "electricityEffect",
+		"electricityEffect" : {
 			"AffineT" : [1.0, 0.0, 0.0, 1.0],
-			"tiles" : [
-				"electricity"
-			],
-			"tileSize" : [2000.0, 2000.0],
-			"position" : [0.0, 0.0],
+			"Attrs" : [2000.0, 2000.0, 0.0, 0.0],
 			"metadata" : [-1.0, 0.0, 0.0, 0.0],
 			"texData" : [2, 2, 0, 0],
-			"drawntiles" : [
+			"filenames" : [
+				"electricity"
+			],
+			"drawn" : [
 				0, 0,
 				0, 0
 			],
 			"type" : "effect"
 		}
-	]
+	}
 }

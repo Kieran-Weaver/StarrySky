@@ -2,7 +2,6 @@
 #include <GL/Camera.hpp>
 #include <GL/Sprite.hpp>
 #include <file/PlainText.hpp>
-#include <rapidjson/document.h>
 #ifndef NO_IMGUI
 #include <imgui/imgui.h>
 #include <core/Editor.hpp>
@@ -19,10 +18,11 @@ glm::mat2 unpackmat2(const std::array<float,4>& array){
 }
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderfile) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile(shaderfile);
-	document.Parse(shaderdata.c_str());
+	document = {shaderdata.c_str()};
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
-	int num_shaders = document["shaders.len"].GetInt();
+	int num_shaders;
+	document["shaders.len"].load(num_shaders);
 	GLuint* VAOs = new GLuint[num_shaders];
 	glGenVertexArrays(num_shaders,VAOs);
 	glBindVertexArray(VAOs[0]);
@@ -87,7 +87,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	io.Fonts->TexID = (ImTextureID)(intptr_t)glPrograms[OVERLAY].extra_data[0];
 	std::array<std::array<GLuint, 2>, 3> imguiVertexAttrs = {{ {{sizeof(ImDrawVert), offsetof(ImDrawVert, pos)}}, {{sizeof(ImDrawVert), offsetof(ImDrawVert, uv)}}, {{sizeof(ImDrawVert), offsetof(ImDrawVert, col)}} }};
-	auto& paramNode = document["shaders"][OVERLAY]["layout"];
+	auto paramNode = document["shaders"][OVERLAY]["layout"];
 	for (int i = 0; i < 3; i++){
 		this->setAttrib(glPrograms[OVERLAY], paramNode[i], imguiVertexAttrs[i][1], imguiVertexAttrs[i][0]);
 	}
@@ -197,17 +197,20 @@ void SpriteBatchImpl::Draw(const ImDrawData* draw_data){
 }
 #endif
 
-void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, rapidjson::Value& node, GLuint start, GLuint stride){
+void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, JSONParser node, GLuint start, GLuint stride){
 	glBindVertexArray(currentProgram.VAO);
 	std::string input_name = "";
 	GLuint components = 2;
 	GLuint type = GL_FLOAT;
-	GLboolean normalized = false;
-	input_name = node["name"].GetString();
-	GLint inputHandle = node["location"].GetInt();
-	components = node["components"].GetInt();	
+	bool normalized = false;
+	GLint inputHandle = 0;
+	node["name"].load(input_name);
+	node["location"].load(inputHandle);
+	node["components"].load(components);
+	node["type"].load(type);
+	node["norm"].load(normalized);
 
-	switch (node["type"].GetInt()){
+	switch (type){
 	case 0:
 		type = GL_FLOAT;
 		break;
@@ -225,7 +228,6 @@ void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, rapidjson::Value& nod
 		break;
 	}
 
-	normalized = node["norm"].GetBool();
 	glBindAttribLocation(currentProgram.programHandle, inputHandle, input_name.c_str());
 	glEnableVertexAttribArray(inputHandle);
 	if (type == GL_FLOAT || normalized){
@@ -235,11 +237,26 @@ void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, rapidjson::Value& nod
 	}
 }
 
-void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, rapidjson::Value& node){
-	this->setAttrib(currentProgram, node, node["start"].GetInt(), node["stride"].GetInt());
+void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, JSONParser node){
+	int start, stride;
+	node["start"].load(start);
+	node["stride"].load(stride);
+	this->setAttrib(currentProgram, node, start, stride);
 }
+
+template<>
+void JSONParser::load<GLProgram>(GLProgram& data){
+	data.fgShader = Shader(GL_FRAGMENT_SHADER, internal["fgFile"].GetString());
+	data.vxShader = Shader(GL_VERTEX_SHADER, internal["vxFile"].GetString());
+	bool usesGS = internal["usesGS"].GetBool();
+	if (usesGS){
+		data.gsShader = Shader(GL_GEOMETRY_SHADER, internal["gsFile"].GetString());
+	}
+	data.programHandle = CreateProgram(data.vxShader,data.gsShader,data.fgShader,internal["output"].GetString());
+}
+
 int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
-	rapidjson::Value& node = document["shaders"];
+	auto node = document["shaders"];
 	for (int ind = 0; ind < num_shaders; ind++){
 		glPrograms.emplace_back();
 		GLProgram& currentProgram = glPrograms.back();
@@ -247,16 +264,9 @@ int SpriteBatchImpl::loadPrograms(int num_shaders, GLuint* VAOs){
 		glBindVertexArray(currentProgram.VAO);
 		glGenBuffers(1,&currentProgram.VBO);
 		glBindBuffer(GL_ARRAY_BUFFER, glPrograms[ind].VBO);
-		rapidjson::Value& shaderNode = node[ind];
+		node[ind].load(currentProgram);
 
-		currentProgram.fgShader = Shader(GL_FRAGMENT_SHADER, shaderNode["fgFile"].GetString());
-		currentProgram.vxShader = Shader(GL_VERTEX_SHADER, shaderNode["vxFile"].GetString());
-		bool usesGS = shaderNode["usesGS"].GetBool();
-		if (usesGS){
-			currentProgram.gsShader = Shader(GL_GEOMETRY_SHADER, shaderNode["gsFile"].GetString());
-		}
-		currentProgram.programHandle = CreateProgram(currentProgram.vxShader,currentProgram.gsShader,currentProgram.fgShader,shaderNode["output"].GetString());
-		rapidjson::Value& layoutNode = shaderNode["layout"];
+		auto layoutNode = node[ind]["layout"];
 		for (auto& parameterNode : layoutNode.GetArray()){
 			this->setAttrib(currentProgram, parameterNode);
 		}

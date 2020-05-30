@@ -9,8 +9,8 @@
 #include <GL/Tilemap.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <glm/glm.hpp>
-#include <rapidjson/document.h>
-using phmap::parallel_flat_hash_map;
+#include <file/JSON.hpp>
+#include <visit_struct/visit_struct.hpp>
 enum WallType { LWALL=1, RWALL=2, CEIL=4, FLOOR=8, ONEWAY=16  };
 struct Surface{
 	Rect<float> hitbox;
@@ -19,6 +19,7 @@ struct Surface{
 		return hitbox;
 	}
 };
+VISITABLE_STRUCT(Surface, hitbox, flags);
 struct MapSprite{
 	glm::vec2 iPosition;
 	std::string filename;
@@ -45,10 +46,10 @@ public:
 	float ledgeheight = 8.f;
 	
 private:
-	parallel_flat_hash_map<std::string, TileMap> internal_tms;
-	parallel_flat_hash_map<int, MapSprite> sprs;
+	std::unordered_map<std::string, TileMap> internal_tms;
+	std::unordered_map<int, MapSprite> sprs;
 	bool tm_changed = false;
 	TextureAtlas& m_atlas;
-	std::string loadTileMap(TileMap& tomodify, const rapidjson::Value& tilemapNode);
+	void loadTileMap(TileMap& tomodify, JSONParser tilemapNode);
 };
 #endif

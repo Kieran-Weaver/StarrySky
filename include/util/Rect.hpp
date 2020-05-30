@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <vector>
+#include <visit_struct/visit_struct_intrusive.hpp>
 template<typename T>
 struct Rect{
 	Rect() : left(0), top(0), width(0), height(0){
@@ -25,10 +26,12 @@ struct Rect{
 		return *this;
 	}
 	
-	T left;
-	T top;
-	T width;
-	T height;
+	BEGIN_VISITABLES(Rect<T>);
+	VISITABLE(T, left);
+	VISITABLE(T, top);
+	VISITABLE(T, width);
+	VISITABLE(T, height);
+	END_VISITABLES;
 
 	bool Contains(float x, float y) const{
 		return (((left - x)*(left + width - x) <= 0.f)&&((top - y)*(top + height - y) <= 0.f));

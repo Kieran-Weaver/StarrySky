@@ -7,6 +7,8 @@
 #include <core/RTree.cpp>
 #include <util/PRNG.hpp>
 #include <file/PlainText.hpp>
+VISITABLE_STRUCT(glm::vec2, x, y);
+#include <file/JSON.hpp>
 #ifndef NDEBUG
 #include <iostream>
 #endif
@@ -15,6 +17,22 @@ TileMap& ObjMap::getTM(const std::string& id){
 		this->internal_tms[id] = TileMap();
 	}
 	return this->internal_tms[id];
+}
+template<>
+void JSONParser::load<TMType>(TMType& i){
+	std::string data(internal.GetString());
+	if (data == "normal"){
+		i = TMType::Normal;
+	} else if (data == "effect"){
+		i = TMType::Effect;
+	}
+}
+template<>
+void JSONParser::load<glm::mat2>(glm::mat2& data){
+	data[0][0] = internal[0].GetFloat();
+	data[0][1] = internal[1].GetFloat();
+	data[1][0] = internal[2].GetFloat();
+	data[1][1] = internal[3].GetFloat();
 }
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->rng = SeedRNG();
@@ -29,7 +47,7 @@ ObjMap::~ObjMap(){
 		glDeleteBuffers(1, &tmap.tileTexture);
 	}
 }
-std::string ObjMap::loadTileMap(TileMap& tomodify, const rapidjson::Value& tilemapNode){
+void ObjMap::loadTileMap(TileMap& tomodify, JSONParser tilemapNode){
 	if (!tomodify.initialized){
 		glGenTextures(1, &tomodify.tileBufferTBO);
 		glGenTextures(1, &tomodify.tileTextureTBO);
@@ -37,112 +55,52 @@ std::string ObjMap::loadTileMap(TileMap& tomodify, const rapidjson::Value& tilem
 		glGenBuffers(1, &tomodify.tileTexture);
 		tomodify.initialized = true;
 	}
-	const auto& ATNode = tilemapNode["AffineT"];
-	for (int i = 0; i < 4; i++){
-		tomodify.affineT[i] = ATNode[i].GetFloat();
-	}
-	const auto& tilesNode = tilemapNode["tiles"];
-	rapidjson::SizeType numTiles = tilesNode.Size();
-	tomodify.numTiles = numTiles;
-	for (rapidjson::SizeType i = 0; i < numTiles; i++){
-		const Texture tempTex = this->m_atlas.findSubTexture(tilesNode[i].GetString());
+	tilemapNode.load(tomodify);
+	for (auto& tfile : tomodify.filenames){
+		const Texture tempTex = this->m_atlas.findSubTexture(tfile);
 		tomodify.tileData.emplace_back();
-		tomodify.tileData[i][0] = tempTex.m_rect.left / 65536.f;
-		tomodify.tileData[i][1] = tempTex.m_rect.top / 65536.f;
-		tomodify.tileData[i][2] = tempTex.m_rect.width / 65536.f;
-		tomodify.tileData[i][3] = tempTex.m_rect.height / 65536.f;
-		tomodify.filenames.emplace_back(tilesNode[i].GetString());
-	}
-	
-	const auto& sizeNode = tilemapNode["tileSize"];
-	for (int i = 0; i < 2; i++){
-		tomodify.packedtileSize[i] = sizeNode[i].GetFloat();
-	}
-	const auto& posNode = tilemapNode["position"];
-	for (int i = 0; i < 2; i++){
-		tomodify.packedtileSize[2 + i] = posNode[i].GetFloat();
-	}
-	const auto& metaNode = tilemapNode["metadata"];
-	for (int i = 0; i < 4; i++){
-		tomodify.metadata[i] = metaNode[i].GetFloat();
+		tomodify.tileData.back()[0] = tempTex.m_rect.left / 65536.f;
+		tomodify.tileData.back()[1] = tempTex.m_rect.top / 65536.f;
+		tomodify.tileData.back()[2] = tempTex.m_rect.width / 65536.f;
+		tomodify.tileData.back()[3] = tempTex.m_rect.height / 65536.f;
+		tomodify.numTiles++;
 	}
 
-	const auto& tDataNode = tilemapNode["texData"];
-	for (int i = 0; i < 4; i++){
-		tomodify.texdata[i] = tDataNode[i].GetInt();
-	}
-	
-	const auto& drawnNode = tilemapNode["drawntiles"];
-	for (auto& tileNode : drawnNode.GetArray()){
-		tomodify.drawn.emplace_back(tileNode.GetInt());
-	}
-
-	std::string temptype = tilemapNode["type"].GetString();
-	if (temptype == "normal"){
-		tomodify.type = TMType::Normal;
-	} else if (temptype == "effect"){
-		tomodify.type = TMType::Effect;
-	}
 	glBindBuffer(GL_TEXTURE_BUFFER, tomodify.tileBuffer);
 	glBufferData(GL_TEXTURE_BUFFER, tomodify.tileData.size() * 4 * sizeof(uint32_t), tomodify.tileData.data(), GL_DYNAMIC_DRAW);
 
 	glBindBuffer(GL_TEXTURE_BUFFER, tomodify.tileTexture);
 	glBufferData(GL_TEXTURE_BUFFER, tomodify.drawn.size() * sizeof(uint16_t), tomodify.drawn.data(), GL_DYNAMIC_DRAW);
-
-	return tilemapNode["name"].GetString();
 }
 void ObjMap::loadFromFile(const std::string& filename){
 	ledges.clear();
 	sprs.clear();
 
 	std::string jsondata = readWholeFile(filename);
-	rapidjson::Document document;
-	rapidjson::ParseResult result = document.Parse(jsondata.c_str());
-	if (!result) {
-#ifndef NDEBUG
-		std::cerr << "ERROR: Invalid JSON file " << filename << std::endl; 
-#endif
-		std::exit(1);
-	}
-	const rapidjson::Value& surfacesNode = document["surfaces"];
-	const rapidjson::Value& spritesNode = document["sprites"];
-	const rapidjson::Value& ledgesNode = document["ledges"];
-	const rapidjson::Value& tilemapsNode = document["tilemaps"];
+	JSONReader document(jsondata.c_str());
 	std::vector<Surface> tempSurfaces;
-	for (auto& surfaceNode : surfacesNode.GetArray()){
-		Surface s;
-		s.hitbox = {surfaceNode["x"].GetFloat(),surfaceNode["y"].GetFloat(),surfaceNode["w"].GetFloat(),surfaceNode["h"].GetFloat()};
-		s.flags = surfaceNode["f"].GetInt() & 0x1F;
-		if (s.flags == 0){
-#ifndef NDEBUG
-			std::cerr << " Warning: Invalid surface flags: " << surfaceNode["f"].GetInt() << std::endl;
-#endif
-			s.flags = 1;
-		}
-		tempSurfaces.emplace_back(s);
-	}
+
+	document["surfaces"].load(tempSurfaces);
+	document["ledges"].load(ledges);
+	rapidjson::Value& spritesNode = document["sprites"];
+	rapidjson::Value& tilemapsNode = document["tilemaps"];
+
 	this->surfaces.load(tempSurfaces);
+
 	for (auto& spriteNode : spritesNode.GetArray()){
+		JSONParser posnode(spriteNode);
+		JSONParser tnode(spriteNode["t"]);
 		glm::mat2 sprtransform;
 		glm::vec2 sprposition;
-		sprposition.x = spriteNode["x"].GetFloat();
-		sprposition.y = spriteNode["y"].GetFloat();
-		sprtransform[0][0] = spriteNode["t"][0].GetFloat();
-		sprtransform[0][1] = spriteNode["t"][1].GetFloat();
-		sprtransform[1][0] = spriteNode["t"][2].GetFloat();
-		sprtransform[1][1] = spriteNode["t"][3].GetFloat();
+		posnode.load(sprposition);
+		tnode.load(sprtransform);
 		std::string fname = spriteNode["name"].GetString();
 		this->addBGTexture(sprposition,sprtransform,fname);
 	}
-	for (auto& ledgeNode : ledgesNode.GetArray()){
-		glm::vec2 pos;
-		pos.x = ledgeNode["x"].GetFloat();
-		pos.y = ledgeNode["y"].GetFloat();
-		ledges.emplace_back(pos);
-	}
-	for (auto& tilemapNode : tilemapsNode.GetArray()){
+	for (auto& tilemapNode : tilemapsNode.GetObject()){
 		TileMap tm;
-		std::string tmname = loadTileMap(tm,tilemapNode);
+		std::string tmname = tilemapNode.name.GetString();
+		loadTileMap(tm, tilemapNode.value);
 		internal_tms[tmname] = tm;
 	}
 	tm_changed = true;
@@ -167,127 +125,51 @@ void ObjMap::SetPosition(float x, float y) {
 	for (auto& i : sprs){
 		i.second.spr.setPosition(i.second.iPosition.x + x, i.second.iPosition.y + y);
 	}
-	this->internal_tms["default"].packedtileSize[2] = x;
-	this->internal_tms["default"].packedtileSize[3] = y;
+	this->internal_tms["default"].Attrs[2] = x;
+	this->internal_tms["default"].Attrs[3] = y;
 	tm_changed = true;
+}
+template<>
+void JSONWriter::store<MapSprite>(const MapSprite& i){
+	writer.StartObject();
+	writer.Key("x");
+	writer.Int(i.iPosition.x);
+	writer.Key("y");
+	writer.Int(i.iPosition.y);
+	writer.Key("t");
+	writer.StartArray();
+	auto mat = i.spr.getMat2();
+	writer.Double(mat[0][0]);
+	writer.Double(mat[0][1]);
+	writer.Double(mat[1][0]);
+	writer.Double(mat[1][1]);
+	writer.EndArray();
+	writer.Key("name");
+	writer.String(i.filename.c_str());
+	writer.EndObject();
+}
+template<>
+void JSONWriter::store<TMType>(const TMType& i){
+	if (i == TMType::Normal){
+		writer.String("normal");
+	} else if (i == TMType::Effect){
+		writer.String("effect");
+	}
 }
 void ObjMap::WriteToFile(const std::string& filename){
 	std::ofstream ofs(filename);
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	JSONWriter writer;
 	writer.StartObject();
 	writer.Key("surfaces");
-	
-	writer.StartArray();
-	for (const auto& i : surfaces.get_elements()){
-		writer.StartObject();
-		writer.Key("x");
-		writer.Int(i.hitbox.left);
-		writer.Key("y");
-		writer.Int(i.hitbox.top);
-		writer.Key("w");
-		writer.Int(i.hitbox.width);
-		writer.Key("h");
-		writer.Int(i.hitbox.height);
-		writer.Key("f");
-		if (i.flags == 0){
-#ifndef NDEBUG
-			std::cerr << "Unknown surface flags: " << i.flags << std::endl;
-#endif
-			writer.Int(1);
-		} else {
-			writer.Int(i.flags);
-		}
-		writer.EndObject();
-	}
-	writer.EndArray();
-	
+	writer.store(surfaces.get_elements());
 	writer.Key("sprites");
-	
-	writer.StartArray();
-	for (auto& spr: sprs){
-		auto& i = spr.second;
-		writer.StartObject();
-		writer.Key("x");
-		writer.Int(i.iPosition.x);
-		writer.Key("y");
-		writer.Int(i.iPosition.y);
-		writer.Key("t");
-		writer.StartArray();
-		auto mat = i.spr.getMat2();
-		writer.Double(mat[0][0]);
-		writer.Double(mat[0][1]);
-		writer.Double(mat[1][0]);
-		writer.Double(mat[1][1]);
-		writer.EndArray();
-		writer.Key("name");
-		writer.String(i.filename.c_str());
-		writer.EndObject();
-	}
-	writer.EndArray();
-	
+	writer.store(sprs);
 	writer.Key("ledges");
-	
-	writer.StartArray();
-	for (auto& i : ledges){
-		writer.StartObject();
-		writer.Key("x");
-		writer.Int(i.x);
-		writer.Key("y");
-		writer.Int(i.y);
-		writer.EndObject();
-	}
-	writer.EndArray();
-	
+	writer.store(ledges);
 	writer.Key("tilemaps");
-	writer.StartArray();
-	for (auto& tmpair : internal_tms){
-		auto& internal_tm = tmpair.second;
-
-		writer.StartObject();
-
-		writer.Key("Name");
-		writer.String("tmpair.first");
-
-		writer.Key("AffineT");
-		writer.StartArray();
-		for (int i = 0; i < 4; i++){
-			writer.Double(internal_tm.affineT[i]);
-		}
-		writer.EndArray();
-		
-		writer.Key("tiles");
-		writer.StartArray();
-		for (auto& fname : internal_tm.filenames){
-			writer.String(fname.c_str());
-		}
-		writer.EndArray();
-	
-		writer.Key("tileSize");
-		writer.StartArray();
-		writer.Double(internal_tm.packedtileSize[0]);
-		writer.Double(internal_tm.packedtileSize[1]);
-		writer.EndArray();
-
-		writer.Key("position");
-		writer.StartArray();
-		writer.Double(internal_tm.packedtileSize[2]);
-		writer.Double(internal_tm.packedtileSize[3]);
-		writer.EndArray();
-
-		writer.Key("drawntiles");
-		writer.StartArray();
-		for (auto& i : internal_tm.drawn){
-			writer.Int(i);
-		}
-		writer.EndArray();
-
-		writer.EndObject();
-	}
-	writer.EndArray();
-	
+	writer.store(internal_tms);
 	writer.EndObject();
-	ofs << s.GetString() << std::endl;
+	ofs << writer.GetString() << std::endl;
 	ofs.close();
 }
 void ObjMap::Draw(SpriteBatch& frame) {

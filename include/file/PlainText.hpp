@@ -1,5 +1,5 @@
-#ifndef STARRYSKY_HELPER_HPP
-#define STARRYSKY_HELPER_HPP
+#ifndef STARRYSKY_PLAINTEXT_HPP
+#define STARRYSKY_PLAINTEXT_HPP
 #include <string>
 #include <string_view>
 std::string readWholeFile(const std::string& filename);
