@@ -10,7 +10,7 @@ SRCS := build/gl.c $(shell find src -path "*.cpp") $(IMGUI_SRCS)
 OBJS := $(patsubst %.c, ./build/%.o, $(patsubst %.cpp, ./build/%.o, $(SRCS)))
 TEST_SRCS := $(shell find test -path "*.cpp")
 TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS))
-TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision test/mmaptest
+TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision test/mmaptest test/packingtest
 TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
 build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
 build/src/GL/Sprite.o
@@ -52,6 +52,7 @@ build:
 	cd build && mkdir -p build src/core src/game src/GL src/util src/file submodules/imgui/examples test test/noimgui
 
 test: build build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
+	$(foreach var, $(TEST_TARGETS), ./$(var);)
 
 test/collisiontest: $(TEST_COMMON_OBJS) build/test/offscreenWindow.o build/test/collisiontest.o build/test/noimgui/SpriteBatch.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
@@ -69,6 +70,9 @@ test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
 test/mmaptest: build/test/mmaptest.o build/src/file/PlainText.o
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+test/packingtest: build/test/packingtest.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 -include $(DEPS)

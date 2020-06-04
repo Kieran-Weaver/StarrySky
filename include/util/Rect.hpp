@@ -89,9 +89,4 @@ Rect<T> join(const Rect<T>& a, const Rect<T>& b){
 	T maxY = std::max(a.top + a.height, b.top + b.height);
 	return {minX, minY, maxX - minX, maxY - minY};
 }
-struct GLRect2D{
-	uint16_t texRect[4];
-	float packedMat[4];
-	float sprPos[2];
-};
 #endif

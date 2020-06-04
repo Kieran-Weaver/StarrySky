@@ -13,7 +13,7 @@
           "components" : 4,
           "type" : 1,
           "norm" : true,
-          "stride" : 32,
+          "stride" : 44,
           "start" : 0
         },
         {
@@ -22,17 +22,26 @@
           "components" : 4,
           "type" : 0,
           "norm" : false,
-          "stride" : 32,
+          "stride" : 44,
           "start" : 8
         },
         {
           "name" : "ctr",
           "location" : 2,
-          "components": 2,
+          "components": 4,
           "type" : 0,
           "norm" : false,
-          "stride" : 32,
+          "stride" : 44,
           "start" : 24
+        },
+        {
+          "name" : "ctr",
+          "location" : 3,
+          "components": 4,
+          "type" : 3,
+          "norm" : true,
+          "stride" : 44,
+          "start" : 40
         }
       ],
       "output" : "outColor"

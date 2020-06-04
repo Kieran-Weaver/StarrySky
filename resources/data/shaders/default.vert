@@ -1,16 +1,17 @@
 #version 330
 layout(location = 0) in vec4 ptpos;
 layout(location = 1) in vec4 pmat2;
-layout(location = 2) in vec2 ctr;
+layout(location = 2) in vec4 ctr;
+layout(location = 3) in vec4 clr;
 out Vertex
 {
 	vec4 packedtexpos;
 	vec4 packedmat2;
-	vec2 center;
+	vec4 color;
 } in_data;
 void main(){
-	in_data.center = ctr;
+	gl_Position = ctr;
 	in_data.packedmat2 = pmat2;
 	in_data.packedtexpos = ptpos;
-	gl_Position = vec4(ctr, 0.0, 1.0);
+	in_data.color = clr;
 } 

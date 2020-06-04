@@ -4,6 +4,7 @@
 #include <GL/Tilemap.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Window.hpp>
+#include <GL/SpriteData.hpp>
 #include <gl.h>
 #include <unordered_map>
 #include <file/JSONReader.hpp>
@@ -36,12 +37,12 @@ public:
 	void Draw(const ImDrawData* draw_data);
 private:
 	struct TextureData{
-		std::vector<GLRect2D> sprites;         // Stencil off
-		std::vector<GLRect2D> stencilSprites;  // Stencil on
+		std::vector<SpriteData> sprites;         // Stencil off
+		std::vector<SpriteData> stencilSprites;  // Stencil on
 	};
 	GLuint MatrixID;
 	void setStencil(bool new_state);
-	void drawSprites(const std::vector<GLRect2D>& data);
+	void drawSprites(const std::vector<SpriteData>& data);
 	void drawTileMap(const TileMap& tilemap, const GLuint& UBOHandle);
 	void setAttrib(GLProgram& currentProgram, JSONParser node, GLuint start, GLuint stride);
 	void setAttrib(GLProgram& currentProgram, JSONParser node);

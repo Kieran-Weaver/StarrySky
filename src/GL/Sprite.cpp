@@ -28,16 +28,23 @@ void Sprite::setTexture(const Texture& tex){
 	this->cached_vtx_data.texRect[2] = this->m_subtexture.m_rect.width;
 	this->cached_vtx_data.texRect[3] = this->m_subtexture.m_rect.height;
 }
-void Sprite::setPosition(const float& x, const float& y){
+void Sprite::setPosition(const float& x, const float& y, const float& z){
 	if ((x != center.x)||(y != center.y)){
 		this->center.x = x;
 		this->center.y = y;
+		this->cached_vtx_data.sprPos[2] = z;
 		this->m_changed = true;
 		this->m_cached = false;
 	}
 }
 void Sprite::setPosition(const glm::vec2& pos){
 	this->setPosition(pos.x,pos.y);
+}
+void Sprite::setPosition(const glm::vec3& pos){
+	this->setPosition(pos.x, pos.y, pos.z);
+}
+void Sprite::setColor(const std::array<uint8_t, 4> col){
+	this->cached_vtx_data.sprColor = col;
 }
 void Sprite::rotate(const float& radians){
 	this->m_model = RotMat(radians)*this->m_model;
@@ -49,7 +56,7 @@ void Sprite::transform(const glm::mat2& matrix){
 	this->m_changed = true;
 	this->m_cached = false;
 }
-const GLRect2D& Sprite::render(){
+const SpriteData& Sprite::render(){
 	if (m_changed){
 		this->cached_vtx_data.sprPos[0] = center.x;
 		this->cached_vtx_data.sprPos[1] = center.y;
