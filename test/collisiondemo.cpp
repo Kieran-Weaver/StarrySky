@@ -50,7 +50,7 @@ int main(int, char const**) {
 		batch.Draw(s);
 		batch.Draw(s2);
 		batch.Draw(window);
-		window.endFrame(&batch);
+		window.endFrame();
 	}
 	return 0;
 }

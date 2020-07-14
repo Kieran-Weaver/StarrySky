@@ -47,7 +47,7 @@ void Window::startFrame() const{
 void Window::makeCurrent() const{
 	glfwMakeContextCurrent(windowImpl.get());
 }
-void Window::endFrame(SpriteBatch* batch) const{
+void Window::endFrame() const{
 	this->makeCurrent();
 	glfwSwapBuffers(windowImpl.get());
 }

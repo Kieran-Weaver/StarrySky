@@ -48,7 +48,7 @@ int main(int, char const**) {
 	batch.Draw(s);
 	batch.Draw(s2);
 	batch.Draw(window);
-	window.endFrame(&batch);
+	window.endFrame();
 	glFinish();
 	glReadPixels(0, 0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 	stbi_write_png("offscreen.png", WIDTH, HEIGHT, 4,buffer + (WIDTH * 4 * (HEIGHT - 1)),-WIDTH* 4);

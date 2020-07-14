@@ -2,6 +2,7 @@
 #include <GL/Camera.hpp>
 #include <GL/Sprite.hpp>
 #include <file/PlainText.hpp>
+#include <gl.h>
 #ifndef NO_IMGUI
 #include <imgui/imgui.h>
 #include <core/Editor.hpp>
@@ -25,8 +26,6 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	int num_shaders = document["shaders.len"];
 	unsigned char* pixels;
 	int width, height;
-
-
 	if (this->loadPrograms(num_shaders) == -1){
 #ifndef NDEBUG
 		std::cerr << "Not valid JSON" << std::endl;
@@ -34,9 +33,11 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 		std::exit(1);
 	}
 	glPrograms[SPRITE2D].handle.bind();
+
 	for (auto& tex : m_atlas.m_texture_handles){
 		this->m_texData[tex] = TextureData();
 	}
+	
 	for (auto& i : glPrograms){
 		i.handle.bind();
 		glUniform1i(i.handle.getUniform("tex"),0);
@@ -61,12 +62,11 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glDisable(GL_CULL_FACE);
-
 #ifndef NO_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendRendererName = "imgui_impl_starrysky";
 	io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-	io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+	io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);
 
 	glPrograms[OVERLAY].extra_data.resize(4);
 	glGenTextures(1, &glPrograms[OVERLAY].extra_data[0]);
@@ -77,10 +77,12 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	glBindTexture(GL_TEXTURE_2D, glPrograms[OVERLAY].extra_data[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	std::array<GLint, 4> RASwizzle = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
+	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, RASwizzle.data());
 #ifdef GL_UNPACK_ROW_LENGTH
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
 	io.Fonts->TexID = (ImTextureID)(intptr_t)glPrograms[OVERLAY].extra_data[0];
 	std::array<std::array<GLuint, 2>, 3> imguiVertexAttrs = {{ {{sizeof(ImDrawVert), offsetof(ImDrawVert, pos)}}, {{sizeof(ImDrawVert), offsetof(ImDrawVert, uv)}}, {{sizeof(ImDrawVert), offsetof(ImDrawVert, col)}} }};
 	auto paramNode = document["shaders"][OVERLAY]["layout"];
@@ -111,82 +113,6 @@ void SpriteBatchImpl::Draw(Sprite& spr){
 		m_texData[m_tex].sprites.emplace_back(data);
 	}
 }
-
-#ifndef NO_IMGUI
-// Ported from submodules/imgui/examples/imgui_impl_opengl3.cpp
-void SpriteBatchImpl::Draw(const ImDrawData* draw_data){
-	int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
-	int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
-	if (fb_width <= 0 || fb_height <= 0)
-		return;
-
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_SCISSOR_TEST);
-
-	float L = draw_data->DisplayPos.x;
-	float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
-	float T = draw_data->DisplayPos.y;
-	float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
-	const float ortho_projection[4][4] =
-	{
-		{ 2.0f/(R-L),   0.0f,         0.0f,   0.0f },
-		{ 0.0f,         2.0f/(T-B),   0.0f,   0.0f },
-		{ 0.0f,         0.0f,        -1.0f,   0.0f },
-		{ (R+L)/(L-R),  (T+B)/(B-T),  0.0f,   1.0f },
-	};
-
-	glPrograms[OVERLAY].handle.bind();
-	glUniform1i(glPrograms[OVERLAY].extra_data[2], 0);
-	glUniformMatrix4fv(glPrograms[OVERLAY].extra_data[3], 1, GL_FALSE, &ortho_projection[0][0]);
-
-	glPrograms[OVERLAY].VAO.bind();
-	glPrograms[OVERLAY].VBO.bind();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glPrograms[OVERLAY].extra_data[1]);
-	glActiveTexture(GL_TEXTURE0);
-	ImVec2 clip_off = draw_data->DisplayPos;
-	ImVec2 clip_scale = draw_data->FramebufferScale;
-
-	// Render command lists
-	for (int n = 0; n < draw_data->CmdListsCount; n++)
-	{
-		const ImDrawList* cmd_list = draw_data->CmdLists[n];
-		glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
-
-		for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-		{
-			const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-			if (pcmd->UserCallback != NULL){
-				// Resetting the render state does nothing
-				if (pcmd->UserCallback != ImDrawCallback_ResetRenderState){
-					pcmd->UserCallback(cmd_list, pcmd);
-				}
-			} else {
-				// Project scissor/clipping rectangles into framebuffer space
-				ImVec4 clip_rect;
-				clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
-				clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
-				clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
-				clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
-
-				if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f)
-				{
-					// Apply scissor/clipping rectangle
-					glScissor((int)clip_rect.x, (int)(fb_height - clip_rect.w), (int)(clip_rect.z - clip_rect.x), (int)(clip_rect.w - clip_rect.y));
-
-					// Bind texture, Draw
-					glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-					glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx)), (GLint)pcmd->VtxOffset);
-					glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx)));
-				}
-			}
-		}
-	}
-	// Restore render state
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_SCISSOR_TEST);
-}
-#endif
 
 void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, JSONParser node, GLuint start, GLuint stride){
 	currentProgram.VAO.bind();
@@ -228,6 +154,8 @@ int SpriteBatchImpl::loadPrograms(int num_shaders){
 	for (int ind = 0; ind < num_shaders; ind++){
 		glPrograms.emplace_back();
 		GLProgram& currentProgram = glPrograms.back();
+		currentProgram.VBO = Buffer(GL_ARRAY_BUFFER);
+		currentProgram.IBO = Buffer(GL_ELEMENT_ARRAY_BUFFER);
 		currentProgram.handle.load(node[ind]);
 		currentProgram.VAO.bind();
 		currentProgram.VBO.bind();
@@ -249,7 +177,6 @@ void SpriteBatchImpl::Draw(const Window& target){
 	glActiveTexture(GL_TEXTURE0);
 	glPrograms[SPRITE2D].VBO.bind();
 	glStencilFunc(GL_ALWAYS, 1, 255);
-	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 	for (auto& texturepair : m_texData){
 		auto& currentTexData = texturepair.second;
@@ -272,6 +199,14 @@ void SpriteBatchImpl::Draw(const Window& target){
 		drawTileMap(tmap.second, this->MatrixID);
 	}
 	glStencilFunc(GL_ALWAYS, 1, 255);
+#ifndef NO_IMGUI
+	ImGui::Render();
+	target.Draw(toDrawList(ImGui::GetDrawData(), glPrograms[OVERLAY].handle, glPrograms[OVERLAY].VBO, glPrograms[OVERLAY].IBO, glPrograms[OVERLAY].VAO));
+#endif
+	glDisable(GL_SCISSOR_TEST);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 void SpriteBatchImpl::drawSprites(const std::vector<SpriteData>& data){
 	if (!data.empty()){

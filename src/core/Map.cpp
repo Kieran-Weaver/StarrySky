@@ -12,6 +12,7 @@ VISITABLE_STRUCT(glm::vec2, x, y);
 #ifndef NDEBUG
 #include <iostream>
 #endif
+#include <gl.h>
 TileMap& ObjMap::getTM(const std::string& id){
 	if (this->internal_tms.count(id) == 0){
 		this->internal_tms[id] = TileMap();

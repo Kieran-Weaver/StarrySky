@@ -12,11 +12,6 @@ void SpriteBatch::addMap(const std::string& id, const TileMap& tm){
 void SpriteBatch::Draw(Sprite& spr){
 	Pimpl()->Draw(spr);
 }
-#ifndef NO_IMGUI
-void SpriteBatch::Draw(const ImDrawData* overlay){
-	Pimpl()->Draw(overlay);
-}
-#endif
 void SpriteBatch::Draw(const Window& target){
 	Pimpl()->Draw(target);
 }

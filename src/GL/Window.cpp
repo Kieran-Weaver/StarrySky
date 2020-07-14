@@ -1,9 +1,28 @@
 #include <GL/Window.hpp>
+#include <GL/Camera.hpp>
 #include <gl.h>
 #include <GLFW/glfw3.h>
 #include <GL/SpriteBatch.hpp>
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"
+template<typename T, typename U=T, typename V=T>
+void callAttrib(const gl_attrib<T, 3>& attrib, void (*func)(T, U, V)){
+	if (attrib){
+		func(attrib.value()[0], attrib.value()[1], attrib.value()[2]);
+	}
+}
+template<typename T, typename U=T>
+void callAttrib(const gl_attrib<T, 2>& attrib, void (*func)(T, U)){
+	if (attrib){
+		func(attrib.value()[0], attrib.value()[1]);
+	}
+}
+template<typename T>
+void callAttrib(const std::optional<T>& attrib, void (*func)(T)){
+	if (attrib){
+		func(attrib.value());
+	}
+}
 void GLFWwindowDeleter::operator()(GLFWwindow* ptr){
 	glfwDestroyWindow(ptr);
 }
@@ -69,10 +88,8 @@ void Window::startFrame() const{
 void Window::makeCurrent() const{
 	glfwMakeContextCurrent(windowImpl.get());
 }
-void Window::endFrame(SpriteBatch* batch) const{
-	ImGui::Render();
+void Window::endFrame() const{
 	this->makeCurrent();
-	batch->Draw(ImGui::GetDrawData());
 	glfwSwapBuffers(windowImpl.get());
 }
 void Window::close() const{
@@ -89,4 +106,107 @@ const WindowState& Window::getWindowState() const{
 }
 void Window::getWindowSize(int& width, int& height) const{
 	glfwGetFramebufferSize(windowImpl.get(), &width, &height);
+}
+void Window::Draw(const DrawList& dlist) const{
+	for (const auto& command : dlist){
+		if (auto pval = std::get_if<ConfCommand>(&command)){
+			this->Configure(*pval);
+		} else if (auto pval = std::get_if<DrawCommand>(&command)){
+			this->Draw(*pval);
+		}
+	}
+}
+void Window::Configure(const ConfCommand& confcomm) const{
+	for (const auto& fpair : confcomm.enable_flags){
+		if (fpair.second){
+			glEnable(fpair.first);
+		} else {
+			glDisable(fpair.first);
+		}
+	}
+	callAttrib(confcomm.blend_func, glBlendFunc);
+	callAttrib(confcomm.blend_equation, glBlendEquation);
+	callAttrib(confcomm.cull_face, glCullFace);
+	callAttrib(confcomm.depth_func, glDepthFunc);
+	callAttrib(confcomm.depth_range, glDepthRange);
+	callAttrib(confcomm.logic_op, glLogicOp);
+	callAttrib(confcomm.line_width, glLineWidth);
+	callAttrib(confcomm.sample_mask, glSampleMaski);
+	callAttrib(confcomm.stencil_func, glStencilFunc);
+	callAttrib(confcomm.stencil_op, glStencilOp);
+	callAttrib(confcomm.polygon_offset, glPolygonOffset);
+	callAttrib(confcomm.primitive_restart, glPrimitiveRestartIndex);
+	if (confcomm.sample_coverage){
+		glSampleCoverage(confcomm.sample_coverage.value().first, confcomm.sample_coverage.value().second);
+	}
+}
+void Window::Draw(const DrawCommand& drawcomm) const{
+	drawcomm.program->bind();
+	drawcomm.VAO->bind();
+	for (auto& buff : drawcomm.bound_buffers){
+		buff.second.buff->setType(buff.first);
+		buff.second.buff->bind();
+		buff.second.buff->update(buff.second.data, buff.second.size, buff.second.position);
+	}
+	if (drawcomm.camera_override){
+		this->setCamera(&(drawcomm.camera_override.value()[0][0]), drawcomm.program->getCameraIdx());
+	} else {
+		this->setCamera(&(this->getWindowState().camera->getVP()[0][0]), drawcomm.program->getCameraIdx());
+	}
+	std::unordered_map<Draw::Primitive, GLenum> modes = { 
+		{Draw::Points, GL_POINTS},
+		{Draw::Lines, GL_LINES},
+		{Draw::LineStrip, GL_LINE_STRIP},
+		{Draw::LineLoop, GL_LINE_LOOP},
+		{Draw::Triangles, GL_TRIANGLES},
+		{Draw::TriangleStrip, GL_TRIANGLE_STRIP},
+		{Draw::TriangleFan, GL_TRIANGLE_FAN}
+	};
+	std::unordered_map<Draw::IdxType, GLenum> idxtypes = {
+		{Draw::Byte, GL_UNSIGNED_BYTE},
+		{Draw::Short, GL_UNSIGNED_SHORT},
+		{Draw::Int, GL_UNSIGNED_INT}
+	};
+	for (auto& dcall : drawcomm.calls){
+		if (dcall.callback){
+			dcall.callback(dcall.callback_opts[0], dcall.callback_opts[1]);
+		} else {
+			bool instanced = (dcall.instances >= 0);
+			bool indexed = (dcall.idxType != Draw::None);
+			GLenum mode = 0;
+			if (dcall.clip_rect){
+				const Rect<int>& cliprect = dcall.clip_rect.value();
+				glScissor(cliprect.left, cliprect.top, cliprect.width, cliprect.height);
+			}
+			for (int i = 0; i < dcall.textures.size(); i++){
+				glActiveTexture(GL_TEXTURE0 + i);
+				glBindTexture(GL_TEXTURE_2D, dcall.textures[i]);
+			}
+			if (indexed && instanced) {
+				if (dcall.baseVertex > 0){
+					glDrawElementsInstancedBaseVertex(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset), dcall.instances, dcall.baseVertex);
+				} else {
+					glDrawElementsInstanced(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset), dcall.instances);
+				}
+			} else if (instanced) {
+				glDrawArraysInstanced(modes[dcall.type], dcall.vtxOffset, dcall.vtxCount, dcall.instances);
+			} else if (indexed){
+				if (dcall.baseVertex > 0){
+					glDrawElementsBaseVertex(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset), dcall.baseVertex);
+				} else {
+					glDrawElements(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset));
+				}
+			} else {
+				glDrawArrays(modes[dcall.type], dcall.vtxOffset, dcall.vtxCount);
+			}
+		}
+	}
+}
+
+void Window::setCamera(const float* data, int32_t position) const{
+	if (position < 0){
+		glBufferSubData(GL_UNIFORM_BUFFER, -1 - position, sizeof(float) * 16, data);  
+	} else {
+		glUniformMatrix4fv(position, 1, false, data);
+	}
 }

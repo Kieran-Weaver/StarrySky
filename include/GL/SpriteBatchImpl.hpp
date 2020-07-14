@@ -21,8 +21,8 @@ struct ImDrawData;
 struct GLProgram{
 	Program handle;
 	VertexArray VAO = {};
-	Buffer VBO = Buffer(GL_ARRAY_BUFFER);
-	Buffer IBO = Buffer(GL_ELEMENT_ARRAY_BUFFER);
+	Buffer VBO = {};
+	Buffer IBO = {};
 	std::vector<uint32_t> extra_data;
 };
 class SpriteBatchImpl{
@@ -33,7 +33,6 @@ public:
 	void addMap(const std::string& id, const TileMap& tm);
 	void Draw(Sprite& spr);
 	void Draw(const Window& target);
-	void Draw(const ImDrawData* draw_data);
 private:
 	struct TextureData{
 		std::vector<SpriteData> sprites;         // Stencil off

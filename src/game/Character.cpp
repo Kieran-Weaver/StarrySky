@@ -182,24 +182,8 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 			}
 		}
 	}
-	float hScrollSpd = std::max(std::fabs(this->m_speed.x)*dt,10.f);
-	float vScrollSpd = std::max(std::fabs(this->m_speed.y)*dt,10.f);
-	Rect<float> curScrollRect = ws.camera->scroll_bounds;
-	curScrollRect.left += ws.camera->current_bounds.left;
-	curScrollRect.top += ws.camera->current_bounds.top;
-	glm::vec2 scrollVec(0.f,0.f);
-	if (this->m_position.x > (curScrollRect.left + curScrollRect.width)){
-		scrollVec.x = hScrollSpd;
-	}else if (this->m_position.x < curScrollRect.left){
-		scrollVec.x = -hScrollSpd;
-	}
-	if (this->m_position.y > (curScrollRect.top+curScrollRect.height)){
-		scrollVec.y = vScrollSpd;
-	}else if (this->m_position.y < curScrollRect.top){
-		scrollVec.y = -vScrollSpd;
-	}
-	this->dropFromOneWay = ws.keyboardState[controls.downkey];
-	ws.camera->Scroll(scrollVec);
+
+	ws.camera->ScrollTo({m_position.x - m_width/2.f, m_position.y - m_height/2.f, static_cast<float>(m_width), static_cast<float>(m_height)});
 }
 void Character::Draw(SpriteBatch& mframe) {
 	mframe.Draw(m_spr);

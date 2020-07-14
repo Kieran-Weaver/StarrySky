@@ -4,7 +4,6 @@
 #include <GL/Window.hpp>
 struct Sprite;
 struct TileMap;
-struct ImDrawData;
 class SpriteBatchImpl;
 struct SpriteBatchImplDeleter{
 	void operator()(SpriteBatchImpl *p);
@@ -21,7 +20,6 @@ public:
 	void addMap(const std::string& id, const TileMap& tm);
 	void Draw(Sprite& spr);
 	void Draw(const Window& target);
-	void Draw(const ImDrawData* overlay);
 private:
 	const SpriteBatchImpl* Pimpl() const { return m_pImpl.get(); }
 	SpriteBatchImpl* Pimpl(){ return m_pImpl.get(); }
