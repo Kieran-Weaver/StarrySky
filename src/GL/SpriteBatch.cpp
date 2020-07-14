@@ -3,8 +3,8 @@
 SpriteBatch::SpriteBatch(TextureAtlas& atlas, const std::string& shaderfile) : m_pImpl(new SpriteBatchImpl(atlas, shaderfile)){}
 SpriteBatch::SpriteBatch(SpriteBatch &&) noexcept = default;
 SpriteBatch& SpriteBatch::SpriteBatch::operator=(SpriteBatch &&) noexcept = default;
-int SpriteBatch::loadPrograms(int num_shaders,GLuint* VAOs){
-	return Pimpl()->loadPrograms(num_shaders,VAOs);
+int SpriteBatch::loadPrograms(int num_shaders){
+	return Pimpl()->loadPrograms(num_shaders);
 }
 void SpriteBatch::addMap(const std::string& id, const TileMap& tm){
 	Pimpl()->addMap(id, tm);

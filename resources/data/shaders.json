@@ -44,6 +44,7 @@
           "start" : 40
         }
       ],
+      "camera" : 0,
       "output" : "outColor"
     },
 	{
@@ -62,6 +63,7 @@
 		  "start" : 0
 		}
 	  ],
+	  "camera" : 0,
 	  "output" : "outColor"
 	},
 	{
@@ -97,6 +99,7 @@
 				"start" : 0
 			}
 		],
+		"camera" : "ProjMtx",
 		"output" : "Out_Color"
 	}
   ]

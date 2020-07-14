@@ -15,13 +15,13 @@ struct TileMap{
 	std::array<float,4> Attrs = {}; // Tile w, h, tilemap x, y
 	std::array<float,4> metadata = {}; // Layer/Z, 3x Unused
 	std::array<uint32_t,4> texData = {}; // Tile texture w, h, 2x unused
-	GLuint tileBufferTBO = 0; // Max 2^16 - 1 tile types
-	GLuint tileTextureTBO = 0; // Texture 
+	uint32_t tileBufferTBO = 0; // Max 2^16 - 1 tile types
+	uint32_t tileTextureTBO = 0; // Texture 
 	// Internal Data
 	std::vector<std::array<float, 4>> tileData = {};
 	std::vector<Tile> drawn = {};
-	GLuint tileBuffer = 0; // Buffer for tileBufferTBO
-	GLuint tileTexture = 0;// Buffer for tileTextureTBO
+	uint32_t tileBuffer = 0; // Buffer for tileBufferTBO
+	uint32_t tileTexture = 0;// Buffer for tileTextureTBO
 	int numTiles = 0;
 	std::vector<std::string> filenames = {};
 	TMType type = TMType::Normal;

@@ -1,5 +1,6 @@
 #ifndef STARRYSKY_TRAITS_HPP
 #define STARRYSKY_TRAITS_HPP
+#include <array>
 template<class T>
 struct is_std_array:std::is_array<T>{};
 template<class T, std::size_t N>

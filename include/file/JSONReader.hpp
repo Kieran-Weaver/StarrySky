@@ -13,25 +13,25 @@ public:
 	operator rapidjson::Value&() const {
 		return internal;
 	}
-	JSONParser operator[](const std::string& key){
+	JSONParser operator[](const std::string& key) const{
 		return {internal[key.c_str()]};
 	}
-	JSONParser operator[](int key){
+	JSONParser operator[](int key) const{
 		return {internal[key]};
 	}
-	const auto GetArray(){
+	const auto GetArray() const{
 		return internal.GetArray();
 	}
-	const auto GetObject(){
+	const auto GetObject() const{
 		return internal.GetObject();
 	}
 	template<typename T, std::enable_if_t< \
 	!(visit_struct::traits::is_visitable<T>::value || is_json_literal<T>() || is_std_array<T>::value) \
 	, int> = 0>
-	operator T();
+	operator T() const;
 	
 	template<typename T,  std::enable_if_t<visit_struct::traits::is_visitable<T>::value, int> = 0>
-	operator T(){
+	operator T() const{
 		T data;
 		visit_struct::for_each(data, [&](const char* name, auto& value){
 			value = static_cast<std::decay_t<decltype(value)>>((*this)[name]);
@@ -40,7 +40,7 @@ public:
 	}
 	
 	template<typename T>
-	operator std::unordered_map<std::string, T>(){
+	operator std::unordered_map<std::string, T>() const{
 		std::unordered_map<std::string, T> data;
 		for (auto& m : internal.GetObject()){
 			const std::string& key = m.name.GetString();
@@ -50,7 +50,7 @@ public:
 	}
 	
 	template<typename T>
-	operator std::vector<T>(){
+	operator std::vector<T>() const{
 		std::vector<T> data;
 		for (auto& v : this->GetArray()){
 			data.push_back((*this)[data.size()]);
@@ -59,7 +59,7 @@ public:
 	}
 	
 	template<typename T, std::size_t N>
-	operator std::array<T,N>(){
+	operator std::array<T,N>() const{
 		std::array<T,N> data;
 		for (int i = 0; i < data.size(); i++){
 			data[i] = static_cast<T>((*this)[i]);
@@ -68,7 +68,7 @@ public:
 	}
 
 	template<typename T, std::enable_if_t<std::is_integral<T>::value, int> = 0>
-	operator T(){
+	operator T() const{
 		if (internal.IsBool()){
 			return internal.GetBool();
 		} else {
@@ -77,15 +77,14 @@ public:
 	}
 	
 	template<typename T, std::enable_if_t<std::is_floating_point<T>::value, int> = 0>
-	operator T(){
+	operator T() const{
 		return internal.GetDouble();
 	}
 
-	template<typename T, std::enable_if_t<std::is_same<T, std::string>::value, int> = 0>
-	operator T(){
+	template<typename T, std::enable_if_t<std::is_same<typename std::decay<T>::type, std::string>::value, int> = 0>
+	operator T() const{
 		return internal.GetString();
 	}
-
 private:
 	rapidjson::Value& internal;
 };

@@ -1,3 +1,4 @@
+#include <gl.h>
 #include <GL/Shader.hpp>
 #include <file/PlainText.hpp>
 #include <vector>
@@ -47,34 +48,4 @@ Shader& Shader::operator=(Shader&& other){
 Shader::~Shader(){
 	glDeleteShader(m_handle);
 	loaded = false;
-}
-GLuint CreateProgram(const Shader& VertexShader, const Shader& GeomShader, const Shader& FragShader, const std::string& OutputLocation){
-	GLuint shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, VertexShader.m_handle);
-	if (GeomShader.loaded){
-		glAttachShader(shaderProgram, GeomShader.m_handle);
-	}
-	glAttachShader(shaderProgram, FragShader.m_handle);
-	glBindFragDataLocation(shaderProgram,0,OutputLocation.c_str());
-	glLinkProgram(shaderProgram);
-#ifndef NDEBUG
-	GLint isLinked = 0;
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &isLinked);
-	if (isLinked == GL_FALSE){
-		GLint maxLength = 0;
-		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &maxLength);
-
-		std::vector<GLchar> infoLog(maxLength);
-		glGetProgramInfoLog(shaderProgram, maxLength, &maxLength, &infoLog[0]);
-
-		glDeleteProgram(shaderProgram);
-		std::string errorMessage(infoLog.data(), infoLog.size());
-		std::cerr << "Message: " << errorMessage << std::endl;
-		return 0;
-	}else{
-		return shaderProgram;
-	}
-#else
-	return shaderProgram;
-#endif
 }

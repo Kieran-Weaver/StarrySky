@@ -2,11 +2,11 @@
 #include <file/PlainText.hpp>
 #include <file/JSON.hpp>
 #include <zlib.h>
+#include <gl.h>
 #include <fstream>
 template<>
-JSONParser::operator Texture(){
+JSONParser::operator Texture() const{
 	Texture data;
-
 	return data;
 }
 TextureAtlas::TextureAtlas(const std::string& file_path){
@@ -53,6 +53,9 @@ TextureAtlas::TextureAtlas(const std::string& file_path){
 	if (m_atlas_list.empty()){
 		throw std::invalid_argument("Invalid Texture Atlas");
 	}
+}
+TextureAtlas::~TextureAtlas(){
+		glDeleteTextures(m_texture_handles.size(),m_texture_handles.data());
 }
 bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glActiveTexture(GL_TEXTURE0);

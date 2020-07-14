@@ -19,7 +19,7 @@ TileMap& ObjMap::getTM(const std::string& id){
 	return this->internal_tms[id];
 }
 template<>
-JSONParser::operator TMType(){
+JSONParser::operator TMType() const{
 	std::string data{internal.GetString()};
 	if (data == "normal"){
 		return TMType::Normal;
@@ -30,7 +30,7 @@ JSONParser::operator TMType(){
 	}
 }
 template<>
-JSONParser::operator glm::mat2(){
+JSONParser::operator glm::mat2() const{
 	glm::mat2 data;
 	data[0][0] = internal[0].GetFloat();
 	data[0][1] = internal[1].GetFloat();
