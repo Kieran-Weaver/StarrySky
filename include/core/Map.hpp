@@ -28,7 +28,6 @@ struct MapSprite{
 class ObjMap {
 public:
 	ObjMap(const std::string& filename, TextureAtlas& atlas);
-	~ObjMap();
 	void loadFromFile(const std::string& filename);
 	void SetPosition(float x, float y);
 	void Draw(SpriteBatch& frame);

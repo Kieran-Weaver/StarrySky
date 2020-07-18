@@ -16,9 +16,9 @@ struct Atlas{
 class TextureAtlas{
 public:
 	explicit TextureAtlas(const std::string& file_path);
-	const Texture findSubTexture(const std::string& name);
-	const Bitmask& getBitmask(const Texture* tex);
-	std::vector<std::string> getSubTextureNames();
+	const Texture findSubTexture(const std::string& name) const;
+	const Bitmask& getBitmask(const Texture* tex) const;
+	std::vector<std::string> getSubTextureNames() const;
 	~TextureAtlas();
 	std::vector<uint32_t> m_texture_handles;
 private:

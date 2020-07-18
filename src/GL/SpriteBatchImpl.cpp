@@ -44,15 +44,14 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 		i.handle.bindUBO("VP", 0); // Global VP data is at 0
 	}
 
-	glGenBuffers(1, &this->MatrixID);
-	glBindBuffer(GL_UNIFORM_BUFFER, this->MatrixID);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::mat4) + sizeof(TileMap), NULL, GL_DYNAMIC_DRAW);
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, this->MatrixID, 0, sizeof(glm::mat4) + sizeof(TileMap)); // Global VP data + TileMap data
+	this->UBO = Buffer(GL_UNIFORM_BUFFER);
+	this->UBO.update(nullptr, 0, sizeof(glm::mat4) + sizeof(UBOData));
+	this->UBO.bind(0, 0, sizeof(glm::mat4) + sizeof(UBOData));
 	glPrograms[TILEMAP].VAO.bind();
 	glPrograms[TILEMAP].handle.bind();
 	glUniform1i(glPrograms[TILEMAP].handle.getUniform("tBuffer"),1);
 	glUniform1i(glPrograms[TILEMAP].handle.getUniform("tTexture"),2);
-	glBindBuffer(GL_UNIFORM_BUFFER, this->MatrixID);
+	this->UBO.bind();
 	
 	glEnable(GL_STENCIL_TEST);
 	glStencilFunc(GL_ALWAYS, 1, 255);
@@ -171,8 +170,8 @@ void SpriteBatchImpl::Draw(const Window& target){
 	target.makeCurrent();
 	glPrograms[SPRITE2D].handle.bind();
 	auto& ws = target.getWindowState();
-	glBindBuffer(GL_UNIFORM_BUFFER, this->MatrixID);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), &ws.camera->getVP()[0][0]);
+	this->UBO.bind();
+	this->UBO.update(&ws.camera->getVP()[0][0], sizeof(glm::mat4), 0);
 	glPrograms[SPRITE2D].VAO.bind();
 	glActiveTexture(GL_TEXTURE0);
 	glPrograms[SPRITE2D].VBO.bind();
@@ -196,8 +195,9 @@ void SpriteBatchImpl::Draw(const Window& target){
 	}
 	setStencil(false);
 	for (auto& tmap : m_Maps){
-		drawTileMap(tmap.second, this->MatrixID);
+		drawTileMap(tmap, this->UBO);
 	}
+	this->m_Maps.clear();
 	glStencilFunc(GL_ALWAYS, 1, 255);
 #ifndef NO_IMGUI
 	ImGui::Render();
@@ -215,30 +215,22 @@ void SpriteBatchImpl::drawSprites(const std::vector<SpriteData>& data){
 		glDrawArrays(GL_POINTS,0,data.size());
 	}
 }
-void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, const GLuint& UBO){
+void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, Buffer& UBO){
+	uint32_t t = 0;
+
 	glPrograms[TILEMAP].handle.bind();
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glPrograms[TILEMAP].VAO.bind();
 	glPrograms[TILEMAP].VBO.bind();
-	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(TileMap), &tilemap);
-	
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_BUFFER, tilemap.tileBufferTBO);
-	glBindBuffer(GL_TEXTURE_BUFFER, tilemap.tileBuffer);
-	glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, tilemap.tileBuffer);
-	
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_BUFFER, tilemap.tileTextureTBO);
-	glBindBuffer(GL_TEXTURE_BUFFER, tilemap.tileTexture);
-	glTexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, tilemap.tileTexture);
+	glPrograms[TILEMAP].VBO.update(&t, sizeof(t), 0);
+	tilemap.bind(UBO, sizeof(glm::mat4));
 
-	glBufferData(GL_ARRAY_BUFFER, 4, &tilemap.tileTextureTBO, GL_DYNAMIC_DRAW);
 	if (tilemap.type == TMType::Normal) {
 		glStencilFunc(GL_ALWAYS, 1, 255);
 	} else if (tilemap.type == TMType::Effect) {
 		glStencilFunc(GL_EQUAL, 1, 255);
 	}
+
 	glDrawArraysInstanced(GL_POINTS, 0, 1, tilemap.drawn.size());
 	glUseProgram(0);
 	glStencilFunc(GL_ALWAYS, 1, 255);
@@ -256,6 +248,6 @@ void SpriteBatchImpl::setStencil(bool new_state){
 		}
 	}
 }
-void SpriteBatchImpl::addMap(const std::string& id, const TileMap& tm){
-	this->m_Maps[id] = tm;
+void SpriteBatchImpl::Draw(const TileMap& tilemap){
+	this->m_Maps.emplace_back(std::cref(tilemap));
 }

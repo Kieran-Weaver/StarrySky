@@ -14,9 +14,6 @@ VISITABLE_STRUCT(glm::vec2, x, y);
 #endif
 #include <gl.h>
 TileMap& ObjMap::getTM(const std::string& id){
-	if (this->internal_tms.count(id) == 0){
-		this->internal_tms[id] = TileMap();
-	}
 	return this->internal_tms[id];
 }
 template<>
@@ -43,39 +40,8 @@ ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas
 	this->rng = SeedRNG();
 	this->loadFromFile(filename);
 }
-ObjMap::~ObjMap(){
-	for (auto& i : internal_tms){
-		TileMap& tmap = i.second;
-		glDeleteTextures(1, &tmap.tileBufferTBO);
-		glDeleteTextures(1, &tmap.tileTextureTBO);
-		glDeleteBuffers(1, &tmap.tileBuffer);
-		glDeleteBuffers(1, &tmap.tileTexture);
-	}
-}
 void ObjMap::loadTileMap(TileMap& tomodify, JSONParser tilemapNode){
-	tomodify = tilemapNode;
-	if (!tomodify.initialized){
-		glGenTextures(1, &tomodify.tileBufferTBO);
-		glGenTextures(1, &tomodify.tileTextureTBO);
-		glGenBuffers(1, &tomodify.tileBuffer);
-		glGenBuffers(1, &tomodify.tileTexture);
-		tomodify.initialized = true;
-	}
-	for (auto& tfile : tomodify.filenames){
-		const Texture tempTex = this->m_atlas.findSubTexture(tfile);
-		tomodify.tileData.emplace_back();
-		tomodify.tileData.back()[0] = tempTex.m_rect.left / 65536.f;
-		tomodify.tileData.back()[1] = tempTex.m_rect.top / 65536.f;
-		tomodify.tileData.back()[2] = tempTex.m_rect.width / 65536.f;
-		tomodify.tileData.back()[3] = tempTex.m_rect.height / 65536.f;
-		tomodify.numTiles++;
-	}
-
-	glBindBuffer(GL_TEXTURE_BUFFER, tomodify.tileBuffer);
-	glBufferData(GL_TEXTURE_BUFFER, tomodify.tileData.size() * 4 * sizeof(uint32_t), tomodify.tileData.data(), GL_DYNAMIC_DRAW);
-
-	glBindBuffer(GL_TEXTURE_BUFFER, tomodify.tileTexture);
-	glBufferData(GL_TEXTURE_BUFFER, tomodify.drawn.size() * sizeof(uint16_t), tomodify.drawn.data(), GL_DYNAMIC_DRAW);
+	tomodify.load(tilemapNode, m_atlas);
 }
 void ObjMap::loadFromFile(const std::string& filename){
 	ledges.clear();
@@ -101,10 +67,8 @@ void ObjMap::loadFromFile(const std::string& filename){
 		this->addBGTexture(sprposition,sprtransform,fname);
 	}
 	for (auto& tilemapNode : tilemapsNode.GetObject()){
-		TileMap tm;
 		std::string tmname = tilemapNode.name.GetString();
-		loadTileMap(tm, tilemapNode.value);
-		internal_tms[tmname] = tm;
+		loadTileMap(internal_tms[tmname], tilemapNode.value);
 	}
 	tm_changed = true;
 }
@@ -179,10 +143,7 @@ void ObjMap::Draw(SpriteBatch& frame) {
 	for (auto& i : sprs){
 		frame.Draw(i.second.spr);
 	}
-	if (tm_changed){
-		for (auto& tmap : internal_tms){
-			frame.addMap(tmap.first, tmap.second);
-		}
-		tm_changed = false;
+	for (auto& tmap : internal_tms){
+		frame.Draw(tmap.second);
 	}
 }

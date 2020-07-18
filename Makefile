@@ -13,7 +13,7 @@ TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS))
 TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision test/mmaptest test/packingtest
 TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
 build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
-build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/DrawCommand.o
+build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/DrawCommand.o build/src/GL/Tilemap.o
 DEPS := $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 ifdef OS

@@ -28,6 +28,10 @@ Buffer::~Buffer(){
 void Buffer::bind() const{
 	glBindBuffer(this->type, this->handle);
 }
+void Buffer::bind(uint32_t texType) const{
+	this->bind();
+	glTexBuffer(this->type, texType, this->handle);
+}
 void Buffer::bind(uint32_t index, intptr_t offset, intptr_t size) const {
 	glBindBufferRange(this->type, index, this->handle, offset, size);
 }

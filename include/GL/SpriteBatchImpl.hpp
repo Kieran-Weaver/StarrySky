@@ -30,7 +30,7 @@ public:
 	SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderfile);
 	~SpriteBatchImpl();
 	int loadPrograms(int num_shaders);
-	void addMap(const std::string& id, const TileMap& tm);
+	void Draw(const TileMap& tilemap);
 	void Draw(Sprite& spr);
 	void Draw(const Window& target);
 private:
@@ -38,14 +38,14 @@ private:
 		std::vector<SpriteData> sprites;         // Stencil off
 		std::vector<SpriteData> stencilSprites;  // Stencil on
 	};
-	uint32_t MatrixID;
+	Buffer UBO;
 	void setStencil(bool new_state);
 	void drawSprites(const std::vector<SpriteData>& data);
-	void drawTileMap(const TileMap& tilemap, const uint32_t& UBOHandle);
+	void drawTileMap(const TileMap& tilemap, Buffer& UBOHandle);
 	void setAttrib(GLProgram& currentProgram, JSONParser node, uint32_t start, uint32_t stride);
 	void setAttrib(GLProgram& currentProgram, JSONParser node);
 	std::vector<GLProgram> glPrograms;
-	std::unordered_map<std::string, TileMap> m_Maps;
+	std::vector<std::reference_wrapper<const TileMap>> m_Maps;
 	std::unordered_map<uint32_t,TextureData> m_texData;
 	TextureAtlas& m_atlas;
 	std::array<uint32_t,3> stencil_state = {};
