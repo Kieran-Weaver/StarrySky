@@ -17,8 +17,6 @@ struct UBOData{
 	std::array<float,4> Attrs;
 	std::array<float,4> metadata;
 	std::array<uint32_t,4> texData;
-	uint32_t TBO1;
-	uint32_t TBO2;
 };
 struct TileMap{
 	TileMap() = default;
@@ -30,7 +28,6 @@ struct TileMap{
 	}
 	TileMap& operator=(TileMap&& other);
 	~TileMap();
-	void bind(Buffer& UBO, uint32_t offset) const;
 	void load(const JSONParser& node, const TextureAtlas& atlas);
 	void loadTiles(); // Send tileData and drawn to GPU
 	// UBO Data
@@ -38,9 +35,10 @@ struct TileMap{
 	std::array<float,4> Attrs = {}; // Tile w, h, tilemap x, y
 	std::array<float,4> metadata = {}; // Layer/Z, 3x Unused
 	std::array<uint32_t,4> texData = {}; // Tile texture w, h, 2x unused
-	uint32_t tileBufferTBO = 0; // Max 2^16 - 1 tile types
-	uint32_t tileTextureTBO = 0; // Texture 
+	Texture tileBufferTBO = {}; // Max 2^16 - 1 tile types
+	Texture tileTextureTBO = {}; // Texture 
 	// Internal Data
+	Texture atlasTexture = {};
 	std::vector<std::array<float, 4>> tileData = {};
 	std::vector<Tile> drawn = {};
 	Buffer tileBuffer; // Buffer for tileBufferTBO

@@ -1,13 +1,18 @@
 #include <GL/Tilemap.hpp>
 #include <gl.h>
+#include <iostream>
 TileMap::TileMap(const JSONParser& node, const TextureAtlas& atlas){
 	this->load(node, atlas);
 }
 TileMap& TileMap::operator=(TileMap&& other){
 	this->tileBufferTBO = std::move(other.tileBufferTBO);
-	other.tileBufferTBO = 0;
+	other.tileBufferTBO = {};
 	this->tileTextureTBO = std::move(other.tileTextureTBO);
-	other.tileTextureTBO = 0;
+	other.tileTextureTBO = {};
+	this->tileBuffer = std::move(other.tileBuffer);
+	other.tileBuffer = {};
+	this->tileTexture = std::move(other.tileTexture);
+	other.tileTexture = {};
 	this->initialized = std::move(other.initialized);
 	other.initialized = false;
 
@@ -19,8 +24,6 @@ TileMap& TileMap::operator=(TileMap&& other){
 
 	this->tileData = std::move(other.tileData);
 	this->drawn = std::move(other.drawn);
-	this->tileBuffer = std::move(other.tileBuffer);
-	this->tileTexture = std::move(other.tileTexture);
 	this->numTiles = std::move(other.numTiles);
 	this->filenames = std::move(other.filenames);
 	this->type = std::move(other.type);
@@ -28,13 +31,17 @@ TileMap& TileMap::operator=(TileMap&& other){
 	return *this;
 }
 TileMap::~TileMap(){
-	glDeleteTextures(1, &tileBufferTBO);
-	glDeleteTextures(1, &tileTextureTBO);
+	glDeleteTextures(1, &tileBufferTBO.m_texture);
+	glDeleteTextures(1, &tileTextureTBO.m_texture);
 }
 void TileMap::load(const JSONParser& node, const TextureAtlas& atlas){
 	*this = node;
+	this->atlasTexture.type = GL_TEXTURE_2D;
+	this->tileBufferTBO.type = GL_TEXTURE_BUFFER;
+	this->tileTextureTBO.type = GL_TEXTURE_BUFFER;
 	for (auto& tfile : filenames){
 		const Texture tempTex = atlas.findSubTexture(tfile);
+		this->atlasTexture.m_texture = tempTex.m_texture;
 		tileData.emplace_back();
 		tileData.back()[0] = tempTex.m_rect.left / 65536.f;
 		tileData.back()[1] = tempTex.m_rect.top / 65536.f;
@@ -45,31 +52,21 @@ void TileMap::load(const JSONParser& node, const TextureAtlas& atlas){
 	this->loadTiles();
 }
 void TileMap::loadTiles(){
-	if (!tileBufferTBO){
-		glGenTextures(1, &tileBufferTBO);
+	if (!tileBufferTBO.m_texture){
+		glGenTextures(1, &tileBufferTBO.m_texture);
 	}
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_BUFFER, this->tileBufferTBO.m_texture);
 	tileBuffer.setType(GL_TEXTURE_BUFFER);
-	tileBuffer.bind();
+	tileBuffer.bind(GL_RGBA32F);
 	tileBuffer.update(tileData, 0);
-	if (!tileTextureTBO){
-		glGenTextures(1, &tileTextureTBO);
+	if (!tileTextureTBO.m_texture){
+		glGenTextures(1, &tileTextureTBO.m_texture);
 	}
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_BUFFER, this->tileTextureTBO.m_texture);
 	tileTexture.setType(GL_TEXTURE_BUFFER);
-	tileTexture.bind();
+	tileTexture.bind(GL_R16UI);
 	tileTexture.update(drawn, 0);
 	this->initialized = true;
-}
-void TileMap::bind(Buffer& UBO, uint32_t offset) const{
-	if (initialized){
-		UBO.bind();
-		UBO.update(this, sizeof(UBOData), offset);
-		
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_BUFFER, tileBufferTBO);
-		tileBuffer.bind(GL_RGBA32F);
-		
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_BUFFER, tileTextureTBO);
-		tileTexture.bind(GL_R16UI);
-	}
 }

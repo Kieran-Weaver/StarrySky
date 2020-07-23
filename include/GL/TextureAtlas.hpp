@@ -2,6 +2,7 @@
 #define TEXTUREATLAS_H
 #include <vector>
 #include <string>
+#include <string_view>
 #include <util/Rect.hpp>
 #include <util/Bitmask.hpp>
 #include <GL/Texture.hpp>
@@ -18,7 +19,7 @@ public:
 	explicit TextureAtlas(const std::string& file_path);
 	const Texture findSubTexture(const std::string& name) const;
 	const Bitmask& getBitmask(const Texture* tex) const;
-	std::vector<std::string> getSubTextureNames() const;
+	std::vector<std::string_view> getSubTextureNames() const;
 	~TextureAtlas();
 	std::vector<uint32_t> m_texture_handles;
 private:

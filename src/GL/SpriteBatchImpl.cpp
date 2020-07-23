@@ -19,10 +19,7 @@ glm::mat2 unpackmat2(const std::array<float,4>& array){
 }
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderfile) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile(shaderfile);
-	stencil_state = {GL_KEEP,GL_KEEP,GL_KEEP};
 	document = {shaderdata.c_str()};
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
 	int num_shaders = document["shaders.len"];
 	unsigned char* pixels;
 	int width, height;
@@ -32,7 +29,6 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 #endif
 		std::exit(1);
 	}
-	glPrograms[SPRITE2D].handle.bind();
 
 	for (auto& tex : m_atlas.m_texture_handles){
 		this->m_texData[tex] = TextureData();
@@ -40,27 +36,32 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	
 	for (auto& i : glPrograms){
 		i.handle.bind();
-		glUniform1i(i.handle.getUniform("tex"),0);
+		i.handle.setUniform("tex",0);
 		i.handle.bindUBO("VP", 0); // Global VP data is at 0
 	}
 
 	this->UBO = Buffer(GL_UNIFORM_BUFFER);
 	this->UBO.update(nullptr, 0, sizeof(glm::mat4) + sizeof(UBOData));
 	this->UBO.bind(0, 0, sizeof(glm::mat4) + sizeof(UBOData));
+	this->UBO.bind();
+
 	glPrograms[TILEMAP].VAO.bind();
 	glPrograms[TILEMAP].handle.bind();
-	glUniform1i(glPrograms[TILEMAP].handle.getUniform("tBuffer"),1);
-	glUniform1i(glPrograms[TILEMAP].handle.getUniform("tTexture"),2);
-	this->UBO.bind();
+	glPrograms[TILEMAP].handle.setUniform("tBuffer",1);
+	glPrograms[TILEMAP].handle.setUniform("tTexture",2);
+
+	ConfCommand conf;
+	conf.enable_flags[GL_DEPTH_TEST] = true;
+	conf.enable_flags[GL_STENCIL_TEST] = true;
+	conf.enable_flags[GL_BLEND] = true;
+	conf.enable_flags[GL_FRAMEBUFFER_SRGB] = true;
+	conf.enable_flags[GL_CULL_FACE] = false;
+	conf.depth_func = GL_LEQUAL;
+	conf.stencil_func = {GL_ALWAYS, 1, 255};
+	conf.stencil_op = {GL_KEEP, GL_KEEP, GL_ZERO};
+	conf.blend_func = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
+	this->m_drawlist.emplace_back(conf);
 	
-	glEnable(GL_STENCIL_TEST);
-	glStencilFunc(GL_ALWAYS, 1, 255);
-	setStencil(false);
-		
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_FRAMEBUFFER_SRGB);
-	glDisable(GL_CULL_FACE);
 #ifndef NO_IMGUI
 	ImGuiIO& io = ImGui::GetIO();
 	io.BackendRendererName = "imgui_impl_starrysky";
@@ -89,6 +90,8 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 		this->setAttrib(glPrograms[OVERLAY], paramNode[i], imguiVertexAttrs[i][1], imguiVertexAttrs[i][0]);
 	}
 #endif
+	uint32_t t = 0;
+	glPrograms[TILEMAP].VBO.update(&t, sizeof(t), 0);
 }
 
 SpriteBatchImpl::~SpriteBatchImpl(){
@@ -102,9 +105,6 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 
 void SpriteBatchImpl::Draw(Sprite& spr){
 	GLuint& m_tex = spr.m_subtexture.m_texture;
-	if (m_texData.find(m_tex) == m_texData.end()){
-		m_texData[m_tex] = {};
-	}
 	const auto& data = spr.render();
 	if (spr.uses_stencil){
 		m_texData[m_tex].stencilSprites.emplace_back(data);
@@ -166,88 +166,180 @@ int SpriteBatchImpl::loadPrograms(int num_shaders){
 	return glPrograms.size();
 }
 
-void SpriteBatchImpl::Draw(const Window& target){
+void SpriteBatchImpl::EndFrame(const Window& target){
 	target.makeCurrent();
-	glPrograms[SPRITE2D].handle.bind();
 	auto& ws = target.getWindowState();
-	this->UBO.bind();
-	this->UBO.update(&ws.camera->getVP()[0][0], sizeof(glm::mat4), 0);
-	glPrograms[SPRITE2D].VAO.bind();
-	glActiveTexture(GL_TEXTURE0);
-	glPrograms[SPRITE2D].VBO.bind();
-	glStencilFunc(GL_ALWAYS, 1, 255);
-	glDepthFunc(GL_LEQUAL);
-	for (auto& texturepair : m_texData){
-		auto& currentTexData = texturepair.second;
-		size_t buffersize = std::max(currentTexData.sprites.size(), currentTexData.stencilSprites.size())*sizeof(decltype(currentTexData.sprites.back()));
-		if (buffersize){
-			glPrograms[SPRITE2D].VAO.bind();
-			glBindTexture(GL_TEXTURE_2D,texturepair.first);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-			glPrograms[SPRITE2D].VBO.bind();
-			setStencil(true);
-			this->drawSprites(currentTexData.stencilSprites);
-			currentTexData.stencilSprites.clear();
-			setStencil(false);
-			this->drawSprites(currentTexData.sprites);
-			currentTexData.sprites.clear();
-		}
-	}
-	setStencil(false);
+
+	ConfCommand stencilOn;
+	stencilOn.stencil_func = {GL_ALWAYS, 1, 255};
+	stencilOn.stencil_op = {GL_KEEP, GL_KEEP, GL_REPLACE};
+	stencilOn.depth_func = GL_LEQUAL;
+
+	ConfCommand stencilOff;
+	stencilOff.stencil_op = {GL_KEEP, GL_KEEP, GL_ZERO};
+	
+	this->m_drawlist.emplace_back(stencilOn);
+	
+	DrawCommand drawStencil, noStencil;
+	this->drawSprites(drawStencil, true);
+	this->drawSprites(noStencil, false);
+	
+	this->m_drawlist.emplace_back(drawStencil);
+	this->m_drawlist.emplace_back(stencilOff);
+	this->m_drawlist.emplace_back(noStencil);
+	
 	for (auto& tmap : m_Maps){
 		drawTileMap(tmap, this->UBO);
 	}
-	this->m_Maps.clear();
-	glStencilFunc(GL_ALWAYS, 1, 255);
+	
 #ifndef NO_IMGUI
 	ImGui::Render();
-	target.Draw(toDrawList(ImGui::GetDrawData(), glPrograms[OVERLAY].handle, glPrograms[OVERLAY].VBO, glPrograms[OVERLAY].IBO, glPrograms[OVERLAY].VAO));
+	this->drawImData(ImGui::GetDrawData());
 #endif
-	glDisable(GL_SCISSOR_TEST);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	target.Draw(this->m_drawlist);
+	target.endFrame();
+	this->m_Maps.clear();
+	this->m_texData.clear();
+	this->m_drawlist.clear();
 }
-void SpriteBatchImpl::drawSprites(const std::vector<SpriteData>& data){
-	if (!data.empty()){
-		glPrograms[SPRITE2D].VBO.update(data.data(),data.size()*sizeof(SpriteData),0);
-		glPrograms[SPRITE2D].VBO.bind();
-		glDrawArrays(GL_POINTS,0,data.size());
+void SpriteBatchImpl::drawSprites(DrawCommand& drawComm, bool stencil){
+	drawComm.program = &glPrograms[SPRITE2D].handle;
+	drawComm.VAO = &glPrograms[SPRITE2D].VAO;
+	int32_t vtxOffset = 0;
+	for (auto& texturepair : m_texData){
+		auto& texData = texturepair.second;
+		auto* sprites = &texData.sprites;
+		if (stencil){
+			sprites = &texData.stencilSprites;
+		}
+		size_t buffersize = sprites->size()*sizeof(SpriteData);
+		if (buffersize){
+			DrawCall& dc = drawComm.calls.emplace_back();
+			Texture& tx = dc.textures.emplace_back();
+			tx.m_texture = texturepair.first;
+			tx.type = GL_TEXTURE_2D;
+			dc.type = Draw::Points;
+			dc.vtxOffset = vtxOffset;
+			dc.vtxCount = sprites->size();
+			
+			drawComm.bound_buffers.emplace_back(LoadCall{
+				std::ref(glPrograms[SPRITE2D].VBO),
+				sprites->data(),
+				buffersize,
+				vtxOffset * sizeof(SpriteData)
+			});
+
+			vtxOffset += dc.vtxCount;
+		}
 	}
 }
-void SpriteBatchImpl::drawTileMap(const TileMap& tilemap, Buffer& UBO){
-	uint32_t t = 0;
-
-	glPrograms[TILEMAP].handle.bind();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glPrograms[TILEMAP].VAO.bind();
-	glPrograms[TILEMAP].VBO.bind();
-	glPrograms[TILEMAP].VBO.update(&t, sizeof(t), 0);
-	tilemap.bind(UBO, sizeof(glm::mat4));
-
+void SpriteBatchImpl::drawTileMap(TileMap& tilemap, Buffer& UBO){
+	ConfCommand conf;
 	if (tilemap.type == TMType::Normal) {
-		glStencilFunc(GL_ALWAYS, 1, 255);
+		conf.stencil_func = {GL_ALWAYS, 1, 255};
 	} else if (tilemap.type == TMType::Effect) {
-		glStencilFunc(GL_EQUAL, 1, 255);
+		conf.stencil_func = {GL_EQUAL, 1, 255};
 	}
 
-	glDrawArraysInstanced(GL_POINTS, 0, 1, tilemap.drawn.size());
-	glUseProgram(0);
-	glStencilFunc(GL_ALWAYS, 1, 255);
+	DrawCommand dcomm;
+	dcomm.VAO = &glPrograms[TILEMAP].VAO;
+	dcomm.program = &glPrograms[TILEMAP].handle;
+
+	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(UBO), &tilemap, sizeof(UBOData), sizeof(glm::mat4)});
+	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(tilemap.tileBuffer), nullptr, 0, 0});
+	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(tilemap.tileTexture), nullptr, 0, 0});
+
+	DrawCall& dc = dcomm.calls.emplace_back();
+	dc.type = Draw::Points;
+	dc.textures = {tilemap.atlasTexture, tilemap.tileBufferTBO, tilemap.tileTextureTBO};
+	dc.vtxCount = 1;
+	dc.instances = tilemap.drawn.size();
+	
+	this->m_drawlist.emplace_back(conf);
+	this->m_drawlist.emplace_back(dcomm);
 }
-void SpriteBatchImpl::setStencil(bool new_state){
-	if (new_state) {
-		if (stencil_state == std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_ZERO}) {
-			stencil_state = {GL_KEEP, GL_KEEP, GL_REPLACE};
-			glStencilOp(stencil_state[0], stencil_state[1], stencil_state[2]);
-		}
-	} else {
-		if (stencil_state != std::array<GLenum,3>{GL_KEEP,GL_KEEP,GL_ZERO}) {
-			stencil_state = {GL_KEEP, GL_KEEP, GL_ZERO};
-			glStencilOp(stencil_state[0], stencil_state[1], stencil_state[2]);
-		}
+void SpriteBatchImpl::Draw(TileMap& tilemap){
+	this->m_Maps.emplace_back(std::ref(tilemap));
+}
+#ifndef NO_IMGUI
+void SpriteBatchImpl::drawImData(const ImDrawData* draw_data){
+	int fb_width = (int)(draw_data->DisplaySize.x * draw_data->FramebufferScale.x);
+	int fb_height = (int)(draw_data->DisplaySize.y * draw_data->FramebufferScale.y);
+	if (fb_width <= 0 || fb_height <= 0){
+		return;
 	}
+	ConfCommand conf;
+	conf.enable_flags[GL_BLEND] = true;
+	conf.enable_flags[GL_CULL_FACE] = false;
+	conf.enable_flags[GL_DEPTH_TEST] = false;
+	conf.enable_flags[GL_SCISSOR_TEST] = true;
+	conf.blend_equation = GL_FUNC_ADD;
+	conf.blend_func = {GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA};
+	m_drawlist.emplace_back(conf);
+	
+	float L = draw_data->DisplayPos.x;
+	float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+	float T = draw_data->DisplayPos.y;
+	float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+	
+	const glMatrix<float, 4> mtx = {{
+		{{ 2.0f/(R-L),   0.0f,         0.0f,   0.0f }},
+		{{ 0.0f,         2.0f/(T-B),   0.0f,   0.0f }},
+		{{ 0.0f,         0.0f,        -1.0f,   0.0f }},
+		{{ (R+L)/(L-R),  (T+B)/(B-T),  0.0f,   1.0f }},
+	}};
+	
+    ImVec2 clip_off = draw_data->DisplayPos;         // (0,0) unless using multi-viewports
+    ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
+	for (int i = 0; i < draw_data->CmdListsCount; i++){
+		DrawCommand dr;
+		const ImDrawList* cmd_list = draw_data->CmdLists[i];
+		dr.bound_buffers.push_back({std::ref(glPrograms[OVERLAY].VBO), cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), 0});
+		dr.bound_buffers.push_back({std::ref(glPrograms[OVERLAY].IBO), cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), 0});
+		dr.program = &glPrograms[OVERLAY].handle;
+		dr.VAO = &glPrograms[OVERLAY].VAO;
+		dr.camera_override = mtx;
+		for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++){
+			DrawCall& dc = dr.calls.emplace_back();
+			const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
+			if (pcmd->UserCallback != nullptr){
+				if (pcmd->UserCallback != ImDrawCallback_ResetRenderState){
+					dc.callback = [&](const void* a, const void* b){
+						const ImDrawCmd* pcd = reinterpret_cast<const ImDrawCmd*>(b);
+						pcd->UserCallback(static_cast<const ImDrawList*>(a), pcd);
+					};
+					dc.callback_opts = {cmd_list, pcmd};
+				}
+			} else {
+				ImVec4 clip_rect;
+				clip_rect.x = (pcmd->ClipRect.x - clip_off.x) * clip_scale.x;
+				clip_rect.y = (pcmd->ClipRect.y - clip_off.y) * clip_scale.y;
+				clip_rect.z = (pcmd->ClipRect.z - clip_off.x) * clip_scale.x;
+				clip_rect.w = (pcmd->ClipRect.w - clip_off.y) * clip_scale.y;
+				if (clip_rect.x < fb_width && clip_rect.y < fb_height && clip_rect.z >= 0.0f && clip_rect.w >= 0.0f){
+					dc.clip_rect = {
+						static_cast<int>(clip_rect.x),
+						static_cast<int>(fb_height - clip_rect.w),
+						static_cast<int>(clip_rect.z - clip_rect.x),
+						static_cast<int>(clip_rect.w - clip_rect.y)
+					};
+					Texture tmp;
+					tmp.m_texture = reinterpret_cast<uint64_t>(pcmd->TextureId) & 0xFFFFFFFF;
+					tmp.type = GL_TEXTURE_2D;
+					dc.textures.emplace_back(tmp);
+					dc.idxType = sizeof(ImDrawIdx) == 2 ? Draw::Short : Draw::Int;
+					dc.vtxOffset = pcmd->VtxOffset;
+					dc.idxOffset = (pcmd->IdxOffset * sizeof(ImDrawIdx));
+					dc.vtxCount = pcmd->ElemCount;
+				}
+			}
+		}
+		m_drawlist.emplace_back(dr);
+	}
+	conf = {};
+	conf.enable_flags[GL_DEPTH_TEST] = true;
+	conf.enable_flags[GL_SCISSOR_TEST] = false;
+	m_drawlist.emplace_back(conf);
 }
-void SpriteBatchImpl::Draw(const TileMap& tilemap){
-	this->m_Maps.emplace_back(std::cref(tilemap));
-}
+#endif

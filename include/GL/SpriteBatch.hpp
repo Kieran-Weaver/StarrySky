@@ -17,9 +17,9 @@ public:
 	SpriteBatch(const SpriteBatch& rhs) = delete;
 	SpriteBatch& operator=(const SpriteBatch& rhs) = delete;
 	int loadPrograms(int num_shaders);
-	void Draw(const TileMap& tm);
+	void Draw(TileMap& tm);
 	void Draw(Sprite& spr);
-	void Draw(const Window& target);
+	void EndFrame(const Window& target);
 private:
 	const SpriteBatchImpl* Pimpl() const { return m_pImpl.get(); }
 	SpriteBatchImpl* Pimpl(){ return m_pImpl.get(); }

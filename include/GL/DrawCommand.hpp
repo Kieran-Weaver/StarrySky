@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include <GL/Buffer.hpp>
+#include <GL/Texture.hpp>
 #include <GL/Program.hpp>
 #include <GL/VertexArray.hpp>
 #include <util/Rect.hpp>
@@ -36,7 +37,7 @@ namespace Draw{
 }
 
 struct LoadCall{
-	Buffer* buff = nullptr;
+	std::reference_wrapper<Buffer> buff;
 	const void* data = nullptr;
 	uint64_t size = 0;
 	uint64_t position = 0;
@@ -45,7 +46,7 @@ struct LoadCall{
 struct DrawCall{
 	Draw::Primitive type = Draw::Triangles;
 	std::optional<Rect<int>> clip_rect;
-	std::vector<uint64_t> textures = {};
+	std::vector<Texture> textures = {};
 	int32_t vtxOffset = 0;
 	uint32_t vtxCount = 0;
 	intptr_t idxOffset = -1;
@@ -57,7 +58,7 @@ struct DrawCall{
 };
 
 struct DrawCommand{
-	std::unordered_map<uint32_t, LoadCall> bound_buffers;
+	std::vector<LoadCall> bound_buffers;
 	Program* program;
 	VertexArray* VAO;
 	std::optional<glMatrix<float, 4>> camera_override;
@@ -82,5 +83,4 @@ struct ConfCommand{
 };
 
 using DrawList = std::vector<std::variant<DrawCommand, ConfCommand>>;
-DrawList toDrawList(const ImDrawData* drawdata, Program& program, Buffer& vtxBuf, Buffer& idxBuf, VertexArray& VAO);
 #endif

@@ -18,7 +18,7 @@ struct WindowState{
 };
 class Window{
 public:
-	explicit Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfile, const std::string& windowname);
+	explicit Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfile, const std::string& windowname, bool offscreen);
 	~Window();
 	void startFrame() const;
 	void makeCurrent() const;

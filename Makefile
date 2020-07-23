@@ -13,7 +13,7 @@ TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS))
 TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision test/mmaptest test/packingtest
 TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
 build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
-build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/DrawCommand.o build/src/GL/Tilemap.o
+build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/Tilemap.o
 DEPS := $(OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 ifdef OS
@@ -38,7 +38,7 @@ $(TARGET): $(OBJS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 clean:
-	rm -fr $(TARGET) build $(TEST_TARGETS)
+	rm -fr $(TARGET) build $(TEST_TARGETS) offscreen.png
 
 build/gl.c: build/gl.h
 build/gl.h: build/galogen_exe
@@ -54,7 +54,7 @@ build:
 test: build build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
 	$(foreach var, $(TEST_TARGETS), ./$(var);)
 
-test/collisiontest: $(TEST_COMMON_OBJS) build/test/offscreenWindow.o build/test/collisiontest.o build/test/noimgui/SpriteBatch.o
+test/collisiontest: $(TEST_COMMON_OBJS) build/test/noimgui/Window.o build/test/collisiontest.o build/test/noimgui/SpriteBatch.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
 test/collisiondemo: $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisiondemo.o  build/src/GL/SpriteBatchImpl.o build/src/GL/SpriteBatch.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS))

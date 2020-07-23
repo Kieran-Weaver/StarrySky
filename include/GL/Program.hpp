@@ -18,6 +18,7 @@ public:
 	void load(const JSONParser& data);
 	void bind();
 	uint32_t getUniform(const std::string& name);
+	void setUniform(const std::string& name, uint32_t value);
 	void bindUBO(const std::string& name, int binding);
 	void setAttrib(const std::string& name, uint32_t binding);
 	operator bool() const{

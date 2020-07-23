@@ -6,14 +6,14 @@ SpriteBatch& SpriteBatch::SpriteBatch::operator=(SpriteBatch &&) noexcept = defa
 int SpriteBatch::loadPrograms(int num_shaders){
 	return Pimpl()->loadPrograms(num_shaders);
 }
-void SpriteBatch::Draw(const TileMap& tm){
+void SpriteBatch::Draw(TileMap& tm){
 	Pimpl()->Draw(tm);
 }
 void SpriteBatch::Draw(Sprite& spr){
 	Pimpl()->Draw(spr);
 }
-void SpriteBatch::Draw(const Window& target){
-	Pimpl()->Draw(target);
+void SpriteBatch::EndFrame(const Window& target){
+	Pimpl()->EndFrame(target);
 }
 void SpriteBatchImplDeleter::operator()(SpriteBatchImpl *p){
 	delete p;

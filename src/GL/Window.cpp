@@ -3,8 +3,10 @@
 #include <gl.h>
 #include <GLFW/glfw3.h>
 #include <GL/SpriteBatch.hpp>
+#ifndef NO_IMGUI
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"
+#endif
 template<typename T, typename U=T, typename V=T>
 void callAttrib(const gl_attrib<T, 3>& attrib, void (*func)(T, U, V)){
 	if (attrib){
@@ -36,9 +38,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	}else if (action == GLFW_RELEASE){
 		ws->keyboardState[key] = false;
 	}
+#ifndef NO_IMGUI
 	ImGui_ImplGlfw_KeyCallback(window,key,scancode,action,mods);
+#endif
 }
-Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfile, const std::string& windowname){
+Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfile, const std::string& windowname, bool offscreen){
 	if (glfwInit() != GLFW_TRUE){
 		std::exit(0);
 	}
@@ -53,6 +57,9 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	glfwWindowHint(GLFW_STENCIL_BITS, 8);
+	if (offscreen){
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	}
 	windowImpl.reset(glfwCreateWindow(w, h, windowname.c_str(), nullptr, nullptr));
 	if (!windowImpl){
 		glfwTerminate();
@@ -60,12 +67,13 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	}
 	this->makeCurrent();
 	glfwSwapInterval(1);
-
+#ifndef NO_IMGUI
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(windowImpl.get(),true);
 	io.Fonts->AddFontFromFileTTF(fontfile.c_str(),20.f);
+#endif
 	glfwSetKeyCallback(windowImpl.get(),key_callback);
 	glfwSetWindowUserPointer(windowImpl.get(), &internal_state);
 }
@@ -73,15 +81,19 @@ Window::~Window(){
 	if (this->isOpen()){
 		this->close();
 	}
+#ifndef NO_IMGUI
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
+#endif
 	glfwTerminate();
 }
 void Window::startFrame() const{
 	this->makeCurrent();
 	glfwPollEvents();
+#ifndef NO_IMGUI
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+#endif
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
@@ -144,9 +156,10 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 	drawcomm.program->bind();
 	drawcomm.VAO->bind();
 	for (auto& buff : drawcomm.bound_buffers){
-		buff.second.buff->setType(buff.first);
-		buff.second.buff->bind();
-		buff.second.buff->update(buff.second.data, buff.second.size, buff.second.position);
+		buff.buff.get().bind();
+		if (buff.size){
+			buff.buff.get().update(buff.data, buff.size, buff.position);
+		}
 	}
 	if (drawcomm.camera_override){
 		this->setCamera(&(drawcomm.camera_override.value()[0][0]), drawcomm.program->getCameraIdx());
@@ -180,7 +193,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 			}
 			for (int i = 0; i < dcall.textures.size(); i++){
 				glActiveTexture(GL_TEXTURE0 + i);
-				glBindTexture(GL_TEXTURE_2D, dcall.textures[i]);
+				glBindTexture(dcall.textures[i].type, dcall.textures[i].m_texture);
 			}
 			if (indexed && instanced) {
 				if (dcall.baseVertex > 0){

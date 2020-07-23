@@ -9,7 +9,7 @@
 #include <core/Map.hpp>
 int main(){
 	const float frametime = 1.f/60.f;
-	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Starry Sky");
+	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Starry Sky", false);
 	Camera camera(Rect<float>(0.f,0.f,1400.f,800.f),Rect<float>(300.f,200.f,600.f,400.f), window);
 	WindowState ws;
 	ws.camera = &camera;
@@ -40,8 +40,7 @@ int main(){
 			objects.clear();
 			window.close();
 		}
-		batch.Draw(window);
-		window.endFrame();
+		batch.EndFrame(window);
 	}
 	return 0;
 }

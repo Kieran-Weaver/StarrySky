@@ -64,6 +64,9 @@ void Program::load(const JSONParser& data){
 uint32_t Program::getUniform(const std::string& name){
 	return glGetUniformLocation(this->m_handle, name.c_str());
 }
+void Program::setUniform(const std::string& name, uint32_t value){
+	glUniform1i(this->getUniform(name), value);
+}
 void Program::bindUBO(const std::string& name, int binding){
 	int idx = glGetUniformBlockIndex(this->m_handle, name.c_str());
 	if (idx != GL_INVALID_INDEX){

@@ -14,7 +14,7 @@ public:
 	Buffer& operator=(Buffer&&);
 	~Buffer();
 	void bind() const; // For normal buffers
-	void bind(uint32_t texType) const; // For texture buffers
+	void bind(uint32_t texType); // For texture buffers
 	void bind(uint32_t index, intptr_t offset, intptr_t size) const; // For Uniform, TF, AC, and SS buffers
 	template<typename T>
 	void update(const T& data, uint64_t position){
@@ -35,5 +35,6 @@ private:
 	uint32_t handle = 0;
 	uint32_t size = 0;
 	uint32_t type = 0;
+	int32_t texType = -1;
 };
 #endif

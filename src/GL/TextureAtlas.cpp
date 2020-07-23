@@ -145,13 +145,15 @@ bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
 const Texture TextureAtlas::findSubTexture(const std::string& name) const{
 	Texture texture;
 	for(auto& atlas : m_atlas_list){
-		if(atlas.m_texture_table.find(name) != atlas.m_texture_table.end()){
+		const auto& node = atlas.m_texture_table.find(name);
+		if(node != atlas.m_texture_table.end()){
 			texture.m_texture = atlas.m_texture;
-			texture.m_rect = atlas.m_texture_table.at(name).m_rect;
-			texture.width = atlas.m_texture_table.at(name).width;
-			texture.height = atlas.m_texture_table.at(name).height;
-			texture.rotated = atlas.m_texture_table.at(name).rotated;
+			texture.m_rect = node->second.m_rect;
+			texture.width = node->second.width;
+			texture.height = node->second.height;
+			texture.rotated = node->second.rotated;
 			texture.m_bitmask = Bitmasks.at(atlas.m_texture);
+			texture.type = GL_TEXTURE_2D;
 			break;
 		}
 	}
@@ -160,11 +162,11 @@ const Texture TextureAtlas::findSubTexture(const std::string& name) const{
 
 // This function gets a list of all the seperate image names that are in the TextureAtlas.
 // Returns a std::vector<std::string> full of filenames corresponding to images in the TextureAtlas.
-std::vector<std::string> TextureAtlas::getSubTextureNames() const{
-	std::vector<std::string> names;
+std::vector<std::string_view> TextureAtlas::getSubTextureNames() const{
+	std::vector<std::string_view> names;
 	for(const auto& atlas : m_atlas_list)
 	{
-		std::transform(atlas.m_texture_table.begin(), atlas.m_texture_table.end(), std::back_inserter(names), [](const std::pair<const std::string, Texture>& itr) -> std::string { return itr.first; });
+		std::transform(atlas.m_texture_table.begin(), atlas.m_texture_table.end(), std::back_inserter(names), [](const auto& itr){ return itr.first; });
 	}
 	return names;
 }
