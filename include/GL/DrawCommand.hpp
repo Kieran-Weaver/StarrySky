@@ -49,7 +49,7 @@ struct DrawCall{
 	std::vector<Texture> textures = {};
 	int32_t vtxOffset = 0;
 	uint32_t vtxCount = 0;
-	intptr_t idxOffset = -1;
+	intptr_t idxOffset = 0;
 	Draw::IdxType idxType = Draw::None;
 	int32_t instances = -1;
 	int32_t baseVertex = -1;

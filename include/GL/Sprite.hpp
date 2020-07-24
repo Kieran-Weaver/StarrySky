@@ -20,10 +20,10 @@ struct Sprite{
 	bool operator<(const Sprite& r) const{
 		bool l_stencil = !this->uses_stencil;
 		bool r_stencil = !r.uses_stencil;
-		return std::tie(this->m_drawn, l_stencil, this->cached_vtx_data.sprPos[2], this->m_changed) < std::tie(r.m_drawn, r_stencil, r.cached_vtx_data.sprPos[2], r.m_changed);
+		return std::tie(this->m_drawn, l_stencil, this->cached_vtx_data[0].vtxPos[2], this->m_changed) < std::tie(r.m_drawn, r_stencil, r.cached_vtx_data[0].vtxPos[2], r.m_changed);
 	}
 	const Rect<float>& getAABB();
-	const SpriteData& render();
+	const std::array<SpriteData,4>& render();
 	glm::mat2 getMat2() const{
 		return this->m_model;
 	}
@@ -35,7 +35,7 @@ private:
 	bool m_cached = false;
 	void renderAABB();
 	Rect<float> cached_aabb = {};
-	SpriteData cached_vtx_data = {}; // used for opengl's drawelements
+	std::array<SpriteData,4> cached_vtx_data = {}; // used for opengl's drawelements
 	glm::vec2 center = glm::vec2(0.f,0.f); // world coordinates
 	glm::mat2 m_model = glm::mat2(1.0f); // used for transforming the sprite beyond position: initially converts from [0,1],[0,1] to world coordinates
 };

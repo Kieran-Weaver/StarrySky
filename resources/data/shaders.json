@@ -2,46 +2,36 @@
   "shaders.len" : 3,
   "shaders": [
     {
-      "gsFile" : "resources/data/shaders/default.geom",
       "vxFile" : "resources/data/shaders/default.vert",
       "fgFile" : "resources/data/shaders/default.frag",
-	  "usesGS" : true,
+	  "usesGS" : false,
       "layout" : [
         {
-          "name" : "ptpos",
+          "name" : "texpos",
           "location" : 0,
-          "components" : 4,
+          "components" : 2,
           "type" : 1,
           "norm" : true,
-          "stride" : 44,
+          "stride" : 20,
           "start" : 0
         },
         {
-          "name" : "pmat2",
+          "name" : "vtxpos",
           "location" : 1,
-          "components" : 4,
+          "components" : 3,
           "type" : 0,
           "norm" : false,
-          "stride" : 44,
-          "start" : 8
+          "stride" : 20,
+          "start" : 4
         },
         {
-          "name" : "ctr",
+          "name" : "color",
           "location" : 2,
-          "components": 4,
-          "type" : 0,
-          "norm" : false,
-          "stride" : 44,
-          "start" : 24
-        },
-        {
-          "name" : "ctr",
-          "location" : 3,
           "components": 4,
           "type" : 3,
           "norm" : true,
-          "stride" : 44,
-          "start" : 40
+          "stride" : 20,
+          "start" : 16
         }
       ],
       "camera" : 0,

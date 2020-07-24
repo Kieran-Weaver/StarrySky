@@ -23,6 +23,7 @@ struct GLProgram{
 	VertexArray VAO = {};
 	Buffer VBO = {};
 	Buffer IBO = {};
+	Draw::IdxType idxType;
 	std::vector<uint32_t> extra_data;
 };
 class SpriteBatchImpl{

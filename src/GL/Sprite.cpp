@@ -23,18 +23,16 @@ void Sprite::setTexture(const Texture& tex){
 	if (tex.rotated != 0){
 		this->m_model = this->m_model*RotMat(glm::radians(90.f));
 	}
-	this->cached_vtx_data.texRect[0] = this->m_subtexture.m_rect.left;
-	this->cached_vtx_data.texRect[1] = this->m_subtexture.m_rect.top;
-	this->cached_vtx_data.texRect[2] = this->m_subtexture.m_rect.width;
-	this->cached_vtx_data.texRect[3] = this->m_subtexture.m_rect.height;
 }
 void Sprite::setPosition(const float& x, const float& y, const float& z){
 	if ((x != center.x)||(y != center.y)){
 		this->center.x = x;
 		this->center.y = y;
-		this->cached_vtx_data.sprPos[2] = z;
 		this->m_changed = true;
 		this->m_cached = false;
+	}
+	for (auto& i : this->cached_vtx_data){
+		i.vtxPos[2] = z;
 	}
 }
 void Sprite::setPosition(const glm::vec2& pos){
@@ -44,7 +42,9 @@ void Sprite::setPosition(const glm::vec3& pos){
 	this->setPosition(pos.x, pos.y, pos.z);
 }
 void Sprite::setColor(const std::array<uint8_t, 4> col){
-	this->cached_vtx_data.sprColor = col;
+	for (auto& i : this->cached_vtx_data){
+		i.sprColor = col;
+	}
 }
 void Sprite::rotate(const float& radians){
 	this->m_model = RotMat(radians)*this->m_model;
@@ -56,14 +56,19 @@ void Sprite::transform(const glm::mat2& matrix){
 	this->m_changed = true;
 	this->m_cached = false;
 }
-const SpriteData& Sprite::render(){
+const std::array<SpriteData, 4>& Sprite::render(){
 	if (m_changed){
-		this->cached_vtx_data.sprPos[0] = center.x;
-		this->cached_vtx_data.sprPos[1] = center.y;
-		this->cached_vtx_data.packedMat[0] = this->m_model[0][0];
-		this->cached_vtx_data.packedMat[1] = this->m_model[0][1];
-		this->cached_vtx_data.packedMat[2] = this->m_model[1][0];
-		this->cached_vtx_data.packedMat[3] = this->m_model[1][1];
+		const Rect<uint16_t>& texrect = this->m_subtexture.m_rect;
+		// Bottom left, top left, top right, bottom right
+		constexpr std::array<glm::vec2, 4> sprVertices = {{ {-0.5, 0.5}, {-0.5, -0.5}, {0.5, -0.5}, {0.5, 0.5} }};
+		for (int i = 0 ; i < 4 ; i++){
+			this->cached_vtx_data[i].texpos[0] = texrect.left + (i > 1) * texrect.width;
+			this->cached_vtx_data[i].texpos[1] = texrect.top + ((i == 0) || (i == 3)) * texrect.height;
+			glm::vec2 vert = this->center + (this->m_model * sprVertices[i]);
+			this->cached_vtx_data[i].vtxPos[0] = vert.x;
+			this->cached_vtx_data[i].vtxPos[1] = vert.y;
+		}
+		this->m_changed = false;
 	}
 	return this->cached_vtx_data;
 }

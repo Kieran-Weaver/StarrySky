@@ -17,6 +17,27 @@ std::array<float,4> packmat2(const glm::mat2& matrix){
 glm::mat2 unpackmat2(const std::array<float,4>& array){
 	return {array[0], array[1], array[2], array[3]};
 }
+// Generates an index buffer for drawing n quads
+template<typename T>
+void genBufImpl(Buffer& IBO, uint16_t n){
+	constexpr std::array<uint8_t, 6> vertices = { 0, 1, 2, 0, 2, 3 };
+	std::vector<T> data;
+	for (int i = 0; i < n; i++){
+		for (int j = 0; j < 6; j++){
+			data.emplace_back(vertices[j] + (i * 4));
+		}
+	}
+	IBO.update(data, 0);
+}
+Draw::IdxType genIdxBuffer(Buffer& IBO, uint16_t n){
+	if (n > 64){
+		genBufImpl<uint16_t>(IBO, n);
+		return Draw::Short;
+	} else {
+		genBufImpl<uint8_t>(IBO, n);
+		return Draw::Byte;
+	}
+}
 SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderfile) : m_atlas(atlas){
 	std::string shaderdata = readWholeFile(shaderfile);
 	document = {shaderdata.c_str()};
@@ -92,6 +113,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 #endif
 	uint32_t t = 0;
 	glPrograms[TILEMAP].VBO.update(&t, sizeof(t), 0);
+	glPrograms[SPRITE2D].idxType = genIdxBuffer(glPrograms[SPRITE2D].IBO, 0x3FFF);
 }
 
 SpriteBatchImpl::~SpriteBatchImpl(){
@@ -107,9 +129,11 @@ void SpriteBatchImpl::Draw(Sprite& spr){
 	GLuint& m_tex = spr.m_subtexture.m_texture;
 	const auto& data = spr.render();
 	if (spr.uses_stencil){
-		m_texData[m_tex].stencilSprites.emplace_back(data);
+		auto& vec = m_texData[m_tex].stencilSprites;
+		vec.insert(vec.end(), data.begin(), data.end());
 	} else {
-		m_texData[m_tex].sprites.emplace_back(data);
+		auto& vec = m_texData[m_tex].sprites;
+		vec.insert(vec.end(), data.begin(), data.end());
 	}
 }
 
@@ -205,7 +229,8 @@ void SpriteBatchImpl::EndFrame(const Window& target){
 void SpriteBatchImpl::drawSprites(DrawCommand& drawComm, bool stencil){
 	drawComm.program = &glPrograms[SPRITE2D].handle;
 	drawComm.VAO = &glPrograms[SPRITE2D].VAO;
-	int32_t vtxOffset = 0;
+	int32_t baseVertex = 0;
+	drawComm.bound_buffers.emplace_back(LoadCall{std::ref(glPrograms[SPRITE2D].IBO), nullptr, 0,0});
 	for (auto& texturepair : m_texData){
 		auto& texData = texturepair.second;
 		auto* sprites = &texData.sprites;
@@ -218,18 +243,19 @@ void SpriteBatchImpl::drawSprites(DrawCommand& drawComm, bool stencil){
 			Texture& tx = dc.textures.emplace_back();
 			tx.m_texture = texturepair.first;
 			tx.type = GL_TEXTURE_2D;
-			dc.type = Draw::Points;
-			dc.vtxOffset = vtxOffset;
-			dc.vtxCount = sprites->size();
+			dc.type = Draw::Triangles;
+			dc.baseVertex = baseVertex;
+			dc.vtxCount = (sprites->size() / 4) * 6;
+			dc.idxType = this->glPrograms[SPRITE2D].idxType;
 			
 			drawComm.bound_buffers.emplace_back(LoadCall{
 				std::ref(glPrograms[SPRITE2D].VBO),
 				sprites->data(),
 				buffersize,
-				vtxOffset * sizeof(SpriteData)
+				baseVertex * sizeof(SpriteData)
 			});
 
-			vtxOffset += dc.vtxCount;
+			baseVertex += sprites->size();
 		}
 	}
 }
