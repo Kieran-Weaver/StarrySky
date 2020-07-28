@@ -11,6 +11,7 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
+#include <numeric>
 std::array<float,4> packmat2(const glm::mat2& matrix){
 	return {matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1]};
 }
@@ -107,13 +108,18 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	io.Fonts->TexID = (ImTextureID)(intptr_t)glPrograms[OVERLAY].extra_data[0];
 	std::array<std::array<GLuint, 2>, 3> imguiVertexAttrs = {{ {{sizeof(ImDrawVert), offsetof(ImDrawVert, pos)}}, {{sizeof(ImDrawVert), offsetof(ImDrawVert, uv)}}, {{sizeof(ImDrawVert), offsetof(ImDrawVert, col)}} }};
 	auto paramNode = document["shaders"][OVERLAY]["layout"];
+	glPrograms[OVERLAY].VAO.bind();
 	for (int i = 0; i < 3; i++){
 		this->setAttrib(glPrograms[OVERLAY], paramNode[i], imguiVertexAttrs[i][1], imguiVertexAttrs[i][0]);
 	}
 #endif
-	uint32_t t = 0;
-	glPrograms[TILEMAP].VBO.update(&t, sizeof(t), 0);
+	glPrograms[SPRITE2D].VAO.bind();
 	glPrograms[SPRITE2D].idxType = genIdxBuffer(glPrograms[SPRITE2D].IBO, 0x3FFF);
+	std::vector<uint16_t> vertices(0x10000);
+	std::iota(vertices.begin(), vertices.end(), 0);
+	glPrograms[TILEMAP].VAO.bind();
+	glPrograms[TILEMAP].VBO.update(vertices, 0);
+	glPrograms[TILEMAP].idxType = genIdxBuffer(glPrograms[TILEMAP].IBO, 0x3FFF);
 }
 
 SpriteBatchImpl::~SpriteBatchImpl(){
@@ -177,11 +183,12 @@ int SpriteBatchImpl::loadPrograms(int num_shaders){
 	for (int ind = 0; ind < num_shaders; ind++){
 		glPrograms.emplace_back();
 		GLProgram& currentProgram = glPrograms.back();
+		currentProgram.VAO.bind();
 		currentProgram.VBO = Buffer(GL_ARRAY_BUFFER);
 		currentProgram.IBO = Buffer(GL_ELEMENT_ARRAY_BUFFER);
-		currentProgram.handle.load(node[ind]);
-		currentProgram.VAO.bind();
 		currentProgram.VBO.bind();
+		currentProgram.IBO.bind();
+		currentProgram.handle.load(node[ind]);
 		auto layoutNode = node[ind]["layout"];
 		for (auto& parameterNode : layoutNode.GetArray()){
 			this->setAttrib(currentProgram, parameterNode);
@@ -271,16 +278,17 @@ void SpriteBatchImpl::drawTileMap(TileMap& tilemap, Buffer& UBO){
 	dcomm.VAO = &glPrograms[TILEMAP].VAO;
 	dcomm.program = &glPrograms[TILEMAP].handle;
 
+	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(glPrograms[TILEMAP].VBO), nullptr, 0, 0});
+	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(glPrograms[TILEMAP].IBO), nullptr, 0, 0});
 	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(UBO), &tilemap, sizeof(UBOData), sizeof(glm::mat4)});
-	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(tilemap.tileBuffer), nullptr, 0, 0});
-	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(tilemap.tileTexture), nullptr, 0, 0});
 
 	DrawCall& dc = dcomm.calls.emplace_back();
-	dc.type = Draw::Points;
+	dc.type = Draw::Triangles;
+	dc.idxType = Draw::Short;
 	dc.textures = {tilemap.atlasTexture, tilemap.tileBufferTBO, tilemap.tileTextureTBO};
-	dc.vtxCount = 1;
-	dc.instances = tilemap.drawn.size();
-	
+	dc.vtxCount = tilemap.texData[0] * 6;
+	dc.instances = tilemap.texData[1];
+
 	this->m_drawlist.emplace_back(conf);
 	this->m_drawlist.emplace_back(dcomm);
 }

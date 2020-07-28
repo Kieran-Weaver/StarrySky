@@ -38,18 +38,17 @@
       "output" : "outColor"
     },
 	{
-	  "gsFile" : "resources/data/shaders/tilemap.geom",
 	  "vxFile" : "resources/data/shaders/tilemap.vert",
 	  "fgFile" : "resources/data/shaders/tilemap.frag",
-	  "usesGS" : true,
+	  "usesGS" : false,
 	  "layout" : [
 	    {
-          "name" : "dummy",
+          "name" : "xpos",
           "location" : 0,
 		  "components" : 1,
-		  "type" : 2,
+		  "type" : 1,
 		  "norm" : false,
-		  "stride" : 0,
+		  "stride" : 2,
 		  "start" : 0
 		}
 	  ],

@@ -186,7 +186,6 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 		} else {
 			bool instanced = (dcall.instances >= 0);
 			bool indexed = (dcall.idxType != Draw::None);
-			GLenum mode = 0;
 			if (dcall.clip_rect){
 				const Rect<int>& cliprect = dcall.clip_rect.value();
 				glScissor(cliprect.left, cliprect.top, cliprect.width, cliprect.height);
