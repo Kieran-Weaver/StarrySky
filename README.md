@@ -48,11 +48,15 @@ make
 
 ## Project Layout:
 - src/GL contains the graphics backend, which is currently based on OpenGL 3.x and GLFW
+- src/util contains common code that everything else uses.
+- src/file contains APIs to read and write text, memory mapped, and JSON files
 - src/core contains the physics and map system and any helper files.
 - src/game contains the game's AI and higher-level game concepts such as game mechanics.
 
 ## Using Starry Sky as a Library
-Parts of Starry Sky function as a standalone rendering library. Eventually, they will be separated from the main engine and given a different Makefile, but that is fairly low priority.
+The GL portion of Starry Sky can be used as a standalone rendering library. The `lib` target in the Makefile creates `build/libSSGL.a`, which contains the implementation of the GL, util, and file folders, as well as code required to use ImGui.
+The rendering library can draw 3 different types of objects: Sprites, Tilemaps, and ImGui windows. Both Sprites and Tilemaps are drawn using the SpriteBatch object, while ImGui windows are drawn automatically when ImGui is used.
+See include/GL/Sprite.hpp, include/GL/Tilemap.hpp, and https://github.com/ocornut/imgui for information on Sprites, Tilemaps, and ImGui respectively.
 
 ## Example code:
 ```C++
@@ -86,7 +90,7 @@ int main(int, char const**) {
 
 
 ## Acknowledgements and Links:
-src/GL/Sprite.h, src/GL/SpriteBatch.h, src/GL/Texture.h, src/GL/TextureAtlas.h, and src/GL/TextureAtlas.cpp are originally from https://github.com/ricanteja/Moony-SpriteBatch, but were rewritten for Starry Sky.
+include/GL/Sprite.h, include/GL/SpriteBatch.h, include/GL/Texture.h, include/GL/TextureAtlas.h, and src/GL/TextureAtlas.cpp are originally from https://github.com/ricanteja/Moony-SpriteBatch, but were rewritten for Starry Sky.
 
 The original engine for Starry Sky was based off of https://github.com/pixelpicosean/PlatformerEngine, but it was also rewritten.
 
