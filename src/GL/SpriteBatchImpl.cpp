@@ -281,6 +281,7 @@ void SpriteBatchImpl::drawTileMap(TileMap& tilemap, Buffer& UBO){
 	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(glPrograms[TILEMAP].VBO), nullptr, 0, 0});
 	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(glPrograms[TILEMAP].IBO), nullptr, 0, 0});
 	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(UBO), &tilemap, sizeof(UBOData), sizeof(glm::mat4)});
+	dcomm.bound_buffers.emplace_back(LoadCall{std::ref(tilemap.tileTexture), tilemap.drawn.data(), sizeof(decltype(tilemap.drawn)::size_type) * tilemap.drawn.size(), 0});
 
 	DrawCall& dc = dcomm.calls.emplace_back();
 	dc.type = Draw::Triangles;

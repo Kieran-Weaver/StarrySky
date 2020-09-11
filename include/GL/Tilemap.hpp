@@ -40,12 +40,14 @@ struct TileMap{
 	Texture tileTextureTBO = {}; // Texture 
 	// Internal Data
 	Texture atlasTexture = {};
-	std::vector<std::array<float, 4>> tileData = {};
+	std::vector<std::array<float, 4>> tileData = {
+		{0, 0, 0, 0}
+	};
 	std::vector<Tile> drawn = {};
 	Buffer tileBuffer; // Buffer for tileBufferTBO
 	Buffer tileTexture;// Buffer for tileTextureTBO
 	int numTiles = 0;
-	std::vector<std::string> filenames = {};
+	std::vector<std::string> filenames = { "empty" };
 	TMType type = TMType::Normal;
 	bool initialized = false;
 };

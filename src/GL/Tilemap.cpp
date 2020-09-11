@@ -1,6 +1,5 @@
 #include <GL/Tilemap.hpp>
 #include <gl.h>
-#include <iostream>
 template<>
 JSONParser::operator TMType() const{
 	std::string data{internal.GetString()};
@@ -66,6 +65,7 @@ void TileMap::load(const JSONParser& node, const TextureAtlas& atlas){
 	this->tileTextureTBO.type = GL_TEXTURE_BUFFER;
 	std::vector<std::string> fnames;
 	fnames.swap(filenames);
+	filenames.emplace_back("empty");
 	for (auto& tfile : fnames){
 		this->addTile(tfile, atlas.findSubTexture(tfile));
 	}

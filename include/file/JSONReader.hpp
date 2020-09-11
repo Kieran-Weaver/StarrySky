@@ -19,6 +19,9 @@ public:
 	JSONParser operator[](int key) const{
 		return {internal[key]};
 	}
+	bool HasKey(const std::string& key) const{
+		return internal.HasMember(key.c_str());
+	}
 	const auto GetArray() const{
 		return internal.GetArray();
 	}
