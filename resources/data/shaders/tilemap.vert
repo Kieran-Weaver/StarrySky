@@ -18,7 +18,7 @@ void main(){
 	vec2 position = positions[vert];
 	position = vec2(position.x + xpos / 4u, position.y + gl_InstanceID);
 	position = vec2(position.x * packedtileSize.x, position.y * packedtileSize.y);
-//	gl_Position = vec4(position, 0.0, 0.0);
+
 	position = AffineT * position + packedtileSize.zw;
 	gl_Position = globalVP * vec4(position, 0.0, 1.0);
 	gl_Position.z = metadata.x;

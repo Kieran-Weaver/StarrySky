@@ -19,7 +19,7 @@ struct UBOData{
 	std::array<uint32_t,4> texData;
 };
 struct TileMap{
-	TileMap() = default;
+	TileMap();
 	TileMap(const JSONParser& node, const TextureAtlas& atlas);
 	TileMap(const TileMap& other) = delete;
 	TileMap& operator=(const TileMap& other) = delete;
@@ -28,6 +28,7 @@ struct TileMap{
 	}
 	TileMap& operator=(TileMap&& other);
 	~TileMap();
+	void addTile(const std::string& filename);
 	void load(const JSONParser& node, const TextureAtlas& atlas);
 	void loadTiles(); // Send tileData and drawn to GPU
 	// UBO Data

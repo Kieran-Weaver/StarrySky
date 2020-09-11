@@ -28,7 +28,37 @@ void callAttrib(const std::optional<T>& attrib, void (*func)(T)){
 void GLFWwindowDeleter::operator()(GLFWwindow* ptr){
 	glfwDestroyWindow(ptr);
 }
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods){
+void MouseEnterCB(GLFWwindow* window, int entered){
+	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+	if (entered){
+		ws->mouseOn = true;
+	} else {
+		ws->mouseOn = false;
+	}
+}
+
+void MousePosCB(GLFWwindow* window, double xpos, double ypos){
+	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+	if (ws->mouseOn && ws->cursorCB){
+		ws->cursorCB(xpos, ypos);
+	}
+}
+
+void MouseButtonCB(GLFWwindow* window, int button, int action, int mods){
+	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+	if (ws->mouseOn && ws->mouseCB){
+		ws->mouseCB(button, action, mods);
+	}
+}
+	
+void MouseScrollCB(GLFWwindow* window, double xoff, double yoff){
+	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
+	if (ws->mouseOn && ws->scrollCB){
+		ws->scrollCB(xoff, yoff);
+	}
+}
+
+void KeyboardCB(GLFWwindow* window, int key, int scancode, int action, int mods){
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
 		glfwSetWindowShouldClose(window,GLFW_TRUE);
 	}
@@ -56,7 +86,7 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
 	glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
-	glfwWindowHint(GLFW_STENCIL_BITS, 8);
+	glfwWindowHint(GLFW_STENCIL_BITS, 8); 
 	if (offscreen){
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 	}
@@ -74,8 +104,13 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	ImGui_ImplGlfw_InitForOpenGL(windowImpl.get(),true);
 	io.Fonts->AddFontFromFileTTF(fontfile.c_str(),20.f);
 #endif
-	glfwSetKeyCallback(windowImpl.get(),key_callback);
 	glfwSetWindowUserPointer(windowImpl.get(), &internal_state);
+
+	glfwSetKeyCallback(windowImpl.get(), KeyboardCB);	
+	glfwSetCursorEnterCallback(windowImpl.get(), MouseEnterCB);
+	glfwSetCursorPosCallback(windowImpl.get(), MousePosCB);	
+	glfwSetMouseButtonCallback(windowImpl.get(), MouseButtonCB);
+	glfwSetScrollCallback(windowImpl.get(), MouseScrollCB);
 }
 Window::~Window(){
 	if (this->isOpen()){

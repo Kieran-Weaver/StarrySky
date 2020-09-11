@@ -9,11 +9,11 @@ JSONParser::operator Texture() const{
 	Texture data;
 	return data;
 }
-TextureAtlas::TextureAtlas(const std::string& file_path){
+TextureAtlas::TextureAtlas(const std::string_view file_path){
 	std::string jsondata = readWholeFile(file_path);
 	JSONReader document(jsondata.c_str());
 	auto texturesNode = document["textures"];
-	std::string path = file_path.substr(0, file_path.find_last_of("\\/") + 1);
+	std::string path(file_path.substr(0, file_path.find_last_of("\\/") + 1));
 	for (auto& atlasNode : texturesNode.GetArray()) {
 		auto& data = this->m_atlas_list.emplace_back();
 		glGenTextures(1, &(data.m_texture));
@@ -57,7 +57,7 @@ TextureAtlas::TextureAtlas(const std::string& file_path){
 TextureAtlas::~TextureAtlas(){
 		glDeleteTextures(m_texture_handles.size(),m_texture_handles.data());
 }
-bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
+bool TextureAtlas::loadDDSgz(const std::string_view path,Atlas& atlas){
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D,atlas.m_texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -65,7 +65,7 @@ bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	gzFile gzhandle = nullptr;
-	gzhandle = gzopen(path.c_str(),"rb");
+	gzhandle = gzopen(path.data(),"rb");
 	bool return_code = true;
 	if (gzhandle != nullptr){
 		auto header = new uint32_t[32];
@@ -120,12 +120,12 @@ bool TextureAtlas::loadDDSgz(const std::string& path,Atlas& atlas){
 	}
 	return return_code;
 }
-bool TextureAtlas::loadBINgz(const std::string& path, const Atlas& atlas){
+bool TextureAtlas::loadBINgz(const std::string_view path, const Atlas& atlas){
 	Bitmask maskwrapper;
 	maskwrapper.width = atlas.width;
 	maskwrapper.height = atlas.height;
 	gzFile gzhandle = nullptr;
-	gzhandle = gzopen(path.c_str(),"rb");
+	gzhandle = gzopen(path.data(),"rb");
 	bool return_code = false;
 	if (gzhandle != nullptr){
 		size_t bytes = atlas.width*atlas.height/8;
@@ -162,8 +162,8 @@ const Texture TextureAtlas::findSubTexture(const std::string& name) const{
 
 // This function gets a list of all the seperate image names that are in the TextureAtlas.
 // Returns a std::vector<std::string> full of filenames corresponding to images in the TextureAtlas.
-std::vector<std::string_view> TextureAtlas::getSubTextureNames() const{
-	std::vector<std::string_view> names;
+std::vector<std::string> TextureAtlas::getSubTextureNames() const{
+	std::vector<std::string> names;
 	for(const auto& atlas : m_atlas_list)
 	{
 		std::transform(atlas.m_texture_table.begin(), atlas.m_texture_table.end(), std::back_inserter(names), [](const auto& itr){ return itr.first; });

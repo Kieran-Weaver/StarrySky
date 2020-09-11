@@ -16,17 +16,17 @@ struct Atlas{
 };
 class TextureAtlas{
 public:
-	explicit TextureAtlas(const std::string& file_path);
+	explicit TextureAtlas(const std::string_view file_path);
 	const Texture findSubTexture(const std::string& name) const;
-	const Bitmask& getBitmask(const Texture* tex) const;
-	std::vector<std::string_view> getSubTextureNames() const;
+//	const Bitmask& getBitmask(const Texture& tex) const;
+	std::vector<std::string> getSubTextureNames() const;
 	~TextureAtlas();
 	std::vector<uint32_t> m_texture_handles;
 private:
 	std::vector<Atlas> m_atlas_list;
 	std::unordered_map<uint32_t, Bitmask> Bitmasks;
-	bool loadDDSgz(const std::string& path, Atlas& atlas);
-	bool loadBINgz(const std::string& path, const Atlas& atlas);
+	bool loadDDSgz(const std::string_view path, Atlas& atlas);
+	bool loadBINgz(const std::string_view path, const Atlas& atlas);
 };
 
 #endif

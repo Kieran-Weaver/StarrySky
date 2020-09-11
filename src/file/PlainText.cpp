@@ -1,7 +1,7 @@
 #include <file/PlainText.hpp>
 #include <fstream>
-std::string readWholeFile(const std::string& filename){
-	std::ifstream infile(filename,std::ios::in | std::ios::binary | std::ios::ate);
+std::string readWholeFile(const std::string_view filename){
+	std::ifstream infile(filename.data(),std::ios::in | std::ios::binary | std::ios::ate);
 	std::string contents;
 	if (infile){
 		int size = infile.tellg();
@@ -18,7 +18,7 @@ std::string_view MMAPFile::getString(){
 #if defined _WIN32 || defined __CYGWIN__
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-MMAPFile::MMAPFile(const std::string& filename){
+MMAPFile::MMAPFile(const std::string_view filename){
 	WIN32_FILE_ATTRIBUTE_DATA file_attr_data;
 	LARGE_INTEGER file_size = {0};
 	if (GetFileAttributesEx(filename.c_str(), GetFileExInfoStandard, &file_attr_data)){
@@ -41,13 +41,13 @@ MMAPFile::~MMAPFile(){
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-MMAPFile::MMAPFile(const std::string& filename){
+MMAPFile::MMAPFile(const std::string_view filename){
 	struct stat st;
-	stat(filename.c_str(), &st);
+	stat(filename.data(), &st);
 	this->size = st.st_size;
 	this->fd = new int;
 	int* fdp = reinterpret_cast<int*>(fd);
-	*fdp = open(filename.c_str(), O_RDONLY);
+	*fdp = open(filename.data(), O_RDONLY);
 	this->mapping = mmap(nullptr, this->size, PROT_READ | PROT_WRITE, MAP_PRIVATE, *fdp, 0);
 }
 MMAPFile::~MMAPFile(){

@@ -15,6 +15,10 @@ struct GLFWwindowDeleter{
 struct WindowState{
 	Camera* camera;
 	std::bitset<MAX_KEYCODE + 1> keyboardState;
+	bool mouseOn = false;	
+	std::function<void(double, double)> cursorCB;
+	std::function<void(int,int,int)> mouseCB;
+	std::function<void(double, double)> scrollCB;
 };
 class Window{
 public:

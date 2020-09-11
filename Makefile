@@ -29,7 +29,8 @@ endif
 .PHONY: all clean test
 
 all: build build/gl.h $(TARGET)
-
+build:
+	mkdir -p build
 $(TARGET): $(OBJS)  ./build/libSSGL.a
 	$(CXX) $^ -o $(TARGET) $(GL_FLAGS) $(LDFLAGS)
 
@@ -40,25 +41,23 @@ $(TARGET): $(OBJS)  ./build/libSSGL.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 clean:
-	rm -fr $(TARGET) build $(TEST_TARGETS) offscreen.png
+	rm -fr $(TARGET) build $(TEST_TARGETS) offscreen.png tools/editor
 
 build/gl.c: build/gl.h
 build/gl.h: build/galogen_exe
-	cd build && ./galogen_exe ../submodules/galogen/third_party/gl.xml --api gl --ver 3.3 --profile core --exts EXT_texture_compression_s3tc,EXT_texture_sRGB,EXT_texture_filter_anisotropic --filename gl 
+	cd build && ./galogen_exe ../submodules/galogen/third_party/gl.xml --api gl --ver 4.6 --profile core --exts EXT_texture_compression_s3tc,EXT_texture_sRGB,EXT_texture_filter_anisotropic --filename gl 
 
 build/libSSGL.a: lib
 
 lib: $(LIB_OBJS)
 	ar rcs build/libSSGL.a $(LIB_OBJS)
 
-build/galogen_exe: build
+build/galogen_exe:
+	mkdir -p build
+	cd build && mkdir -p build src/core tools src/game src/GL src/util src/file submodules/imgui/examples test test/noimgui
 	$(CXX) $(CXXFLAGS) submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp -o build/galogen_exe $(LDFLAGS)
 
-build:
-	mkdir build
-	cd build && mkdir -p build src/core src/game src/GL src/util src/file submodules/imgui/examples test test/noimgui
-
-test: build build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
+test: build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
 	$(foreach var, $(TEST_TARGETS), ./$(var);)
 
 test/collisiontest: $(TEST_COMMON_OBJS) build/test/noimgui/Window.o build/test/collisiontest.o build/test/noimgui/SpriteBatch.o
@@ -81,6 +80,9 @@ test/mmaptest: build/test/mmaptest.o build/src/file/PlainText.o
 
 test/packingtest: build/test/packingtest.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+
+tools/editor: build/tools/editor.o build/libSSGL.a
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS) $(GL_FLAGS)
 
 -include $(DEPS)
 
