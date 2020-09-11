@@ -31,7 +31,6 @@ TileMap& TileMap::operator=(TileMap&& other){
 	other.tileTexture = {};
 	this->initialized = std::move(other.initialized);
 	other.initialized = false;
-
 	
 	this->AffineT = std::move(other.AffineT);
 	this->Attrs = std::move(other.Attrs);
@@ -50,20 +49,25 @@ TileMap::~TileMap(){
 	glDeleteTextures(1, &tileBufferTBO.m_texture);
 	glDeleteTextures(1, &tileTextureTBO.m_texture);
 }
+void TileMap::addTile(const std::string& filename, const Texture& tile){
+	this->filenames.emplace_back(filename);
+	this->atlasTexture.m_texture = tile.m_texture;
+	this->tileData.emplace_back();
+	this->tileData.back()[0] = tile.m_rect.left / 65536.f;
+	this->tileData.back()[1] = tile.m_rect.top / 65536.f;
+	this->tileData.back()[2] = tile.m_rect.width / 65536.f;
+	this->tileData.back()[3] = tile.m_rect.height / 65536.f;
+	this->numTiles++;
+}
 void TileMap::load(const JSONParser& node, const TextureAtlas& atlas){
 	*this = node;
 	this->atlasTexture.type = GL_TEXTURE_2D;
 	this->tileBufferTBO.type = GL_TEXTURE_BUFFER;
 	this->tileTextureTBO.type = GL_TEXTURE_BUFFER;
-	for (auto& tfile : filenames){
-		const Texture tempTex = atlas.findSubTexture(tfile);
-		this->atlasTexture.m_texture = tempTex.m_texture;
-		tileData.emplace_back();
-		tileData.back()[0] = tempTex.m_rect.left / 65536.f;
-		tileData.back()[1] = tempTex.m_rect.top / 65536.f;
-		tileData.back()[2] = tempTex.m_rect.width / 65536.f;
-		tileData.back()[3] = tempTex.m_rect.height / 65536.f;
-		numTiles++;
+	std::vector<std::string> fnames;
+	fnames.swap(filenames);
+	for (auto& tfile : fnames){
+		this->addTile(tfile, atlas.findSubTexture(tfile));
 	}
 	this->loadTiles();
 }

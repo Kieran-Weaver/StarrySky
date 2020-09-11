@@ -28,7 +28,7 @@ struct TileMap{
 	}
 	TileMap& operator=(TileMap&& other);
 	~TileMap();
-	void addTile(const std::string& filename);
+	void addTile(const std::string& filename, const Texture& tile);
 	void load(const JSONParser& node, const TextureAtlas& atlas);
 	void loadTiles(); // Send tileData and drawn to GPU
 	// UBO Data

@@ -21,13 +21,13 @@ std::string_view MMAPFile::getString(){
 MMAPFile::MMAPFile(const std::string_view filename){
 	WIN32_FILE_ATTRIBUTE_DATA file_attr_data;
 	LARGE_INTEGER file_size = {0};
-	if (GetFileAttributesEx(filename.c_str(), GetFileExInfoStandard, &file_attr_data)){
+	if (GetFileAttributesEx(filename.data(), GetFileExInfoStandard, &file_attr_data)){
 		file_size.HighPart = file_attr_data.nFileSizeHigh;
 		file_size.LowPart = file_attr_data.nFileSizeLow;
 	}
 	this->size = file_size.QuadPart;
 	
-	this->fd = CreateFile(filename.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	this->fd = CreateFile(filename.data(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	HANDLE mhandle = CreateFileMapping(fd, 0, PAGE_WRITECOPY, 0, 0, 0);
 	this->mapping = MapViewOfFile(mhandle, FILE_MAP_COPY, 0, 0, 0);
 	CloseHandle(mhandle);

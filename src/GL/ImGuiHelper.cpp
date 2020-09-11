@@ -6,6 +6,6 @@ void ImImage(const Texture& tex, float width, float height){
 	float texX2 = (tex.m_rect.left + tex.m_rect.width) / 65536.f;
 	float texY1 = tex.m_rect.top / 65536.f;
 	float texY2 = (tex.m_rect.top + tex.m_rect.height) / 65536.f;
-	ImGui::Image((void*)(intptr_t)tex.m_texture, ImVec2(width, height), ImVec2(texX1, texY1), ImVec2(texY1, texY2));
+	ImGui::Image((void*)(intptr_t)tex.m_texture, ImVec2(width, height), ImVec2(texX1, texY1), ImVec2(texX2, texY2));
 }
 #endif
