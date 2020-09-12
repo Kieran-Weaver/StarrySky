@@ -32,8 +32,8 @@ struct TileMap{
 	void load(const JSONParser& node, const TextureAtlas& atlas);
 	void loadTiles(); // Send tileData and drawn to GPU
 	// UBO Data
-	std::array<float,4> AffineT = {}; // Mat2 transformation of tilemap
-	std::array<float,4> Attrs = {}; // Tile w, h, tilemap x, y
+	std::array<float,4> AffineT = {1, 0, 0, 1}; // Mat2 transformation of tilemap
+	std::array<float,4> Attrs = {1, 1, 0, 0}; // Tile w, h, tilemap x, y
 	std::array<float,4> metadata = {}; // Layer/Z, 3x Unused
 	std::array<uint32_t,4> texData = {}; // Tile texture w, h, 2x unused
 	Texture tileBufferTBO = {}; // Max 2^16 - 1 tile types

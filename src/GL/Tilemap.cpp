@@ -41,6 +41,7 @@ TileMap& TileMap::operator=(TileMap&& other){
 	this->numTiles = std::move(other.numTiles);
 	this->filenames = std::move(other.filenames);
 	this->type = std::move(other.type);
+	this->atlasTexture = std::move(other.atlasTexture);
 
 	return *this;
 }
