@@ -15,15 +15,6 @@ VISITABLE_STRUCT(glm::vec2, x, y);
 TileMap& ObjMap::getTM(const std::string& id){
 	return this->internal_tms[id];
 }
-template<>
-JSONParser::operator glm::mat2() const{
-	glm::mat2 data;
-	data[0][0] = internal[0].GetFloat();
-	data[0][1] = internal[1].GetFloat();
-	data[1][0] = internal[2].GetFloat();
-	data[1][1] = internal[3].GetFloat();
-	return data;
-}
 ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas){
 	this->rng = SeedRNG();
 	this->loadFromFile(filename);
@@ -39,24 +30,26 @@ void ObjMap::loadFromFile(const std::string& filename){
 	JSONReader document(jsondata.c_str());
 	std::vector<Surface> tempSurfaces = document["surfaces"];
 	ledges = static_cast<decltype(ledges)>(document["ledges"]);
-	rapidjson::Value& spritesNode = document["sprites"];
-	rapidjson::Value& tilemapsNode = document["tilemaps"];
+	JSONParser spritesNode = document["sprites"];
+	JSONParser tilemapsNode = document["tilemaps"];
 
 	this->surfaces.load(tempSurfaces);
 
-	for (auto& spriteNode : spritesNode.GetArray()){
+	for (int i = 0; i < spritesNode.size(); i++){
+		const auto& spriteNode = spritesNode[i];
 		JSONParser posnode(spriteNode);
 		JSONParser tnode(spriteNode["t"]);
 		glm::mat2 sprtransform;
 		glm::vec2 sprposition;
 		sprposition = posnode;
 		sprtransform = tnode;
-		std::string fname = spriteNode["name"].GetString();
+		std::string fname = static_cast<std::string>(spriteNode["name"]);
 		this->addBGTexture(sprposition,sprtransform,fname);
 	}
-	for (auto& tilemapNode : tilemapsNode.GetObject()){
-		std::string tmname = tilemapNode.name.GetString();
-		loadTileMap(internal_tms[tmname], tilemapNode.value);
+	
+	std::vector<std::string_view> tmKeys = tilemapsNode.getKeys();
+	for (auto& tmKey : tmKeys){
+		loadTileMap(internal_tms[std::string(tmKey)], tilemapsNode[tmKey]);
 	}
 	tm_changed = true;
 }

@@ -14,18 +14,20 @@ TextureAtlas::TextureAtlas(const std::string_view file_path){
 	JSONReader document(jsondata.c_str());
 	auto texturesNode = document["textures"];
 	std::string path(file_path.substr(0, file_path.find_last_of("\\/") + 1));
-	for (auto& atlasNode : texturesNode.GetArray()) {
+	for (int i = 0; i < texturesNode.size(); i++){
+		auto atlasNode = texturesNode[i];
 		auto& data = this->m_atlas_list.emplace_back();
 		glGenTextures(1, &(data.m_texture));
 		this->m_texture_handles.emplace_back(data.m_texture);
-		std::string textureName = atlasNode["name"].GetString();
+		std::string textureName = static_cast<std::string>(atlasNode["name"]);
 		if (!loadDDSgz(path + textureName + ".dds.gz", data)){
 			throw std::invalid_argument("Invalid DDS File: " + path + textureName + ".dds.gz");
 		}
 		if (!loadBINgz(path + textureName + ".bin.gz",data)){
 			throw std::invalid_argument("Invalid hitbox file: " + path + textureName + ".bin.gz");
 		}
-		for (auto& textureNode : atlasNode["images"].GetArray()){
+		for (int j = 0; j < atlasNode["images"].size(); j++){
+			auto textureNode = atlasNode["images"][j];
 			JSONParser tNode(textureNode);
 			std::string tname(tNode["n"]);
 			auto& tex = data.m_texture_table[tname];

@@ -5,7 +5,6 @@
 #include <gl.h>
 #ifndef NO_IMGUI
 #include <imgui/imgui.h>
-#include <core/Editor.hpp>
 #endif
 #include <string>
 #ifndef NDEBUG
@@ -190,8 +189,8 @@ int SpriteBatchImpl::loadPrograms(int num_shaders){
 		currentProgram.IBO.bind();
 		currentProgram.handle.load(node[ind]);
 		auto layoutNode = node[ind]["layout"];
-		for (auto& parameterNode : layoutNode.GetArray()){
-			this->setAttrib(currentProgram, parameterNode);
+		for (int i = 0; i < layoutNode.size(); i++){
+			this->setAttrib(currentProgram, layoutNode[i]);
 		}
 	}
 	return glPrograms.size();

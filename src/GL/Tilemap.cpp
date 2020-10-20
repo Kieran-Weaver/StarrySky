@@ -1,16 +1,6 @@
+#include <string>
 #include <GL/Tilemap.hpp>
 #include <gl.h>
-template<>
-JSONParser::operator TMType() const{
-	std::string data{internal.GetString()};
-	if (data == "normal"){
-		return TMType::Normal;
-	} else if (data == "effect"){
-		return TMType::Effect;
-	} else {
-		return TMType::Normal;
-	}
-}
 TileMap::TileMap(){
 	this->atlasTexture.type = GL_TEXTURE_2D;
 	this->tileBufferTBO.type = GL_TEXTURE_BUFFER;

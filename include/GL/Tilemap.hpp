@@ -17,6 +17,7 @@ struct UBOData{
 	std::array<float,4> Attrs;
 	std::array<float,4> metadata;
 	std::array<uint32_t,4> texData;
+	std::array<std::array<float, 4>, 4> matrices;
 };
 struct TileMap{
 	TileMap();
@@ -36,6 +37,7 @@ struct TileMap{
 	std::array<float,4> Attrs = {1, 1, 0, 0}; // Tile w, h, tilemap x, y
 	std::array<float,4> metadata = {}; // Layer/Z, 3x Unused
 	std::array<uint32_t,4> texData = {}; // Tile texture w, h, 2x unused
+	std::array<std::array<float, 4>, 4> matrices; // Transforms for 15th, 14th, 13th, 12th bit of tile
 	Texture tileBufferTBO = {}; // Max 2^16 - 1 tile types
 	Texture tileTextureTBO = {}; // Texture 
 	// Internal Data

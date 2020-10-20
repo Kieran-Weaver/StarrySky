@@ -31,8 +31,9 @@ void Program::load(const JSONParser& data){
 	}
 	glAttachShader(this->m_handle, frag.m_handle);
 	glBindFragDataLocation(this->m_handle,0,output.c_str());
-	for (auto& pnode : data["layout"].GetArray()){
-		this->setAttrib(pnode["name"].GetString(), pnode["location"].GetInt64());
+	for (int i = 0; i < data["layout"].size(); i++){
+		auto pnode = data["layout"][i];
+		this->setAttrib(static_cast<std::string>(pnode["name"]), static_cast<int64_t>(pnode["location"]));
 	}
 	glLinkProgram(this->m_handle);
 #ifndef NDEBUG
@@ -55,7 +56,7 @@ void Program::load(const JSONParser& data){
 #else
 	this->loaded = true;
 #endif
-	if (static_cast<rapidjson::Value&>(data["camera"]).IsString()){
+	if (data["camera"].IsString()){
 		this->m_camera = glGetUniformLocation(this->m_handle, static_cast<std::string>(data["camera"]).c_str());
 	} else {
 		this->m_camera = (-1 * static_cast<int>(data["camera"])) - 1;

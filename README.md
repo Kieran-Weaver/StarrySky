@@ -18,6 +18,11 @@ cd StarrySky
 make
 ```
 
+Building on Windows:
+
+Git, at least in msys2, does not handle symlinks properly on Windows.
+Before running `make` on Windows, run `./symlinks.sh` to restore the symlinks.
+
 ## Usage:
 `./Platformer`
 
