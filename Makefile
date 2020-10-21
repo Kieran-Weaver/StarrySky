@@ -15,7 +15,8 @@ TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS))
 TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision test/mmaptest test/packingtest
 TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
 build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
-build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/Tilemap.o
+build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/Tilemap.o \
+build/src/file/JSONReader.o build/src/file/JSONWriter.o
 DEPS := $(OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 ifdef OS
@@ -72,7 +73,7 @@ test/mat2test: build/src/util/Mat2D.o build/test/mat2test.o
 test/rtreetest: build/test/rtreetest.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file/PlainText.o build/src/GL/TextureAtlas.o
+test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file/PlainText.o build/src/GL/TextureAtlas.o build/src/file/JSONReader.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
 test/mmaptest: build/test/mmaptest.o build/src/file/PlainText.o

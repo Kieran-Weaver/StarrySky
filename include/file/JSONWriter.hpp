@@ -1,102 +1,104 @@
 #ifndef STARRYSKY_JSONWRITER_HPP
 #define STARRYSKY_JSONWRITER_HPP
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
+#include <rapidjson/fwd.h>
 #include <visit_struct/visit_struct.hpp>
-#include <util/Traits.hpp>
+#include <array>
+#include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
-#include <array>
-#include <string>
+#include <util/Traits.hpp>
+using StringBuffer_t = rapidjson::StringBuffer;
+using Writer_t = rapidjson::Writer<rapidjson::StringBuffer, rapidjson::UTF8<char>, rapidjson::UTF8<char>, rapidjson::CrtAllocator, 0>;
+struct SBDeleter{
+	void operator()(StringBuffer_t*);
+};
+
+struct WrDeleter{
+	void operator()(Writer_t*);
+};
+
 class JSONWriter{
 public:
-	JSONWriter() : writer(buffer){}
-	void Key(const std::string& name){
-		writer.Key(name.c_str());
-	}
-	void StartObject(){
-		writer.StartObject();
-	}
-	void EndObject(){
-		writer.EndObject();
-	}
-	
+	explicit JSONWriter();
+	void Key(const std::string& name);
+	void StartArray();
+	void EndArray();
+	void StartObject();
+	void EndObject();
+	void store(bool data);
+	void store(int64_t data);
+	void store(double data);
+	void store(std::string_view data);
+	std::string_view GetString();
+
 	template<typename T2, std::enable_if_t< \
 	!(visit_struct::traits::is_visitable<T2>::value || is_json_literal<T2>() || is_std_array<T2>::value) \
 	, int> = 0>
 	void store(const T2& data);
 	
+	template<typename T2, std::enable_if_t<is_json_literal<T2>(), int> = 0>
+	void store(const T2& data){
+		if constexpr (std::is_same_v<T2, bool>) {
+			this->store(static_cast<bool>(data));
+		} else if constexpr (std::is_integral_v<T2>) {
+			this->store(static_cast<int64_t>(data));
+		} else if constexpr (std::is_floating_point_v<T2>) {
+			this->store(static_cast<double>(data));
+		} else if constexpr (std::is_convertible_v<T2, std::string_view>) {
+			this->store(static_cast<std::string_view>(data));
+		}
+	}
+	
 	template<typename T2, std::enable_if_t<visit_struct::traits::is_visitable<T2>::value, int> = 0>
 	void store(const T2& data){
-		writer.StartObject();
+		this->StartObject();
 		visit_struct::for_each(data, [&](const char* name, const auto& value){
-			writer.Key(name);
+			this->Key(name);
 			this->store(value);
 		});
-		writer.EndObject();
+		this->EndObject();
 	}
 
 	template<typename T2>
 	void store(const std::unordered_map<std::string,T2>& data){
-		writer.StartObject();
+		this->StartObject();
 		for (const auto& elem : data){
-			writer.Key(elem.first.c_str());
+			this->Key(elem.first);
 			this->store(elem.second);
 		}
-		writer.EndObject();
+		this->EndObject();
 	}
 
 	template<typename T2>
 	void store(const std::unordered_map<int,T2>& data){
-		writer.StartArray();
+		this->StartArray();
 		for (const auto& elem : data){
 			this->store(elem.second);
 		}
-		writer.EndArray();
+		this->EndArray();
 	}
-	
+
 	template<typename T, std::size_t N>
 	void store(const std::array<T,N>& data){
-		writer.StartArray();
+		this->StartArray();
 		for (const auto &elem : data){
 			this->store(elem);
 		}
-		writer.EndArray();
-	}
-	
-	template<typename T2, std::enable_if_t<std::is_integral<T2>::value, int> = 0>
-	void store(const T2& data){
-		if constexpr (std::is_same<T2, bool>::value){
-			writer.Bool(data);
-		} else {
-			writer.Int64(data);
-		}
-	}
-
-	template<typename T2, std::enable_if_t<std::is_floating_point<T2>::value, int> = 0>
-	void store(const T2& data){
-		writer.Double(data);
+		this->EndArray();
 	}
 
 	template<typename T2>
 	void store(const std::vector<T2>& data){
-		writer.StartArray();
+		this->StartArray();
 		for (const auto& elem : data){
 			this->store(elem);
 		}
-		writer.EndArray();
+		this->EndArray();
 	}
 
-	template<typename T2, std::enable_if_t<std::is_same<T2, std::string>::value, int> = 0>
-	void store(const T2& data){
-		writer.String(data.c_str());
-	}
-
-	std::string GetString(){
-		return buffer.GetString();
-	}
 private:
-	rapidjson::StringBuffer buffer;
-	rapidjson::Writer<rapidjson::StringBuffer> writer;
+	std::unique_ptr<StringBuffer_t, SBDeleter> buffer;
+	std::unique_ptr<Writer_t, WrDeleter> writer;
 };
 #endif

@@ -8,6 +8,6 @@ struct is_std_array<std::array<T, N>>:std::true_type{};
 
 template<typename T>
 constexpr bool is_json_literal(){
-	return std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_same<T, bool>::value || std::is_same<T, std::string>::value;
+	return std::is_integral<T>::value || std::is_floating_point<T>::value || std::is_same<T, bool>::value || std::is_convertible<T, std::string_view>::value;
 }
 #endif

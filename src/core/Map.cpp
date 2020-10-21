@@ -79,29 +79,29 @@ void ObjMap::SetPosition(float x, float y) {
 }
 template<>
 void JSONWriter::store<MapSprite>(const MapSprite& i){
-	writer.StartObject();
-	writer.Key("x");
-	writer.Int(i.iPosition.x);
-	writer.Key("y");
-	writer.Int(i.iPosition.y);
-	writer.Key("t");
-	writer.StartArray();
+	this->StartObject();
+	this->store("x");
+	this->store(i.iPosition.x);
+	this->store("y");
+	this->store(i.iPosition.y);
+	this->store("t");
+	this->StartArray();
 	auto mat = i.spr.getMat2();
-	writer.Double(mat[0][0]);
-	writer.Double(mat[0][1]);
-	writer.Double(mat[1][0]);
-	writer.Double(mat[1][1]);
-	writer.EndArray();
-	writer.Key("name");
-	writer.String(i.filename.c_str());
-	writer.EndObject();
+	this->store(mat[0][0]);
+	this->store(mat[0][1]);
+	this->store(mat[1][0]);
+	this->store(mat[1][1]);
+	this->EndArray();
+	this->Key("name");
+	this->store(i.filename.c_str());
+	this->EndObject();
 }
 template<>
 void JSONWriter::store<TMType>(const TMType& i){
 	if (i == TMType::Normal){
-		writer.String("normal");
+		this->store("normal");
 	} else if (i == TMType::Effect){
-		writer.String("effect");
+		this->store("effect");
 	}
 }
 void ObjMap::WriteToFile(const std::string& filename){

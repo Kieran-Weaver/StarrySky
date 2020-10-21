@@ -76,9 +76,9 @@ glm::ivec2 getMouseTile(EditorState* st){
 template<>
 void JSONWriter::store<TMType>(const TMType& i){
 	if (i == TMType::Normal){
-		writer.String("normal");
+		this->store("normal");
 	} else if (i == TMType::Effect){
-		writer.String("effect");
+		this->store("effect");
 	}
 }
 int main(){
