@@ -98,7 +98,7 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 		if (ws.keyboardState[controls.ledgekey]){
 			Rect<float> thisrect = m_spr.getAABB();
 			for (auto i : m_map.ledges){
-				Rect<float> t(i.x,i.y,m_map.ledgewidth,m_map.ledgeheight);
+				Rect<float> t = {i.x,i.y,m_map.ledgewidth,m_map.ledgeheight};
 				if (thisrect.Intersects(t)){
 					isOnGround = true;
 					this->m_speed = glm::vec2(0.f,0.f);

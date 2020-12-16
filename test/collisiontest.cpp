@@ -27,7 +27,7 @@ int main(int, char const**) {
 	char* buffer = new char[4 * WIDTH * HEIGHT];
 	float x1=247,y1=362,x2=500,y2=200;
 	Window window(WIDTH, HEIGHT, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Collision Test", true);
-	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f), window);
+	Camera camera({-2000.f,-2000.f,4000.f,4000.f},{0.f,0.f,800.f,400.f}, window);
 	WindowState ws;
 	ws.camera = &camera;
 	window.getWindowState() = ws;

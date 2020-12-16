@@ -17,7 +17,7 @@ struct EditorState{
 	atlas("resources/data/atlas.json"),
 	batch(this->atlas, "resources/data/shaders.json")
 	{
-		this->window.getWindowState().camera = new Camera(Rect<float>(0.f,0.f,1400.f,800.f),Rect<float>(300.f,200.f,600.f,400.f), this->window);
+		this->window.getWindowState().camera = new Camera({0.f,0.f,1400.f,800.f},{300.f,200.f,600.f,400.f}, this->window);
 		for (auto& tex_name : atlas.getSubTextureNames()){
 			textures[tex_name] = atlas.findSubTexture(tex_name);
 		}

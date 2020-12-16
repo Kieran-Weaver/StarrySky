@@ -9,7 +9,7 @@
 int main(int, char const**) {
 	float x1=0.0,x2=0.0,y1=0.0,y2=0.0;
 	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Collision Test", false);
-	Camera camera(Rect<float>(-2000.f,-2000.f,4000.f,4000.f),Rect<float>(0.f,0.f,800.f,400.f), window);
+	Camera camera({-2000.f,-2000.f,4000.f,4000.f},{0.f,0.f,800.f,400.f}, window);
 	bool paused = false;
 	window.getWindowState().camera = &camera;
 	TextureAtlas atlas("resources/data/atlas.json");

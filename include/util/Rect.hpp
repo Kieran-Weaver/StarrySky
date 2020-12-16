@@ -3,28 +3,11 @@
 #include <algorithm>
 #include <cstdint>
 #include <vector>
+#include <optional>
 #include <visit_struct/visit_struct_intrusive.hpp>
 template<typename T>
 struct Rect{
-	Rect() : left(0), top(0), width(0), height(0){
-		static_assert(std::is_arithmetic<T>::value, "Integral required.");
-	}
-
-	Rect(const Rect<T>& r) : left(r.left), top(r.top), width(r.width), height(r.height) {
-		static_assert(std::is_arithmetic<T>::value, "Integral required.");
-	}
-
-	Rect(T l, T t, T w, T h) : left(l), top(t), width(w), height(h) {
-		static_assert(std::is_arithmetic<T>::value, "Integral required.");
-	}
-
-	Rect<T>& operator=(const Rect<T>& r){
-		left = r.left;
-		top = r.top;
-		width = r.width;
-		height = r.height;
-		return *this;
-	}
+	static_assert(std::is_arithmetic<T>::value, "Integral required.");
 	
 	BEGIN_VISITABLES(Rect<T>);
 	VISITABLE(T, left);
@@ -48,16 +31,15 @@ struct Rect{
 		return ((iLeft < iRight) && (iTop < iBottom));
 	}
 
-	bool RIntersects(const Rect<T>& r, Rect<T>& intersection) const{
+	std::optional<Rect<T>> RIntersects(const Rect<T>& r) const{
 		T iLeft = std::max(left, r.left);
 		T iTop = std::max(top, r.top);
 		T iRight = std::min(left + width,r.left + r.width);
 		T iBottom = std::min(top + height, r.top + r.height);
 		if ((iLeft < iRight) && (iTop < iBottom)){
-			intersection = Rect<T>(iLeft,iTop,iRight - iLeft, iBottom-iTop);
-			return true;
+			return Rect<T>({iLeft,iTop,iRight - iLeft, iBottom-iTop});
 		}else{
-			return false;
+			return {};
 		}
 	}
 
@@ -65,9 +47,11 @@ struct Rect{
 		return *this;
 	}
 };
+
 inline Rect<float> Normalize(const Rect<uint16_t>& texrect){
-	return Rect<float>(texrect.left/65536.f,texrect.top/65536.f,texrect.width/65536.f,texrect.height/65536.f);
+	return {texrect.left/65536.f,texrect.top/65536.f,texrect.width/65536.f,texrect.height/65536.f};
 }
+
 template<class T, class Iter>
 Rect<T> join(Iter i, Iter last){
 	T minX = std::numeric_limits<T>::max(), maxX = std::numeric_limits<T>::min();
@@ -81,6 +65,7 @@ Rect<T> join(Iter i, Iter last){
 	}
 	return {minX, minY, maxX - minX, maxY - minY};
 }
+
 template<class T>
 Rect<T> join(const Rect<T>& a, const Rect<T>& b){
 	T minX = std::min(a.left, b.left);

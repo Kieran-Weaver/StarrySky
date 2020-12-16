@@ -92,17 +92,18 @@ void Sprite::renderAABB(){
 	}
 	auto xExtremes = std::minmax_element(vertices,vertices+4,compareX);
 	auto yExtremes = std::minmax_element(vertices,vertices+4,compareY);
-	this->cached_aabb = Rect<float>(xExtremes.first->x,yExtremes.first->y,xExtremes.second->x-xExtremes.first->x,yExtremes.second->y-yExtremes.first->y);
+	this->cached_aabb = {xExtremes.first->x,yExtremes.first->y,xExtremes.second->x-xExtremes.first->x,yExtremes.second->y-yExtremes.first->y};
 	this->m_cached = true;
 }
 
 bool Sprite::PPCollidesWith(Sprite& Object2){
-	Rect<float> Intersection; 
 	const Rect<float>& o1globalbounds = this->getAABB();
 	const Rect<float>& o2globalbounds = Object2.getAABB();
-	if (o1globalbounds.RIntersects(o2globalbounds, Intersection)) {
+	const auto _Intersection = o1globalbounds.RIntersects(o2globalbounds);
+	if (_Intersection) {
 		auto& mask1 = this->m_subtexture.m_bitmask;
 		auto& mask2 = Object2.m_subtexture.m_bitmask;
+		const Rect<float>& Intersection = _Intersection.value(); 
 		const Rect<float> o1m_rect = Normalize(this->m_subtexture.m_rect);
 		const Rect<float> o2m_rect = Normalize(Object2.m_subtexture.m_rect);
 		// Loop through our pixels
