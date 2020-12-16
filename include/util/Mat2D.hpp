@@ -1,7 +1,7 @@
 #ifndef MAT2D_H
 #define MAT2D_H
-#include <glm/glm.hpp>
-#include <cmath>
+#include <glm/ext/matrix_float2x2.hpp>
+#include <glm/ext/vector_float2.hpp>
 #include <array>
 glm::mat2 RotMat(const float& angle);
 glm::mat2 ScaleMat(const float& x, const float& y);

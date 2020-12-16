@@ -1,5 +1,8 @@
 #include <GL/Program.hpp>
+#include <GL/Shader.hpp>
+#include <file/JSONReader.hpp>
 #include <gl.h>
+#include <vector>
 #ifndef NDEBUG
 #include <iostream>
 #endif
@@ -69,7 +72,7 @@ void Program::setUniform(const std::string& name, uint32_t value){
 	glUniform1i(this->getUniform(name), value);
 }
 void Program::bindUBO(const std::string& name, int binding){
-	int idx = glGetUniformBlockIndex(this->m_handle, name.c_str());
+	uint32_t idx = glGetUniformBlockIndex(this->m_handle, name.c_str());
 	if (idx != GL_INVALID_INDEX){
 		glUniformBlockBinding(this->m_handle, idx, binding);
 	}

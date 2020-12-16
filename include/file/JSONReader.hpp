@@ -60,7 +60,7 @@ public:
 	template<typename T, std::size_t N>
 	operator std::array<T,N>() const{
 		std::array<T,N> data;
-		for (int i = 0; i < data.size(); i++){
+		for (size_t i = 0; i < data.size(); i++){
 			data[i] = static_cast<T>((*this)[i]);
 		}
 		return data;

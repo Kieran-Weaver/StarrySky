@@ -126,7 +126,7 @@ std::vector<std::reference_wrapper<T>> RTree<T,M,Dim>::intersect(const Rect<Dim>
 		RNode& node = m_nodes[to_search.back()];
 		to_search.pop_back();
 		if (node.level == 0){
-			for (int j = 0; j < node.size; j++){
+			for (size_t j = 0; j < node.size; j++){
 				auto& i = node.children[j];
 //				visited++;
 				if (aabb.Intersects(m_elements.at(i).getAABB())){

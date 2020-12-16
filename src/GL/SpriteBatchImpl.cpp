@@ -198,7 +198,6 @@ int SpriteBatchImpl::loadPrograms(int num_shaders){
 
 void SpriteBatchImpl::EndFrame(const Window& target){
 	target.makeCurrent();
-	auto& ws = target.getWindowState();
 
 	ConfCommand stencilOn;
 	stencilOn.stencil_func = {GL_ALWAYS, 1, 255};

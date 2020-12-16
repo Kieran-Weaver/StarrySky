@@ -1,7 +1,9 @@
 #ifndef STARRYSKY_PROGRAM_HPP
 #define STARRYSKY_PROGRAM_HPP
-#include <GL/Shader.hpp>
-#include <file/JSONReader.hpp>
+#include <cstdint>
+#include <string>
+#include <utility>
+struct JSONParser;
 class Program{
 public:
 	Program(const JSONParser& data){

@@ -225,7 +225,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 				const Rect<int>& cliprect = dcall.clip_rect.value();
 				glScissor(cliprect.left, cliprect.top, cliprect.width, cliprect.height);
 			}
-			for (int i = 0; i < dcall.textures.size(); i++){
+			for (size_t i = 0; i < dcall.textures.size(); i++){
 				glActiveTexture(GL_TEXTURE0 + i);
 				glBindTexture(dcall.textures[i].type, dcall.textures[i].m_texture);
 			}

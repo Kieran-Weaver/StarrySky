@@ -1,6 +1,7 @@
 #include <gl.h>
 #include <GL/Shader.hpp>
 #include <file/PlainText.hpp>
+#include <string>
 #include <vector>
 #ifndef NDEBUG
 #include <iostream>

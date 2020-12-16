@@ -1,6 +1,5 @@
 #include <GL/VertexArray.hpp>
 #include <gl.h>
-#include <iostream>
 VertexArray::VertexArray(){
 	glGenVertexArrays(1, &handle);
 }

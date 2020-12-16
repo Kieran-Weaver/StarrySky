@@ -1,7 +1,8 @@
 #ifndef STARRYSKY_BUFFER_HPP
 #define STARRYSKY_BUFFER_HPP
-#include <util/VectorView.hpp>
 #include <cstdint>
+#include <type_traits>
+#include <utility>
 class Buffer{
 public:
 	Buffer() : Buffer(0){}

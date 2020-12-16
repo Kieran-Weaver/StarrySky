@@ -1,7 +1,7 @@
 #ifndef STARRYSKY_VAO_HPP
 #define STARRYSKY_VAO_HPP
 #include <cstdint>
-#include <string>
+#include <utility>
 struct Attrib{
 	int32_t location;
 	uint32_t components;
