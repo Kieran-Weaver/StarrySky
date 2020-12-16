@@ -1,6 +1,9 @@
 # StarrySky
 A WIP platformer game, written in C++17, using GLFW.
 
+Prior to December 15th 2020, Starry Sky was licensed under the GPLv3.
+After December 15th 2020, Starry Sky is licensed under the MIT license.
+
 It uses sprite-batching and texture atlases to recreate the experience of games from the 16-bit and 32-bit eras, but with a maintainable, modern code-base.
 
 ## Design Philosophy:
