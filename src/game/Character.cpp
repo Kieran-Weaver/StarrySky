@@ -13,8 +13,8 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 	this->m_spr.setTexture(this->texs[0]);
 
 	Rect<float> tmpAABB = m_spr.getAABB();
-	this->m_width = tmpAABB.width;
-	this->m_height = tmpAABB.height;
+	this->m_width = tmpAABB.right - tmpAABB.left;
+	this->m_height = tmpAABB.bottom - tmpAABB.top;
 	this->m_spr2.setTexture(this->texs[1]);
 	this->m_shieldspr.setTexture(this->texs[3]);
 	this->m_spr.setStencil(true);
@@ -150,17 +150,17 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 	Rect<float> tmp2 = m_spr2.getAABB();
 	if (flipped){
 		if (swordout){
-			posx = posx + 12 - tmp2.width;
+			posx = posx + 12 - (tmp2.right - tmp2.left);
 		}else{
-			posx = posx - m_width/2 + (tmp2.width/2);
-			posy = posy - (tmp2.height/2) + 12;
+			posx = posx - m_width/2 + ((tmp2.right - tmp2.left)/2);
+			posy = posy - ((tmp2.bottom - tmp2.top)/2) + 12;
 		}
 	}else{
 		if (swordout){
 			posx = posx + m_width - 20;
 		}else{
-			posx = posx + (m_width/2) - (tmp2.width/2) - 2;
-			posy = posy + 12 - tmp2.height/2;
+			posx = posx + (m_width/2) - ((tmp2.right - tmp2.left)/2) - 2;
+			posy = posy + 12 - (tmp2.bottom - tmp2.top)/2;
 		}
 	}
 	this->m_spr2.setPosition(glm::vec2(posx,posy));

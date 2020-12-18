@@ -97,14 +97,14 @@ void RTree<T,M,Dim>::print(){
 template<class T, size_t M, typename Dim>
 void RTree<T,M,Dim>::printNode(int _node){
 	RNode& node = m_nodes[_node];
-	std::cout << "AABB: " << node.AABB.left << " " << node.AABB.top << " " << node.AABB.width << " " << node.AABB.height << std::endl;
+	std::cout << "AABB: " << node.AABB.left << " " << node.AABB.top << " " << node.AABB.right << " " << node.AABB.bottom << std::endl;
 	if (node.level == 0){
 		std::cout << "Leaf: " << std::endl;
 		for (int j = 0; j < node.size; j++){
 			auto& i = node.children[j];
 			std::cout << i << " - ";
 			Rect<Dim> AABB = m_elements[i].getAABB();
-			std::cout << "AABB: " << AABB.left << " " << AABB.top << " " << AABB.width << " " << AABB.height << std::endl;
+			std::cout << "AABB: " << AABB.left << " " << AABB.top << " " << AABB.right << " " << AABB.bottom << std::endl;
 		}
 		std::cout << std::endl;
 	} else {

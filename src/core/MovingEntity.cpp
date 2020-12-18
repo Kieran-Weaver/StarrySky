@@ -26,28 +26,28 @@ void MovingEntity::Update(float dt) {
 	this->isAtCeiling=false;
 	this->isOnGround=false;
 	this->onOneWayPlatform = false;
-	Rect<float> hitbox = {m_position.x - m_width/2.f, m_position.y - m_height/2.f, static_cast<float>(m_width), static_cast<float>(m_height)};
-	Rect<float> lastHitbox = {m_lastPosition.x - m_width/2.f, m_lastPosition.y - m_height/2.f, static_cast<float>(m_width), static_cast<float>(m_height)}; 
+	Rect<float> hitbox = {m_position.x - m_width/2.f, m_position.y - m_height/2.f, m_position.x + m_width/2.f, m_position.y + m_height/2.f};
+	Rect<float> lastHitbox = {m_lastPosition.x - m_width/2.f, m_lastPosition.y - m_height/2.f, m_lastPosition.x + m_width/2.f, m_lastPosition.y + m_height/2.f}; 
 	auto collisions = m_map.surfaces.intersect(hitbox);
 	for (auto& surf : collisions){
 		auto& i = surf.get();
-		if ((i.flags & WallType::RWALL)&&(lastHitbox.left + lastHitbox.width <= i.hitbox.left)){
+		if ((i.flags & WallType::RWALL)&&(lastHitbox.right <= i.hitbox.left)){
 			m_position.x = i.hitbox.left - (m_width/2);
 			m_speed.x = 0.0f;
 			this->pushesRightWall=true;				
 		}
-		if ((i.flags & WallType::LWALL)&&(lastHitbox.left >= i.hitbox.left + i.hitbox.width)){
-			m_position.x = i.hitbox.left + i.hitbox.width + (m_width/2);
+		if ((i.flags & WallType::LWALL)&&(lastHitbox.left >= i.hitbox.right)){
+			m_position.x = i.hitbox.right + (m_width/2);
 			m_speed.x = 0.0f;
 			this->pushesLeftWall=true;
 		}
-		if ((i.flags & WallType::CEIL) && (lastHitbox.top >= i.hitbox.top + i.hitbox.height)){
-			m_position.y = i.hitbox.top + i.hitbox.height + (m_height/2);
+		if ((i.flags & WallType::CEIL) && (lastHitbox.top >= i.hitbox.bottom)){
+			m_position.y = i.hitbox.bottom + (m_height/2);
 			this->isAtCeiling=true;
 			m_speed.y = 0;
 		}
 		if ((i.flags & WallType::FLOOR) || ((i.flags & WallType::ONEWAY)&&(!this->dropFromOneWay))){
-			if (lastHitbox.top + lastHitbox.height - 1.0f <= i.hitbox.top){
+			if ((lastHitbox.bottom - 1.0f) <= i.hitbox.top){
 				m_position.y = i.hitbox.top-(m_height/2);
 				this->isOnGround=true;
 				this->onOneWayPlatform = (i.flags & WallType::ONEWAY);

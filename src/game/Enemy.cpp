@@ -13,8 +13,8 @@ Enemy::Enemy(float x, float y, ObjMap& map, const std::string& mainsprite, const
 	}
 	this->m_spr.setTexture(this->texs[0]);
 	Rect<float> tmpAABB = m_spr.getAABB();
-	this->m_width = tmpAABB.width;
-	this->m_height = tmpAABB.height;
+	this->m_width = tmpAABB.right - tmpAABB.left;
+	this->m_height = tmpAABB.bottom - tmpAABB.top;
 	this->health = hlth;
 	this->ihealth = hlth;
 }

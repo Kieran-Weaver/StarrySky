@@ -1,27 +1,27 @@
 {
 	"surfaces" : [
 		{ 
-			"hitbox" : { "left" : 100, "top" : 600, "width" : 1200, "height" : 2 },
+			"hitbox" : { "left" : 100, "top" : 600, "right" : 1300, "bottom" : 602 },
 			"flags" : 8
 		},
 		{
-			"hitbox" : { "left" : 100, "top" : 100, "width" : 1, "height" : 500},
+			"hitbox" : { "left" : 100, "top" : 100, "right" : 101, "bottom" : 600},
 			"flags" : 1
 		},
 		{
-			"hitbox" : { "left" : 100, "top" : 100, "width" : 1200, "height" : 2},
+			"hitbox" : { "left" : 100, "top" : 100, "right" : 1300, "bottom" : 102},
 			"flags" : 4
 		},
 		{
-			"hitbox" : { "left" : 1300, "top" : 100, "width" : 1, "height" : 500},
+			"hitbox" : { "left" : 1300, "top" : 100, "right" : 1301, "bottom" : 600},
 			"flags" : 2
 		},
 		{
-			"hitbox" : { "left" : 200, "top" : 450, "width" : 150, "height" : 2},
+			"hitbox" : { "left" : 200, "top" : 450, "right" : 350, "bottom" : 452},
 			"flags" : 16
 		},
 		{
-			"hitbox" : { "left" : 900, "top" : 450, "width" : 150, "height" : 2},
+			"hitbox" : { "left" : 900, "top" : 450, "right" : 1050, "bottom" : 452},
 			"flags" : 16
 		}
 	],

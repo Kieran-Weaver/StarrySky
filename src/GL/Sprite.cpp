@@ -59,11 +59,13 @@ void Sprite::transform(const glm::mat2& matrix){
 const std::array<SpriteData, 4>& Sprite::render(){
 	if (m_changed){
 		const Rect<uint16_t>& texrect = this->m_subtexture.m_rect;
+		uint16_t width = texrect.right - texrect.left;
+		uint16_t height = texrect.bottom - texrect.top;
 		// Bottom left, top left, top right, bottom right
 		constexpr std::array<glm::vec2, 4> sprVertices = {{ {-0.5, 0.5}, {-0.5, -0.5}, {0.5, -0.5}, {0.5, 0.5} }};
 		for (int i = 0 ; i < 4 ; i++){
-			this->cached_vtx_data[i].texpos[0] = texrect.left + (i > 1) * texrect.width;
-			this->cached_vtx_data[i].texpos[1] = texrect.top + ((i == 0) || (i == 3)) * texrect.height;
+			this->cached_vtx_data[i].texpos[0] = texrect.left + (i > 1) * width;
+			this->cached_vtx_data[i].texpos[1] = texrect.top + ((i == 0) || (i == 3)) * height;
 			glm::vec2 vert = this->center + (this->m_model * sprVertices[i]);
 			this->cached_vtx_data[i].vtxPos[0] = vert.x;
 			this->cached_vtx_data[i].vtxPos[1] = vert.y;
@@ -92,7 +94,7 @@ void Sprite::renderAABB(){
 	}
 	auto xExtremes = std::minmax_element(vertices,vertices+4,compareX);
 	auto yExtremes = std::minmax_element(vertices,vertices+4,compareY);
-	this->cached_aabb = {xExtremes.first->x,yExtremes.first->y,xExtremes.second->x-xExtremes.first->x,yExtremes.second->y-yExtremes.first->y};
+	this->cached_aabb = {xExtremes.first->x,yExtremes.first->y,xExtremes.second->x,yExtremes.second->y};
 	this->m_cached = true;
 }
 
@@ -100,25 +102,30 @@ bool Sprite::PPCollidesWith(Sprite& Object2){
 	const Rect<float>& o1globalbounds = this->getAABB();
 	const Rect<float>& o2globalbounds = Object2.getAABB();
 	const auto _Intersection = o1globalbounds.RIntersects(o2globalbounds);
+	
 	if (_Intersection) {
 		auto& mask1 = this->m_subtexture.m_bitmask;
 		auto& mask2 = Object2.m_subtexture.m_bitmask;
 		const Rect<float>& Intersection = _Intersection.value(); 
 		const Rect<float> o1m_rect = Normalize(this->m_subtexture.m_rect);
 		const Rect<float> o2m_rect = Normalize(Object2.m_subtexture.m_rect);
+		const float o1m_width = o1m_rect.right - o1m_rect.left;
+		const float o1m_height = o1m_rect.bottom - o1m_rect.top;
+		const float o2m_width = o2m_rect.right - o2m_rect.left;
+		const float o2m_height = o2m_rect.bottom - o2m_rect.top;
 		// Loop through our pixels
 		const glm::mat2 o1t = glm::inverse(this->m_model);
 		const glm::mat2 o2t = glm::inverse(Object2.m_model);
 		const glm::mat2 o1t_subrect_to_pixel(
-			o1m_rect.width * mask1.width,0,
-			0,o1m_rect.height*mask1.height);
-		const glm::vec2 o1t_subrect_center((o1m_rect.left+o1m_rect.width/2.f)*mask1.width,(o1m_rect.top+o1m_rect.height/2.f)*mask1.height);
+			o1m_width * mask1.width,0,
+			0,o1m_height*mask1.height);
+		const glm::vec2 o1t_subrect_center((o1m_rect.left+o1m_width/2.f)*mask1.width,(o1m_rect.top+o1m_height/2.f)*mask1.height);
 		const glm::mat2 o2t_subrect_to_pixel(
-			o2m_rect.width * mask2.width,0,
-			0,o2m_rect.height*mask2.height);
-		const glm::vec2 o2t_subrect_center((o2m_rect.left+o2m_rect.width/2.f)*mask2.width,(o2m_rect.top+o2m_rect.height/2.f)*mask2.height);
-		for (int i = static_cast<int>(Intersection.left); i < static_cast<int>(Intersection.left+Intersection.width); i++) {
-			for (int j = static_cast<int>(Intersection.top); j < static_cast<int>(Intersection.top+Intersection.height); j++) {
+			o2m_width * mask2.width,0,
+			0,o2m_height*mask2.height);
+		const glm::vec2 o2t_subrect_center((o2m_rect.left+o2m_width/2.f)*mask2.width,(o2m_rect.top+o2m_height/2.f)*mask2.height);
+		for (int i = static_cast<int>(Intersection.left); i < static_cast<int>(Intersection.right); i++) {
+			for (int j = static_cast<int>(Intersection.top); j < static_cast<int>(Intersection.bottom); j++) {
 
 				glm::vec2 o1v = o1t*glm::vec2(i-this->center.x, j-this->center.y);
 				glm::vec2 o2v = o2t*glm::vec2(i-Object2.center.x, j-Object2.center.y);

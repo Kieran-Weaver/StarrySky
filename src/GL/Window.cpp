@@ -223,7 +223,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 			bool indexed = (dcall.idxType != Draw::None);
 			if (dcall.clip_rect){
 				const Rect<int>& cliprect = dcall.clip_rect.value();
-				glScissor(cliprect.left, cliprect.top, cliprect.width, cliprect.height);
+				glScissor(cliprect.left, cliprect.top, cliprect.right - cliprect.left, cliprect.bottom - cliprect.top);
 			}
 			for (size_t i = 0; i < dcall.textures.size(); i++){
 				glActiveTexture(GL_TEXTURE0 + i);

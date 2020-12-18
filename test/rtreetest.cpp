@@ -8,17 +8,21 @@ struct AABBWrapper{
 		return internal;
 	}
 	bool operator<(const AABBWrapper& other) const {
-		return std::tie(internal.left, internal.top, internal.width, internal.height) < std::tie(other.internal.left, other.internal.top, other.internal.width, other.internal.height);
+		return std::tie(internal.left, internal.top, internal.right, internal.bottom) < std::tie(other.internal.left, other.internal.top, other.internal.right, other.internal.bottom);
 	}
 	bool operator==(const AABBWrapper& other) const {
-		return std::tie(internal.left, internal.top, internal.width, internal.height) == std::tie(other.internal.left, other.internal.top, other.internal.width, other.internal.height);
+		return std::tie(internal.left, internal.top, internal.right, internal.bottom) == std::tie(other.internal.left, other.internal.top, other.internal.right, other.internal.bottom);
 	}
 };
 bool refsort(const std::reference_wrapper<AABBWrapper>& a, const std::reference_wrapper<AABBWrapper>& b){
 	return a.get() < b.get();
 }
 Rect<uint64_t> randomRect(std::mt19937& rng){
-	return {rng() & 0xFF, rng() & 0xFF, rng() & 0x1F, rng() & 0x1F};
+	uint64_t left = rng() & 0xFF;
+	uint64_t top = rng() & 0xFF;
+	uint64_t w = rng() & 0x1F;
+	uint64_t h = rng() & 0x1F;
+	return {left, top, left + w, top + h};
 }
 int main(int argc, char **argv){
 	(void)argc;

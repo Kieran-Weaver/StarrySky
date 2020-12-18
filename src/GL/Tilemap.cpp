@@ -45,8 +45,8 @@ void TileMap::addTile(const std::string& filename, const Texture& tile){
 	this->tileData.emplace_back();
 	this->tileData.back()[0] = tile.m_rect.left / 65536.f;
 	this->tileData.back()[1] = tile.m_rect.top / 65536.f;
-	this->tileData.back()[2] = tile.m_rect.width / 65536.f;
-	this->tileData.back()[3] = tile.m_rect.height / 65536.f;
+	this->tileData.back()[2] = (tile.m_rect.right - tile.m_rect.left) / 65536.f;
+	this->tileData.back()[3] = (tile.m_rect.bottom - tile.m_rect.top) / 65536.f;
 	this->numTiles++;
 }
 void TileMap::load(const JSONParser& node, const TextureAtlas& atlas){

@@ -12,32 +12,32 @@ struct Rect{
 	BEGIN_VISITABLES(Rect<T>);
 	VISITABLE(T, left);
 	VISITABLE(T, top);
-	VISITABLE(T, width);
-	VISITABLE(T, height);
+	VISITABLE(T, right);
+	VISITABLE(T, bottom);
 	END_VISITABLES;
 
 	bool Contains(float x, float y) const{
-		return (((left - x)*(left + width - x) <= 0.f)&&((top - y)*(top + height - y) <= 0.f));
+		return (((left - x)*(right - x) <= 0.f)&&((top - y)*(bottom - y) <= 0.f));
 	}
 	bool Contains(const Rect<T>& r) const{
-		return (((r.left + r.width)<=(left+width))&&((r.top+r.height)<=(top+height))&&(r.left >= left) && (r.top >= top));
+		return ((r.right <= right) && (r.bottom <= bottom) && (r.left >= left) && (r.top >= top));
 	}
 
 	bool Intersects(const Rect<T>& r) const{
 		T iLeft = std::max(left, r.left);
 		T iTop = std::max(top, r.top);
-		T iRight = std::min(left + width,r.left + r.width);
-		T iBottom = std::min(top + height, r.top + r.height);
+		T iRight = std::min(right, r.right);
+		T iBottom = std::min(bottom, r.bottom);
 		return ((iLeft < iRight) && (iTop < iBottom));
 	}
 
 	std::optional<Rect<T>> RIntersects(const Rect<T>& r) const{
 		T iLeft = std::max(left, r.left);
 		T iTop = std::max(top, r.top);
-		T iRight = std::min(left + width,r.left + r.width);
-		T iBottom = std::min(top + height, r.top + r.height);
+		T iRight = std::min(right, r.right);
+		T iBottom = std::min(bottom, r.bottom);
 		if ((iLeft < iRight) && (iTop < iBottom)){
-			return Rect<T>({iLeft,iTop,iRight - iLeft, iBottom-iTop});
+			return Rect<T>({iLeft, iTop, iRight, iBottom});
 		}else{
 			return {};
 		}
@@ -49,7 +49,7 @@ struct Rect{
 };
 
 inline Rect<float> Normalize(const Rect<uint16_t>& texrect){
-	return {texrect.left/65536.f,texrect.top/65536.f,texrect.width/65536.f,texrect.height/65536.f};
+	return {texrect.left/65536.f,texrect.top/65536.f,texrect.right/65536.f,texrect.bottom/65536.f};
 }
 
 template<class T, class Iter>
@@ -58,20 +58,20 @@ Rect<T> join(Iter i, Iter last){
 	T minY = std::numeric_limits<T>::max(), maxY = std::numeric_limits<T>::min();
 	while (i != last){
 		minX = std::min(i->left, minX);
-		maxX = std::max(i->left + i->width, maxX);
+		maxX = std::max(i->right, maxX);
 		minY = std::min(i->top, minY);
-		maxY = std::max(i->top + i->height, maxY);
+		maxY = std::max(i->bottom, maxY);
 		i++;
 	}
-	return {minX, minY, maxX - minX, maxY - minY};
+	return {minX, minY, maxX, maxY};
 }
 
 template<class T>
 Rect<T> join(const Rect<T>& a, const Rect<T>& b){
 	T minX = std::min(a.left, b.left);
-	T maxX = std::max(a.left + a.width, b.left + b.width);
+	T maxX = std::max(a.right, b.right);
 	T minY = std::min(a.top, b.top);
-	T maxY = std::max(a.top + a.height, b.top + b.height);
-	return {minX, minY, maxX - minX, maxY - minY};
+	T maxY = std::max(a.bottom, b.bottom);
+	return {minX, minY, maxX, maxY};
 }
 #endif

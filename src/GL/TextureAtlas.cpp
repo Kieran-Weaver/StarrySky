@@ -35,19 +35,22 @@ TextureAtlas::TextureAtlas(const std::string_view file_path){
 				tNode["x"], tNode["y"],
 				tNode["w"], tNode["h"]
 			};
+			tmp.right = tmp.left + tmp.right;
+			tmp.bottom = tmp.top + tmp.bottom;
 			float width = data.width;
 			float height = data.height;
-			tex.m_rect = {
-				static_cast<uint16_t>(tmp.left/width*65536.f), static_cast<uint16_t>(tmp.top/height*65536.f),
-				static_cast<uint16_t>(tmp.width/width*65536.f), static_cast<uint16_t>(tmp.height/height*65536.f)
-			};
-			tex.width = tmp.width;
-			tex.height = tmp.height;
+			tex.width = tmp.right - tmp.left;
+			tex.height = tmp.bottom - tmp.top;
 			tex.rotated = tNode["r"];
 			if (tex.rotated){
 				tex.m_rect = {
 					static_cast<uint16_t>(tmp.left/width*65536.f), static_cast<uint16_t>(tmp.top/height*65536.f),
-					static_cast<uint16_t>(tmp.height/width*65536.f), static_cast<uint16_t>(tmp.width/height*65536.f)
+					static_cast<uint16_t>((tmp.left + (tmp.bottom - tmp.top))/width*65536.f), static_cast<uint16_t>((tmp.top + (tmp.right - tmp.left))/height*65536.f)
+				};
+			} else {
+				tex.m_rect = {
+					static_cast<uint16_t>(tmp.left/width*65536.f), static_cast<uint16_t>(tmp.top/height*65536.f),
+					static_cast<uint16_t>(tmp.right/width*65536.f), static_cast<uint16_t>(tmp.bottom/height*65536.f)
 				};
 			}
 		}
