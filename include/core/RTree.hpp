@@ -5,11 +5,9 @@
 #include <util/Rect.hpp>
 /*
  * 2D R-Tree Implementation
- * Requirements for T:
- * Has a function with signature
- *     Rect<Dim> getAABB() const;
  * The algorithms are combinations of many different R-Tree algorithms:
  * 	- The bulk loading algorithm is OMT (Overlap Minimizing Top-down Bulk Loading Algorithm for R-Tree, from CAiSE Short Paper Proceedings)
+ *  - The insertion and deletion algorithms are from the R*-Tree
  * TODO:
  *  - Implement OMT - Done
  *  - Implement Intersection/Collision - Done
@@ -39,7 +37,7 @@ struct RLeaf{
 	Rect<T> AABB = {};
 };
 
-template<class T, typename Dim = float>
+template<typename Dim>
 class RTree{
 public:
 	RTree() : M(20) {};
@@ -59,4 +57,11 @@ private:
 	std::vector<RLeaf<Dim>> m_elements;
 };
 
+using FloatRTree = RTree<float>;
+using IntRTree = RTree<int>;
+using U64RTree = RTree<uint64_t>;
+
+extern template class RTree<float>;
+extern template class RTree<int>;
+extern template class RTree<uint64_t>;
 #endif

@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <random>
-#include <core/RTree.cpp>
+#include <core/RTree.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/Tilemap.hpp>
@@ -37,7 +37,7 @@ public:
 	std::vector<std::reference_wrapper<const Surface>> collide(const Rect<float>& rect);
 	TileMap& getTM(const std::string& id);
 	glm::vec2 position;
-	RTree<Surface> surfaces;
+	FloatRTree surfaces;
 	std::vector<glm::vec2> ledges; // top left corners
 	std::mt19937 rng;
 	int width = 1280;

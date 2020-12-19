@@ -1,7 +1,7 @@
 #include <core/RTree.hpp>
 #include <util/PRNG.hpp>
-#include <core/RTree.cpp>
 #include <cassert>
+#include <iostream>
 struct AABBWrapper{
 	Rect<uint64_t> internal;
 	Rect<uint64_t> getAABB() const{
@@ -31,7 +31,7 @@ int main(int argc, char **argv){
 	for (int i = 0; i < 5000; i++){
 		aabbs.emplace_back(randomRect(rng));
 	}
-	RTree<AABBWrapper, uint64_t> tree(20);
+	U64RTree tree(20);
 	const auto& indices = tree.load(aabbs);
 	for (size_t i = 0; i < indices.size(); i++) {
 		elements[indices[i]] = aabbs[i];

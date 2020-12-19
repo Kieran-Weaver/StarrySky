@@ -3,7 +3,6 @@
 #include <rapidjson/writer.h>
 #include <core/Map.hpp>
 #include <sstream>
-#include <core/RTree.cpp>
 #include <util/PRNG.hpp>
 #include <file/PlainText.hpp>
 VISITABLE_STRUCT(glm::vec2, x, y);

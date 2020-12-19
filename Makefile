@@ -1,5 +1,5 @@
 CC=gcc
-CXX=g++
+CXX=g++ -Wall -Wextra -Wpedantic
 TARGET=Platformer
 INC_FLAGS := -iquote submodules/imgui -I include -I build
 CFLAGS := -O2 -march=native
@@ -16,7 +16,7 @@ TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreete
 TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
 build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
 build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/Tilemap.o \
-build/src/file/JSONReader.o build/src/file/JSONWriter.o
+build/src/file/JSONReader.o build/src/file/JSONWriter.o build/src/core/RTree.o
 DEPS := $(OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 ifdef OS
@@ -70,7 +70,7 @@ test/collisiondemo: $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisi
 test/mat2test: build/src/util/Mat2D.o build/test/mat2test.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test/rtreetest: build/test/rtreetest.o
+test/rtreetest: build/test/rtreetest.o build/src/core/RTree.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file/PlainText.o build/src/GL/TextureAtlas.o build/src/file/JSONReader.o

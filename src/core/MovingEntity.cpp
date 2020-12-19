@@ -1,5 +1,4 @@
 #include <core/MovingEntity.hpp>
-#include <core/RTree.cpp>
 MovingEntity::MovingEntity(float x, float y, ObjMap& map): MovingEntity(x,y,0,0,map){}
 MovingEntity::MovingEntity(float x, float y, int w, int h, ObjMap& map):
 	m_position(x, y), m_width(w), m_height(h), m_lastPosition(x, y), m_map(map)

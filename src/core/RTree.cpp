@@ -1,12 +1,10 @@
-#ifndef RTREE_IMPL
-#define RTREE_IMPL
 #include <core/RTree.hpp>
 #include <util/RectCompare.hpp>
 #include <numeric>
 #include <cmath>
 #include <iostream>
-template<class T, typename Dim>
-std::vector<int> RTree<T,Dim>::load(const std::vector<Rect<Dim>>& elements){
+template<typename Dim>
+std::vector<int> RTree<Dim>::load(const std::vector<Rect<Dim>>& elements){
 	m_nodes = {};
 	m_elements = {};
 	std::vector<int> indices;
@@ -47,8 +45,8 @@ std::vector<int> RTree<T,Dim>::load(const std::vector<Rect<Dim>>& elements){
 	return indices;
 }
 
-template<class T, typename Dim>
-void RTree<T,Dim>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::iterator& iter){
+template<typename Dim>
+void RTree<Dim>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::iterator& iter){
 	std::vector<Rect<Dim>> aabbs;
 	if (N < M){
 		RNode<Dim> leaf(N);
@@ -94,14 +92,14 @@ void RTree<T,Dim>::omt(int subroot, size_t N, size_t level, std::vector<size_t>:
 	}
 }
 
-template<class T, typename Dim>
-void RTree<T,Dim>::print(){
+template<typename Dim>
+void RTree<Dim>::print(){
 	std::cout << m_nodes.size() << std::endl;
 	printNode(0);
 }
 
-template<class T, typename Dim>
-void RTree<T,Dim>::printNode(int _node){
+template<typename Dim>
+void RTree<Dim>::printNode(int _node){
 	auto& node = m_nodes[_node];
 	std::cout << "AABB: " << node.AABB.left << " " << node.AABB.top << " " << node.AABB.right << " " << node.AABB.bottom << std::endl;
 	if (node.level == 0){
@@ -122,8 +120,8 @@ void RTree<T,Dim>::printNode(int _node){
 	}
 }
 
-template<class T, typename Dim>
-std::vector<int> RTree<T,Dim>::intersect(const Rect<Dim>& aabb){
+template<typename Dim>
+std::vector<int> RTree<Dim>::intersect(const Rect<Dim>& aabb){
 	std::vector<int> to_search;
 	std::vector<int> leaf_nodes = {};
 	to_search.emplace_back(0);
@@ -148,4 +146,7 @@ std::vector<int> RTree<T,Dim>::intersect(const Rect<Dim>& aabb){
 	}
 	return leaf_nodes;
 }
-#endif
+
+template class RTree<float>;
+template class RTree<int>;
+template class RTree<uint64_t>;
