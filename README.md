@@ -21,6 +21,11 @@ cd StarrySky
 make
 ```
 
+To run the tests:
+```
+make test
+```
+
 External Dependencies:
 
 - GLFW
@@ -49,7 +54,7 @@ Before running `make` on Windows, run `./symlinks.sh` to restore the symlinks.
   - SpriteBatch and TextureAtlas
 
 ## Todo:
-- Add proper unit tests
+- Add proper unit tests - Done
 - Implement editor functionality
 - Add documentation for APIs
 - Add plugin system
@@ -69,6 +74,7 @@ Before running `make` on Windows, run `./symlinks.sh` to restore the symlinks.
 - src/file contains APIs to read and write text, memory mapped, and JSON files
 - src/core contains the physics and map system and any helper files.
 - src/game contains the game's AI and higher-level game concepts such as game mechanics.
+- src/test contains Catch2 tests for the other components
 
 ## Using Starry Sky as a Library
 The GL portion of Starry Sky can be used as a standalone rendering library. The `lib` target in the Makefile creates `build/libSSGL.a`, which contains the implementation of the GL, util, and file folders, as well as code required to use ImGui.
@@ -104,7 +110,6 @@ int main(int, char const**) {
 	return 0;
 }
 ```
-
 
 ## Acknowledgements and Links:
 include/GL/Sprite.h, include/GL/SpriteBatch.h, include/GL/Texture.h, include/GL/TextureAtlas.h, and src/GL/TextureAtlas.cpp are originally from https://github.com/ricanteja/Moony-SpriteBatch, but were rewritten for Starry Sky.
