@@ -36,7 +36,7 @@ public:
 	void WriteToFile(const std::string& filename);
 	TileMap& getTM(const std::string& id);
 	glm::vec2 position;
-	RTree<Surface, 20> surfaces;
+	RTree<Surface> surfaces;
 	std::vector<glm::vec2> ledges; // top left corners
 	std::mt19937 rng;
 	int width = 1280;

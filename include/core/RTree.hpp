@@ -18,11 +18,26 @@
  *  - Implement Replacement - Further research needed
  *  - Optimize finished R-Tree implementation - Not Started
  */
-template<class T, size_t M, typename Dim = float>
+ 
+template<typename T = float>
+struct RNode{
+	RNode(size_t _M) {
+		children.resize(_M);
+	}
+	size_t size() {
+		return children.size();
+	}
+	int parent = -1;
+	size_t level = 0;
+	Rect<T> AABB = {};
+	std::vector<size_t> children;
+};
+
+template<class T, typename Dim = float>
 class RTree{
 public:
-	RTree() = default;
-	RTree(const std::vector<T>& elements);
+	RTree() : M(20) {};
+	RTree(size_t _M) : M(_M) {};
 	void print();
 	size_t size() const{
 		return m_elements.size();
@@ -34,16 +49,11 @@ public:
 	}
 	size_t height = 0;
 private:
-	struct RNode{
-		int parent = -1;
-		size_t level = 0;
-		size_t size = 0;
-		std::array<size_t, M> children;
-		Rect<Dim> AABB;
-	};
 	void omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
 	void printNode(int node);
-	std::vector<RNode> m_nodes;
+	size_t M;
+	std::vector<RNode<Dim>> m_nodes;
 	std::vector<T> m_elements;
 };
+
 #endif

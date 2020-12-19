@@ -32,7 +32,8 @@ int main(int argc, char **argv){
 	for (int i = 0; i < 5000; i++){
 		elements.emplace_back(AABBWrapper({randomRect(rng)}));
 	}
-	RTree<AABBWrapper, 20, uint64_t> tree(elements);
+	RTree<AABBWrapper, uint64_t> tree(20);
+	tree.load(elements);
 	tree.print();
 	AABBWrapper ab = {randomRect(rng)};
 	auto collision_vec = tree.intersect(ab.internal);
