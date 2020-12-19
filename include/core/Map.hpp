@@ -34,6 +34,7 @@ public:
 	uint32_t addSurface(const Surface& wall);
 	void addBGTexture(const glm::vec2& thisposition, const glm::mat2& transform, const std::string& fname);
 	void WriteToFile(const std::string& filename);
+	std::vector<std::reference_wrapper<const Surface>> collide(const Rect<float>& rect);
 	TileMap& getTM(const std::string& id);
 	glm::vec2 position;
 	RTree<Surface> surfaces;
@@ -47,6 +48,7 @@ public:
 private:
 	std::unordered_map<std::string, TileMap> internal_tms;
 	std::unordered_map<int, MapSprite> sprs;
+	std::unordered_map<int, Surface> surfmap;
 	bool tm_changed = false;
 	TextureAtlas& m_atlas;
 	void loadTileMap(TileMap& tomodify, JSONParser tilemapNode);

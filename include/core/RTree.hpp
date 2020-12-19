@@ -33,6 +33,12 @@ struct RNode{
 	std::vector<size_t> children;
 };
 
+template<typename T = float>
+struct RLeaf{
+	int id = 0;
+	Rect<T> AABB = {};
+};
+
 template<class T, typename Dim = float>
 class RTree{
 public:
@@ -42,18 +48,15 @@ public:
 	size_t size() const{
 		return m_elements.size();
 	}
-	std::vector<std::reference_wrapper<T>> intersect(const Rect<Dim>& object);
-	void load(const std::vector<T>& elements);
-	const std::vector<T>& get_elements(){
-		return m_elements;
-	}
+	std::vector<int> intersect(const Rect<Dim>& object);
+	std::vector<int> load(const std::vector<Rect<Dim>>& elements);
 	size_t height = 0;
 private:
 	void omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
 	void printNode(int node);
 	size_t M;
 	std::vector<RNode<Dim>> m_nodes;
-	std::vector<T> m_elements;
+	std::vector<RLeaf<Dim>> m_elements;
 };
 
 #endif

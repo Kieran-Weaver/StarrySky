@@ -33,7 +33,14 @@ void ObjMap::loadFromFile(const std::string& filename){
 	JSONParser spritesNode = document["sprites"];
 	JSONParser tilemapsNode = document["tilemaps"];
 
-	this->surfaces.load(tempSurfaces);
+	std::vector<Rect<float>> surfRects = {};
+	for (auto& surf : tempSurfaces) {
+		surfRects.emplace_back(surf.getAABB());
+	}
+	std::vector<int> surfIDs = this->surfaces.load(surfRects);
+	for (size_t i = 0; i < surfIDs.size(); i++) {
+		surfmap[surfIDs[i]] = tempSurfaces[i];
+	}
 
 	for (int i = 0; i < spritesNode.size(); i++){
 		const auto& spriteNode = spritesNode[i];
@@ -77,6 +84,16 @@ void ObjMap::SetPosition(float x, float y) {
 	this->internal_tms["default"].Attrs[3] = y;
 	tm_changed = true;
 }
+
+std::vector<std::reference_wrapper<const Surface>> ObjMap::collide(const Rect<float>& rect) {
+	std::vector<int> ids = this->surfaces.intersect(rect);
+	std::vector<std::reference_wrapper<const Surface>> sr;
+	for (auto& id : ids) {
+		sr.emplace_back(std::cref(surfmap[id]));
+	}
+	return sr;
+}
+
 template<>
 void JSONWriter::store<MapSprite>(const MapSprite& i){
 	this->StartObject();
@@ -108,8 +125,8 @@ void ObjMap::WriteToFile(const std::string& filename){
 	std::ofstream ofs(filename);
 	JSONWriter writer;
 	writer.StartObject();
-	writer.Key("surfaces");
-	writer.store(surfaces.get_elements());
+//	writer.Key("surfaces");
+//	writer.store(surfaces.get_elements());
 	writer.Key("sprites");
 	writer.store(sprs);
 	writer.Key("ledges");

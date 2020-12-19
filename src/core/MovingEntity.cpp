@@ -28,9 +28,9 @@ void MovingEntity::Update(float dt) {
 	this->onOneWayPlatform = false;
 	Rect<float> hitbox = {m_position.x - m_width/2.f, m_position.y - m_height/2.f, m_position.x + m_width/2.f, m_position.y + m_height/2.f};
 	Rect<float> lastHitbox = {m_lastPosition.x - m_width/2.f, m_lastPosition.y - m_height/2.f, m_lastPosition.x + m_width/2.f, m_lastPosition.y + m_height/2.f}; 
-	auto collisions = m_map.surfaces.intersect(hitbox);
+	auto collisions = m_map.collide(hitbox);
 	for (auto& surf : collisions){
-		auto& i = surf.get();
+		const auto& i = surf.get();
 		if ((i.flags & WallType::RWALL)&&(lastHitbox.right <= i.hitbox.left)){
 			m_position.x = i.hitbox.left - (m_width/2);
 			m_speed.x = 0.0f;
@@ -56,7 +56,7 @@ void MovingEntity::Update(float dt) {
 		}
 	}
 	if (m_position.y > (m_map.position.y + m_map.height)){
-		dead = true;
+//		dead = true;
 	}
 	m_spr.setPosition(m_position);
 }

@@ -14,9 +14,6 @@ struct AABBWrapper{
 		return std::tie(internal.left, internal.top, internal.right, internal.bottom) == std::tie(other.internal.left, other.internal.top, other.internal.right, other.internal.bottom);
 	}
 };
-bool refsort(const std::reference_wrapper<AABBWrapper>& a, const std::reference_wrapper<AABBWrapper>& b){
-	return a.get() < b.get();
-}
 Rect<uint64_t> randomRect(std::mt19937& rng){
 	uint64_t left = rng() & 0xFF;
 	uint64_t top = rng() & 0xFF;
@@ -28,26 +25,38 @@ int main(int argc, char **argv){
 	(void)argc;
 	(void)argv;
 	std::mt19937 rng = SeedRNG();
-	std::vector<AABBWrapper> elements;
+	std::vector<AABBWrapper> collision_vec;
+	std::vector<Rect<uint64_t>> aabbs;
+	std::unordered_map<int, Rect<uint64_t>> elements;
 	for (int i = 0; i < 5000; i++){
-		elements.emplace_back(AABBWrapper({randomRect(rng)}));
+		aabbs.emplace_back(randomRect(rng));
 	}
 	RTree<AABBWrapper, uint64_t> tree(20);
-	tree.load(elements);
+	const auto& indices = tree.load(aabbs);
+	for (size_t i = 0; i < indices.size(); i++) {
+		elements[indices[i]] = aabbs[i];
+	}
+	
 	tree.print();
+
 	AABBWrapper ab = {randomRect(rng)};
-	auto collision_vec = tree.intersect(ab.internal);
-	std::sort(collision_vec.begin(), collision_vec.end(), refsort);
+	auto _cvec = tree.intersect(ab.internal);
+	for (auto& idx : _cvec) {
+		collision_vec.emplace_back(AABBWrapper({elements[idx]}));
+	}
+	std::sort(collision_vec.begin(), collision_vec.end());
+
 	std::vector<AABBWrapper> collided;
-	for (auto& vec : elements){
-		if (ab.getAABB().Intersects(vec.getAABB())){
-			collided.emplace_back(vec);
+	for (auto& vec : aabbs){
+		if (ab.getAABB().Intersects(vec)){
+			collided.emplace_back(AABBWrapper({vec}));
 		}
 	}
 	std::sort(collided.begin(), collided.end());
+
 	assert(collided.size() == collision_vec.size());
 	for (size_t i=0; i < collided.size(); i++){
-		assert(collided[i] == collision_vec[i].get());
+		assert(collided[i] == collision_vec[i]);
 	}
 	std::cout << "Collision test finished successfully" << std::endl;
 	return 0;

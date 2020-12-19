@@ -6,8 +6,18 @@
 #include <cmath>
 #include <iostream>
 template<class T, typename Dim>
-void RTree<T,Dim>::load(const std::vector<T>& elements){
-	m_elements = elements;
+std::vector<int> RTree<T,Dim>::load(const std::vector<Rect<Dim>>& elements){
+	m_nodes = {};
+	m_elements = {};
+	std::vector<int> indices;
+	for (size_t idx = 0; idx < elements.size(); idx++) {
+		indices.emplace_back(idx);
+		RLeaf<Dim> tmp;
+		tmp.id = idx;
+		tmp.AABB = elements[idx];
+		m_elements.emplace_back(tmp);
+	}
+
 	size_t N = m_elements.size();
 	size_t H = std::ceil(std::log2(N) / std::log2(M));
 	double N_subtree = std::pow(M,H-1);
@@ -15,8 +25,8 @@ void RTree<T,Dim>::load(const std::vector<T>& elements){
 	this->height = H;
 	this->m_nodes.emplace_back(S);
 	this->m_nodes[0].level = H;
-	std::sort(m_elements.begin(), m_elements.end(), [&](const T& lhs, const T& rhs){
-		return rectCompare<Dim>(lhs.getAABB(),rhs.getAABB(), H & 0x01);
+	std::sort(m_elements.begin(), m_elements.end(), [&](const RLeaf<Dim>& lhs, const RLeaf<Dim>& rhs){
+		return rectCompare<Dim>(lhs.AABB, rhs.AABB, H & 0x01);
 	});
 	std::vector<size_t> tempVec;
 	tempVec.resize(N);
@@ -33,6 +43,8 @@ void RTree<T,Dim>::load(const std::vector<T>& elements){
 		aabbs.emplace_back(this->m_nodes[nodeIdx].AABB);
 	}
 	this->m_nodes[0].AABB = join<Dim>(aabbs.begin(), aabbs.end());
+	
+	return indices;
 }
 
 template<class T, typename Dim>
@@ -44,7 +56,7 @@ void RTree<T,Dim>::omt(int subroot, size_t N, size_t level, std::vector<size_t>:
 		for (size_t i = 0; i < N; i++){
 			leaf.children[i] = (*iter);
 			iter++;
-			aabbs.emplace_back(m_elements[leaf.children[i]].getAABB());
+			aabbs.emplace_back(m_elements[leaf.children[i]].AABB);
 		}
 		leaf.AABB = join<Dim>(aabbs.begin(), aabbs.end());
 		int parent = subroot;
@@ -64,7 +76,7 @@ void RTree<T,Dim>::omt(int subroot, size_t N, size_t level, std::vector<size_t>:
 	} else {
 		m_nodes[subroot].level = level;
 		std::sort(iter, iter + N, [&](const size_t& lhs, const size_t& rhs){
-			return rectCompare<Dim>(m_elements[lhs].getAABB(),m_elements[rhs].getAABB(), level & 0x01);
+			return rectCompare<Dim>(m_elements[lhs].AABB,m_elements[rhs].AABB, level & 0x01);
 		});
 		size_t K = (N + M - 1)/M;
 		m_nodes[subroot].children.resize((N+K-1)/K);
@@ -97,7 +109,7 @@ void RTree<T,Dim>::printNode(int _node){
 		for (size_t j = 0; j < node.size(); j++){
 			auto& i = node.children[j];
 			std::cout << i << " - ";
-			Rect<Dim> AABB = m_elements[i].getAABB();
+			auto AABB = m_elements[i].AABB;
 			std::cout << "AABB: " << AABB.left << " " << AABB.top << " " << AABB.right << " " << AABB.bottom << std::endl;
 		}
 		std::cout << std::endl;
@@ -111,25 +123,22 @@ void RTree<T,Dim>::printNode(int _node){
 }
 
 template<class T, typename Dim>
-std::vector<std::reference_wrapper<T>> RTree<T,Dim>::intersect(const Rect<Dim>& aabb){
+std::vector<int> RTree<T,Dim>::intersect(const Rect<Dim>& aabb){
 	std::vector<int> to_search;
-	std::vector<std::reference_wrapper<T>> leaf_nodes;
+	std::vector<int> leaf_nodes = {};
 	to_search.emplace_back(0);
-//	int visited = 1;
 	while (!to_search.empty()){
 		auto& node = m_nodes[to_search.back()];
 		to_search.pop_back();
 		if (node.level == 0){
 			for (size_t j = 0; j < node.size(); j++){
 				auto& i = node.children[j];
-//				visited++;
-				if (aabb.Intersects(m_elements.at(i).getAABB())){
-					leaf_nodes.emplace_back(m_elements.at(i));
+				if (aabb.Intersects(m_elements.at(i).AABB)){
+					leaf_nodes.emplace_back(m_elements.at(i).id);
 				}
 			}
 		} else {
 			for (size_t i = 0; i < node.size(); i++){
-//				visited++;
 				auto& cnode = m_nodes[node.children[i]];
 				if (aabb.Intersects(cnode.AABB)){
 					to_search.emplace_back(node.children[i]);
@@ -137,7 +146,6 @@ std::vector<std::reference_wrapper<T>> RTree<T,Dim>::intersect(const Rect<Dim>& 
 			}
 		}
 	}
-//	std::cout << visited << std::endl;
 	return leaf_nodes;
 }
 #endif
