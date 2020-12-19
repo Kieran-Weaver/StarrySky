@@ -1,9 +1,7 @@
 #include <GL/Camera.hpp>
+#include <util/Clib.hpp>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
-template <typename T> int sgn(T val) {
-    return (T(0) < val) - (val < T(0));
-}
 Camera::Camera(const Rect<float>& cbounds, const Rect<float>& sbounds, const Window& window) : camera_bounds(cbounds), scroll_bounds(sbounds){
 	int w, h;
 	window.getWindowSize(w,h);

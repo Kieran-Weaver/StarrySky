@@ -11,4 +11,6 @@ glm::vec2 scale(const glm::mat2& matrix);
 glm::vec2 shear(const glm::mat2& matrix);
 std::array<float, 5> decomp(const glm::mat2& matrix);
 glm::mat2 recompose(const std::array<float,5>& data);
+std::array<float,4> packmat2(const glm::mat2& matrix);
+glm::mat2 unpackmat2(const std::array<float,4>& array);
 #endif

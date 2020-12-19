@@ -21,6 +21,15 @@ cd StarrySky
 make
 ```
 
+External Dependencies:
+
+- GLFW
+- GLM
+
+External Test Dependencies:
+
+- Catch2
+
 Building on Windows:
 
 Git, at least in msys2, does not handle symlinks properly on Windows.

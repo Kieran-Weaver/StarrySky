@@ -55,7 +55,7 @@ void MovingEntity::Update(float dt) {
 		}
 	}
 	if (m_position.y > (m_map.position.y + m_map.height)){
-//		dead = true;
+		dead = true;
 	}
 	m_spr.setPosition(m_position);
 }

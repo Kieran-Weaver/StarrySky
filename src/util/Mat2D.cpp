@@ -32,3 +32,9 @@ glm::mat2 recompose(const std::array<float,5>& data){
 	const auto hmat = ShearMat(data[3], data[4]);
 	return rmat * hmat * smat;
 }
+std::array<float,4> packmat2(const glm::mat2& matrix){
+	return {matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1]};
+}
+glm::mat2 unpackmat2(const std::array<float,4>& array){
+	return {array[0], array[1], array[2], array[3]};
+}

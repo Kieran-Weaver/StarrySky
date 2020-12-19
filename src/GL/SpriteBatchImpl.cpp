@@ -2,6 +2,7 @@
 #include <GL/Camera.hpp>
 #include <GL/Sprite.hpp>
 #include <file/PlainText.hpp>
+#include <util/Mat2D.hpp>
 #include <gl.h>
 #ifndef NO_IMGUI
 #include <imgui/imgui.h>
@@ -11,12 +12,6 @@
 #include <iostream>
 #endif
 #include <numeric>
-std::array<float,4> packmat2(const glm::mat2& matrix){
-	return {matrix[0][0], matrix[0][1], matrix[1][0], matrix[1][1]};
-}
-glm::mat2 unpackmat2(const std::array<float,4>& array){
-	return {array[0], array[1], array[2], array[3]};
-}
 // Generates an index buffer for drawing n quads
 template<typename T>
 void genBufImpl(Buffer& IBO, uint16_t n){

@@ -11,12 +11,14 @@ OBJS := $(patsubst %.cpp, ./build/%.o, $(SRCS))
 LIB_SRCS := build/gl.c $(shell find src/GL -path "*.cpp") $(shell find src/util -path "*.cpp") $(shell find src/file -path "*.cpp") $(IMGUI_SRCS)
 LIB_OBJS := $(patsubst %.c, ./build/%.o, $(patsubst %.cpp, ./build/%.o, $(LIB_SRCS)))
 TEST_SRCS := $(shell find test -path "*.cpp")
-TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS))
-TEST_TARGETS := test/collisiontest test/collisiondemo test/mat2test test/rtreetest test/debugcollision test/mmaptest test/packingtest
-TEST_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
+TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS)) build/src/util/Mat2D.o \
+build/src/file/PlainText.o build/src/core/RTree.o
+TEST_TARGET := tests
+TOOLS_TARGETS := tools/collisiondemo tools/debugcollision tools/packingtest
+TOOLS_COMMON_OBJS := build/build/gl.o build/src/core/Map.o build/src/file/PlainText.o \
 build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
 build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/Tilemap.o \
-build/src/file/JSONReader.o build/src/file/JSONWriter.o build/src/core/RTree.o
+build/src/file/JSONReader.o build/src/file/JSONWriter.o build/src/core/RTree.o build/src/util/Clib.o
 DEPS := $(OBJS:.o=.d) $(LIB_OBJS:.o=.d) $(TEST_OBJS:.o=.d)
 
 ifdef OS
@@ -58,28 +60,19 @@ build/galogen_exe:
 	cd build && mkdir -p build src/core tools src/game src/GL src/util src/file submodules/imgui/examples test test/noimgui
 	$(CXX) $(CXXFLAGS) submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp -o build/galogen_exe $(LDFLAGS)
 
-test: build/gl.h $(TEST_OBJS) $(TEST_TARGETS)
-	$(foreach var, $(TEST_TARGETS), ./$(var);)
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
 
-test/collisiontest: $(TEST_COMMON_OBJS) build/test/noimgui/Window.o build/test/collisiontest.o build/test/noimgui/SpriteBatch.o
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
-
-test/collisiondemo: $(TEST_COMMON_OBJS) build/src/GL/Window.o build/test/collisiondemo.o  build/src/GL/SpriteBatchImpl.o build/src/GL/SpriteBatch.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS))
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
-
-test/mat2test: build/src/util/Mat2D.o build/test/mat2test.o
+$(TEST_TARGET): $(TEST_OBJS)
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
-test/rtreetest: build/test/rtreetest.o build/src/core/RTree.o
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
-
-test/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file/PlainText.o build/src/GL/TextureAtlas.o build/src/file/JSONReader.o
+tools/debugcollision: build/test/debugcollision.o build/build/gl.o build/src/file/PlainText.o build/src/GL/TextureAtlas.o build/src/file/JSONReader.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
-test/mmaptest: build/test/mmaptest.o build/src/file/PlainText.o
-	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+tools/collisiondemo: $(TOOLS_COMMON_OBJS) build/src/GL/Window.o build/tools/collisiondemo.o  build/src/GL/SpriteBatchImpl.o build/src/GL/SpriteBatch.o $(patsubst %.cpp, ./build/%.o, $(IMGUI_SRCS))
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(GL_FLAGS) $(LDFLAGS)
 
-test/packingtest: build/test/packingtest.o
+tools/packingtest: build/test/packingtest.o
 	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
 
 tools/editor: build/tools/editor.o build/libSSGL.a

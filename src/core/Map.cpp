@@ -124,8 +124,12 @@ void ObjMap::WriteToFile(const std::string& filename){
 	std::ofstream ofs(filename);
 	JSONWriter writer;
 	writer.StartObject();
-//	writer.Key("surfaces");
-//	writer.store(surfaces.get_elements());
+	writer.Key("surfaces");
+	writer.StartArray();
+	for (const auto& val : surfmap) {
+		writer.store(val.second);
+	}
+	writer.EndArray();
 	writer.Key("sprites");
 	writer.store(sprs);
 	writer.Key("ledges");
