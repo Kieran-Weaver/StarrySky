@@ -1,11 +1,12 @@
 #include <file/PlainText.hpp>
-#include <iostream>
-int main(int argc, char **argv){
-	if (argc < 2){
-		MMAPFile mmf(__FILE__);
-		std::cout << mmf.getString() << std::endl;
-	} else {
-		MMAPFile mmf(argv[1]);
-		std::cout << mmf.getString() << std::endl;
-	}
+#include <catch2/catch.hpp>
+#include <sstream>
+
+TEST_CASE("Test MMAP", "[file]") {
+	MMAPFile mmf("test/test.txt");
+	MMAPFile mmf2("filethatobviouslydoesnotexist.txt");
+	std::string expected = "This is a test\nLine 2\n";
+
+	REQUIRE(mmf.getString() == expected);	
+	REQUIRE(mmf2.getString() == "");
 }

@@ -11,6 +11,6 @@ public:
 private:
 	void* mapping = nullptr;
 	uint64_t size = 0;
-	void* fd;
+	void* fd = nullptr;
 };
 #endif
