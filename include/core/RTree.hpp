@@ -17,7 +17,7 @@
  *  - Implement Replacement - Further research needed
  *  - Optimize finished R-Tree implementation - Not Started
  */
-#define OVERLAP_P 32
+#define RT_OVERLAP_P 32u
  
 template<typename T = float>
 struct RNode{
@@ -54,6 +54,9 @@ public:
 private:
 	void omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
 	void printNode(size_t node, std::ostream& os);
+	T overlapCost(size_t idx, const Rect<T>& object);
+	T areaCost(size_t idx, const Rect<T>& object);
+	size_t chooseSubTree(const Rect<T>& object);
 	size_t M;
 	std::vector<RNode<T>> m_nodes;
 	std::vector<RLeaf<T>> m_elements;

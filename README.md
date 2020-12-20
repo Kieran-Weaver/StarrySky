@@ -54,10 +54,11 @@ Before running `make` on Windows, run `./symlinks.sh` to restore the symlinks.
   - SpriteBatch and TextureAtlas
 
 ## Todo:
-- Add proper unit tests - Done
+- Add proper unit tests - In Progress
 - Implement editor functionality
 - Add documentation for APIs
 - Add plugin system
+- Add python bindings for the collision and graphics libraries
 - Replace imgui example files with custom implementations
   - Render through the sprite-batching API - Done
   - Handle input through the Window class

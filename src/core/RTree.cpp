@@ -146,6 +146,67 @@ std::vector<int> RTree<T>::intersect(const Rect<T>& aabb){
 	return leaf_nodes;
 }
 
+template<typename T>
+T RTree<T>::overlapCost(size_t idx, const Rect<T>& object) {
+	if ((idx >= m_nodes.size()) || (m_nodes[idx].level == 0)) {
+		return 0;
+	} else {
+		T area = 0;
+		Rect<T> null_rect = Rect<T>({T(0), T(0), T(0), T(0)});
+		for (size_t i : m_nodes[idx].children) {
+			const auto& E_f = m_nodes[i].AABB;
+			area += E_f.RIntersects(object).value_or(null_rect).Area();
+		}
+		return area;
+	}
+}
+
+template<typename T>
+T RTree<T>::areaCost(size_t idx, const Rect<T>& object) {
+	if ((idx >= m_nodes.size()) || (m_nodes[idx].level == 0)) {
+		return 0;
+	} else {
+		Rect<T> obj = object;
+		for (size_t i : m_nodes[idx].children) {
+			obj = join(obj, m_nodes[i].AABB);
+		}
+		return obj.Area();
+	}
+}
+template<typename T>
+size_t RTree<T>::chooseSubTree(const Rect<T>& object) {
+	size_t curr = 0; // Start at the root
+	while (m_nodes[curr].level) {
+		std::vector<T> areas = {};
+		for (size_t idx : m_nodes[curr].children) {
+			areas.emplace_back(this->areaCost(idx, object));
+		}
+		if (m_nodes[curr].level == 1) { // If the childpointers in N point to leaves
+			std::vector<size_t> idxs(m_nodes[curr].children.size());
+			size_t upperBound = std::min(idxs.size(), size_t{RT_OVERLAP_P});
+			std::vector<T> overlaps = {};
+
+			std::iota(idxs.begin(), idxs.end(), 0);
+			std::partial_sort(idxs.begin(), idxs.begin() + upperBound, idxs.end(),
+			[&](const size_t A, const size_t B) {
+				return areas[A] < areas[B];
+			});
+			
+			for (size_t i = 0; i < upperBound; i++) {
+				size_t idx = m_nodes[curr].children[idxs[i]];
+				overlaps.emplace_back(this->overlapCost(idx, object));
+			}
+			
+			int index = std::min_element(overlaps.begin(), overlaps.end()) - overlaps.begin();
+			curr = m_nodes[curr].children[index];
+		} else { // If the childpointers in N do not point to leaves
+			int index = std::min_element(areas.begin(), areas.end()) - areas.begin();
+			curr = m_nodes[curr].children[index];
+		}
+	}
+	return curr;
+}
+
 template class RTree<float>;
 template class RTree<int>;
 template class RTree<uint64_t>;
