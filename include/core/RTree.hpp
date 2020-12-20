@@ -2,6 +2,7 @@
 #define STARRYSKY_RTREE_H
 #include <vector>
 #include <array>
+#include <ostream>
 #include <util/Rect.hpp>
 /*
  * 2D R-Tree Implementation
@@ -16,13 +17,14 @@
  *  - Implement Replacement - Further research needed
  *  - Optimize finished R-Tree implementation - Not Started
  */
+#define OVERLAP_P 32
  
 template<typename T = float>
 struct RNode{
 	RNode(size_t _M) {
 		children.resize(_M);
 	}
-	size_t size() {
+	size_t size() const {
 		return children.size();
 	}
 	int parent = -1;
@@ -37,24 +39,24 @@ struct RLeaf{
 	Rect<T> AABB = {};
 };
 
-template<typename Dim>
+template<typename T>
 class RTree{
 public:
 	RTree() : M(20) {};
 	RTree(size_t _M) : M(_M) {};
-	void print();
+	void print(std::ostream& os);
 	size_t size() const{
 		return m_elements.size();
 	}
-	std::vector<int> intersect(const Rect<Dim>& object);
-	std::vector<int> load(const std::vector<Rect<Dim>>& elements);
+	std::vector<int> intersect(const Rect<T>& object);
+	std::vector<int> load(const std::vector<Rect<T>>& elements);
 	size_t height = 0;
 private:
 	void omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
-	void printNode(int node);
+	void printNode(size_t node, std::ostream& os);
 	size_t M;
-	std::vector<RNode<Dim>> m_nodes;
-	std::vector<RLeaf<Dim>> m_elements;
+	std::vector<RNode<T>> m_nodes;
+	std::vector<RLeaf<T>> m_elements;
 };
 
 using FloatRTree = RTree<float>;

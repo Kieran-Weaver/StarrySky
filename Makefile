@@ -44,7 +44,7 @@ $(TARGET): $(OBJS)  ./build/libSSGL.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 clean:
-	rm -fr $(TARGET) build $(TEST_TARGETS) offscreen.png tools/editor
+	rm -fr $(TARGET) build $(TEST_TARGET) $(TOOLS_TARGETS) offscreen.png tools/editor
 
 build/gl.c: build/gl.h
 build/gl.h: build/galogen_exe

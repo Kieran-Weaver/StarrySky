@@ -43,8 +43,8 @@ struct Rect{
 		}
 	}
 
-	Rect<T> getAABB() const{
-		return *this;
+	T Area() const {
+		return (right - left) * (bottom - top);
 	}
 };
 
