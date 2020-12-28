@@ -35,7 +35,7 @@ std::vector<int> RTree<T>::load(const std::vector<Rect<T>>& elements){
 	this->m_nodes.resize(this->m_nodes.size() + S, 0);
 	for (i = 0; i < S; i++){
 		int nodeIdx = m_nodes[0].children[i];
-		this->m_nodes[nodeIdx].parent = 0;
+//		this->m_nodes[nodeIdx].parent = 0;
 		this->omt(nodeIdx, std::min(N/S, static_cast<size_t>(tempVec.end() - iter)), H-1, iter);
 		aabbs.emplace_back(this->m_nodes[nodeIdx].AABB);
 	}
@@ -56,20 +56,20 @@ void RTree<T>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::ite
 			aabbs.emplace_back(m_elements[leaf.children[i]].AABB);
 		}
 		leaf.AABB = join<T>(aabbs.begin(), aabbs.end());
-		int parent = subroot;
+//		int parent = subroot;
 		while (level != 0){
 			m_nodes[subroot].children.resize(1);
 			m_nodes[subroot].level = level;
 			m_nodes[subroot].AABB = leaf.AABB;
 			m_nodes[subroot].children[0] = m_nodes.size();
 			m_nodes.emplace_back(0);
-			m_nodes.back().parent = subroot;
+//			m_nodes.back().parent = subroot;
 			level--;
-			parent = subroot;
+//			parent = subroot;
 			subroot = m_nodes[subroot].children[0];
 		}
 		m_nodes[subroot] = leaf;
-		m_nodes[subroot].parent = parent;
+//		m_nodes[subroot].parent = parent;
 	} else {
 		m_nodes[subroot].level = level;
 		std::sort(iter, iter + N, [&](const size_t& lhs, const size_t& rhs){
@@ -83,7 +83,7 @@ void RTree<T>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::ite
 		for (i = 0; i < N; i+=K){
 			size_t j = i/K;
 			int nodeIdx = m_nodes[subroot].children[j];
-			m_nodes[nodeIdx].parent = subroot;
+//			m_nodes[nodeIdx].parent = subroot;
 			this->omt(nodeIdx, std::min(K, N-i), level - 1, iter);
 			aabbs.emplace_back(m_nodes[nodeIdx].AABB);
 		}
@@ -173,10 +173,16 @@ T RTree<T>::areaCost(size_t idx, const Rect<T>& object) {
 		return obj.Area();
 	}
 }
+
 template<typename T>
-size_t RTree<T>::chooseSubTree(const Rect<T>& object) {
+std::vector<size_t> RTree<T>::chooseSubTree(size_t id, bool leaf) {
 	size_t curr = 0; // Start at the root
-	while (m_nodes[curr].level) {
+	int level = leaf ? 0 : m_nodes[id].level;
+	const Rect<T>& object = m_nodes[id].AABB;
+	std::vector<size_t> path = {};
+
+	while (m_nodes[curr].level > level) { // End at id's parent
+		path.emplace_back(curr);
 		std::vector<T> areas = {};
 		for (size_t idx : m_nodes[curr].children) {
 			areas.emplace_back(this->areaCost(idx, object));
@@ -204,7 +210,53 @@ size_t RTree<T>::chooseSubTree(const Rect<T>& object) {
 			curr = m_nodes[curr].children[index];
 		}
 	}
-	return curr;
+	path.emplace_back(curr);
+	return path;
+}
+
+template<typename T>
+int RTree<T>::insert(const Rect<T>& object) {
+	size_t nodeID = this->m_elements.size();
+	this->m_elements.emplace_back(RLeaf<T>({nodeID, object}));
+	this->insertNode(nodeID);
+	return nodeID;
+}
+
+template<typename T>
+void RTree<T>::insertNode(size_t node, bool first) {
+	auto path = this->chooseSubTree(node);
+	this->m_nodes[path.back()].children.emplace_back(node);
+	for (auto i = path.rbegin(); i != path.rend(); i++) {
+		size_t nodeN = *i;
+		this->m_nodes[nodeN].AABB = join(m_nodes[nodeN].AABB, m_nodes[node].AABB);
+		if (this->m_nodes[nodeN].size() > this->M) {
+			if ((nodeN != RT_ROOT_NODE) && first) {
+				this->reinsert(nodeN);
+			} else {
+				auto snode = this->split(nodeN);
+				if (nodeN == 0) { // Root split, make a new root
+					size_t newrt = this->m_nodes.size();
+					this->m_nodes.emplace_back(2);
+					this->m_nodes[newrt].AABB = join(m_nodes[nodeN].AABB, m_nodes[snode].AABB);
+					this->m_nodes[newrt].children[0] = snode;
+					this->m_nodes[newrt].children[1] = newrt;
+					this->m_nodes[newrt].level = this->m_nodes[nodeN].level + 1;
+					std::swap(m_nodes[newrt], m_nodes[nodeN]);
+				}
+			}
+		}
+	}
+}
+
+template<typename T>
+void RTree<T>::reinsert(size_t node) {
+	(void)node;
+}
+
+template<typename T>
+size_t RTree<T>::split(size_t node) {
+	(void)node;
+	return 0;
 }
 
 template class RTree<float>;

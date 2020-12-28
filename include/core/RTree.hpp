@@ -18,7 +18,8 @@
  *  - Optimize finished R-Tree implementation - Not Started
  */
 #define RT_OVERLAP_P 32u
- 
+#define RT_ROOT_NODE 0
+
 template<typename T = float>
 struct RNode{
 	RNode(size_t _M) {
@@ -27,7 +28,6 @@ struct RNode{
 	size_t size() const {
 		return children.size();
 	}
-	int parent = -1;
 	size_t level = 0;
 	Rect<T> AABB = {};
 	std::vector<size_t> children;
@@ -50,13 +50,17 @@ public:
 	}
 	std::vector<int> intersect(const Rect<T>& object);
 	std::vector<int> load(const std::vector<Rect<T>>& elements);
+	int insert(const Rect<T>& object);
 	size_t height = 0;
 private:
 	void omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
 	void printNode(size_t node, std::ostream& os);
 	T overlapCost(size_t idx, const Rect<T>& object);
 	T areaCost(size_t idx, const Rect<T>& object);
-	size_t chooseSubTree(const Rect<T>& object);
+	std::vector<size_t> chooseSubTree(size_t id, bool leaf = true);
+	void insertNode(size_t id, bool first = true);
+	void reinsert(size_t node);
+	size_t split(size_t node);
 	size_t M;
 	std::vector<RNode<T>> m_nodes;
 	std::vector<RLeaf<T>> m_elements;
