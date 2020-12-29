@@ -35,7 +35,6 @@ std::vector<int> RTree<T>::load(const std::vector<Rect<T>>& elements){
 	this->m_nodes.resize(this->m_nodes.size() + S, 0);
 	for (i = 0; i < S; i++){
 		int nodeIdx = m_nodes[0].children[i];
-//		this->m_nodes[nodeIdx].parent = 0;
 		this->omt(nodeIdx, std::min(N/S, static_cast<size_t>(tempVec.end() - iter)), H-1, iter);
 		aabbs.emplace_back(this->m_nodes[nodeIdx].AABB);
 	}
@@ -56,20 +55,16 @@ void RTree<T>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::ite
 			aabbs.emplace_back(m_elements[leaf.children[i]].AABB);
 		}
 		leaf.AABB = join<T>(aabbs.begin(), aabbs.end());
-//		int parent = subroot;
 		while (level != 0){
 			m_nodes[subroot].children.resize(1);
 			m_nodes[subroot].level = level;
 			m_nodes[subroot].AABB = leaf.AABB;
 			m_nodes[subroot].children[0] = m_nodes.size();
 			m_nodes.emplace_back(0);
-//			m_nodes.back().parent = subroot;
 			level--;
-//			parent = subroot;
 			subroot = m_nodes[subroot].children[0];
 		}
 		m_nodes[subroot] = leaf;
-//		m_nodes[subroot].parent = parent;
 	} else {
 		m_nodes[subroot].level = level;
 		std::sort(iter, iter + N, [&](const size_t& lhs, const size_t& rhs){
@@ -83,7 +78,6 @@ void RTree<T>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::ite
 		for (i = 0; i < N; i+=K){
 			size_t j = i/K;
 			int nodeIdx = m_nodes[subroot].children[j];
-//			m_nodes[nodeIdx].parent = subroot;
 			this->omt(nodeIdx, std::min(K, N-i), level - 1, iter);
 			aabbs.emplace_back(m_nodes[nodeIdx].AABB);
 		}
@@ -177,7 +171,7 @@ T RTree<T>::areaCost(size_t idx, const Rect<T>& object) {
 template<typename T>
 std::vector<size_t> RTree<T>::chooseSubTree(size_t id, bool leaf) {
 	size_t curr = 0; // Start at the root
-	int level = leaf ? 0 : m_nodes[id].level;
+	size_t level = leaf ? 0 : m_nodes[id].level;
 	const Rect<T>& object = m_nodes[id].AABB;
 	std::vector<size_t> path = {};
 
@@ -216,9 +210,14 @@ std::vector<size_t> RTree<T>::chooseSubTree(size_t id, bool leaf) {
 
 template<typename T>
 int RTree<T>::insert(const Rect<T>& object) {
-	size_t nodeID = this->m_elements.size();
+	int nodeID = static_cast<int>(this->m_elements.size());
 	this->m_elements.emplace_back(RLeaf<T>({nodeID, object}));
-	this->insertNode(nodeID);
+	if (this->m_nodes[0].size() == 0) { // First node
+		this->m_nodes[0].children.emplace_back(nodeID);
+		this->m_nodes[0].AABB = object;
+	} else {
+		this->insertNode(nodeID);
+	}
 	return nodeID;
 }
 
@@ -254,9 +253,109 @@ void RTree<T>::reinsert(size_t node) {
 }
 
 template<typename T>
-size_t RTree<T>::split(size_t node) {
-	(void)node;
-	return 0;
+size_t RTree<T>::split(size_t nodeIdx) {
+	auto& node = this->m_nodes[nodeIdx];
+	const std::array<bool, 2> booleans = {false, true};
+	bool min_axis, min_dist;
+	bool hasLeaves = (node.level == 0);
+	size_t m = static_cast<size_t>(node.size() * RT_SMALL_M);
+	size_t num_dists = node.size() - (2*m) + 1;
+	size_t newIdx, min_split = m;
+	T min_margin = std::numeric_limits<T>::max();
+	for (const auto& axis : booleans) {
+		// For each axis
+		T margin = 0;
+		bool axis_dist = false;
+		size_t axis_split = m;
+		T area, overlap;
+		T min_overlap = std::numeric_limits<T>::max(), min_area = std::numeric_limits<T>::max();
+		
+		for (const auto& dist : booleans) {
+			// Sort the entries by the lower then by the upper value...
+			std::sort(node.children.begin(), node.children.end(), [&](const size_t A, const size_t B) {
+				if (hasLeaves) {
+					return rectCompare(this->m_elements[A].AABB, this->m_elements[B].AABB, axis, dist);
+				} else {
+					return rectCompare(this->m_nodes[A].AABB, this->m_nodes[B].AABB, axis, dist);
+				}
+			});
+			// Compute S, the sum of all margin-values of the different distributions
+			for (size_t k = 0; k < num_dists; k++) {
+				size_t sp_off = m + k;
+				Rect<T> R1 = this->makeBound(node.children.begin(), node.children.begin() + sp_off, hasLeaves);
+				Rect<T> R2 = this->makeBound(node.children.begin() + sp_off + 1, node.children.end(), hasLeaves);
+				auto R3 = R1.RIntersects(R2);
+
+				margin += R1.Margin() + R2.Margin();
+				area = R1.Area() + R2.Area();
+				overlap = T(0);
+				if (R3) {
+					overlap = R3.value().Area();
+				}
+				
+				if (std::tie(overlap, area) < std::tie(min_overlap, min_area)) {
+					min_overlap = overlap;
+					min_area = area;
+					axis_dist = dist;
+					axis_split = m + k;
+				}
+			}
+		}
+		
+		// Choose the axis with minimum S as split axis
+		if (margin < min_margin) {
+			min_axis = axis;
+			min_margin = margin;
+			min_dist = axis_dist;
+			min_split = axis_split;
+		}
+	}
+
+	// If the children are not already sorted, sort them
+	if ((min_dist != true) && (min_axis != true)) {
+		std::sort(node.children.begin(), node.children.end(), [&](const size_t A, const size_t B) {
+			if (hasLeaves) {
+				return rectCompare(this->m_elements[A].AABB, this->m_elements[B].AABB, min_axis, min_dist);
+			} else {
+				return rectCompare(this->m_nodes[A].AABB, this->m_nodes[B].AABB, min_axis, min_dist);
+			}
+		});
+	}
+	
+	// Split the node
+	newIdx = this->m_nodes.size();
+	this->m_nodes.emplace_back();
+	this->m_nodes[newIdx].level = node.level;
+	this->m_nodes[newIdx].children.assign(node.children.begin() + min_split + 1, node.children.end());
+	node.children.erase(node.children.begin() + min_split + 1, node.children.end());
+
+	// Recreate the bounding boxes
+	this->m_nodes[newIdx].AABB = this->makeBound(this->m_nodes[newIdx].children.begin(), this->m_nodes[newIdx].children.end(), hasLeaves);
+	node.AABB = this->makeBound(node.children.begin(), node.children.end(), hasLeaves);
+
+	return newIdx;
+}
+
+template<typename T>
+Rect<T> RTree<T>::makeBound(std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end, bool leaves) {
+	Rect<T> bounds = {};
+	if (start == end) {
+		return bounds;
+	}
+
+	if (leaves) {
+		bounds = this->m_elements[*start].AABB;
+		for (auto i = start + 1; i != end; i++) {
+				bounds = join(bounds, this->m_elements[*i].AABB);
+		}
+	} else {
+		bounds = this->m_nodes[*start].AABB;
+		for (auto i = start + 1; i != end; i++) {
+				bounds = join(bounds, this->m_nodes[*i].AABB);
+		}
+	}
+	
+	return bounds;
 }
 
 template class RTree<float>;

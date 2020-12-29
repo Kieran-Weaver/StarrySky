@@ -46,6 +46,10 @@ struct Rect{
 	T Area() const {
 		return (right - left) * (bottom - top);
 	}
+	
+	T Margin() const {
+		return (right - left) + (bottom - top);
+	}
 };
 
 inline Rect<float> Normalize(const Rect<uint16_t>& texrect){

@@ -19,10 +19,11 @@
  */
 #define RT_OVERLAP_P 32u
 #define RT_ROOT_NODE 0
+#define RT_SMALL_M   0.4f
 
 template<typename T = float>
 struct RNode{
-	RNode(size_t _M) {
+	RNode(size_t _M = 0) {
 		children.resize(_M);
 	}
 	size_t size() const {
@@ -42,8 +43,9 @@ struct RLeaf{
 template<typename T>
 class RTree{
 public:
-	RTree() : M(20) {};
-	RTree(size_t _M) : M(_M) {};
+	RTree(size_t _M = 20) : M(_M) {
+		this->m_nodes.emplace_back(RNode<T>(0));
+	};
 	void print(std::ostream& os);
 	size_t size() const{
 		return m_elements.size();
@@ -60,7 +62,8 @@ private:
 	std::vector<size_t> chooseSubTree(size_t id, bool leaf = true);
 	void insertNode(size_t id, bool first = true);
 	void reinsert(size_t node);
-	size_t split(size_t node);
+	size_t split(size_t nodeIdx);
+	Rect<T> makeBound(std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end, bool leaves);
 	size_t M;
 	std::vector<RNode<T>> m_nodes;
 	std::vector<RLeaf<T>> m_elements;
