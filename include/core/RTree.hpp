@@ -12,14 +12,15 @@
  * TODO:
  *  - Implement OMT - Done
  *  - Implement Intersection/Collision - Done
- *  - Implement Insertion - Further research needed
+ *  - Implement Insertion - Done
  *  - Implement Removal - Further research needed
  *  - Implement Replacement - Further research needed
  *  - Optimize finished R-Tree implementation - Not Started
  */
-#define RT_OVERLAP_P 32u
-#define RT_ROOT_NODE 0
-#define RT_SMALL_M   0.4f
+#define RT_OVERLAP_P  32u
+#define RT_ROOT_NODE  0
+#define RT_SMALL_M    0.4f
+#define RT_REINSERT_P 0.3f
 
 template<typename T = float>
 struct RNode{
@@ -40,6 +41,11 @@ struct RLeaf{
 	Rect<T> AABB = {};
 };
 
+struct RIndex{
+	size_t idx = 0;
+	bool leaf = false;
+};
+
 template<typename T>
 class RTree{
 public:
@@ -52,21 +58,23 @@ public:
 	}
 	std::vector<int> intersect(const Rect<T>& object);
 	std::vector<int> load(const std::vector<Rect<T>>& elements);
-	int insert(const Rect<T>& object);
-	size_t height = 0;
+	int     insert(const Rect<T>& object);
+	size_t  height = 0;
 private:
-	void omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
-	void printNode(size_t node, std::ostream& os);
-	T overlapCost(size_t idx, const Rect<T>& object);
-	T areaCost(size_t idx, const Rect<T>& object);
-	std::vector<size_t> chooseSubTree(size_t id, bool leaf = true);
-	void insertNode(size_t id, bool first = true);
-	void reinsert(size_t node);
-	size_t split(size_t nodeIdx);
+	void    omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
+	void    printNode(size_t node, std::ostream& os);
+	T       overlapCost(size_t idx, const Rect<T>& object);
+	T       areaCost(size_t idx, const Rect<T>& object);
+	std::vector<size_t> chooseSubTree(size_t idx, bool leaf);
+	void    insertNode(size_t id, bool leaf, bool first = true);
+	void    reinsert(size_t node);
+	size_t  split(size_t nodeIdx);
 	Rect<T> makeBound(std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end, bool leaves);
-	size_t M;
-	std::vector<RNode<T>> m_nodes;
-	std::vector<RLeaf<T>> m_elements;
+	int     getLevel(size_t idx, bool leaf);
+	Rect<T> getAABB(size_t idx, bool leaf);
+	size_t  M;
+	std::vector<RNode<T>> m_nodes = {RNode<T>(0)};
+	std::vector<RLeaf<T>> m_elements = {};
 };
 
 using FloatRTree = RTree<float>;
