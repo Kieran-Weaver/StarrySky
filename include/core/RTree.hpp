@@ -2,7 +2,7 @@
 #define STARRYSKY_RTREE_H
 #include <vector>
 #include <array>
-#include <ostream>
+#include <iosfwd>
 #include <util/Rect.hpp>
 /*
  * 2D R-Tree Implementation
@@ -59,6 +59,7 @@ public:
 	std::vector<int> intersect(const Rect<T>& object);
 	std::vector<int> load(const std::vector<Rect<T>>& elements);
 	int     insert(const Rect<T>& object);
+	bool    contains(const Rect<T>& object);
 	size_t  height = 0;
 private:
 	void    omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
@@ -72,6 +73,8 @@ private:
 	Rect<T> makeBound(std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end, bool leaves);
 	int     getLevel(size_t idx, bool leaf);
 	Rect<T> getAABB(size_t idx, bool leaf);
+	std::vector<size_t> intersect(size_t idx, const Rect<T>& object);
+	std::vector<size_t> findPath(const Rect<T>& object); // Returns path of nodes from leaf to root
 	size_t  M;
 	std::vector<RNode<T>> m_nodes = {RNode<T>(0)};
 	std::vector<RLeaf<T>> m_elements = {};

@@ -2,6 +2,8 @@
 #include <util/RectCompare.hpp>
 #include <numeric>
 #include <cmath>
+#include <ostream>
+
 template<typename T>
 std::vector<int> RTree<T>::load(const std::vector<Rect<T>>& elements){
 	m_nodes = {};
@@ -129,14 +131,18 @@ std::vector<int> RTree<T>::intersect(const Rect<T>& aabb){
 				}
 			}
 		} else {
-			for (auto& idx : node.children) {
-				if (aabb.Intersects(m_nodes.at(idx).AABB)) {
-					to_search.emplace_back(idx);
-				}
-			}
+			const std::vector<size_t>& children = this->intersect(parentid, aabb);
+			to_search.reserve(to_search.size() + children.size());
+			to_search.insert(to_search.end(), children.begin(), children.end());
 		}
 	}
 	return leaf_nodes;
+}
+
+
+template<typename T>
+bool RTree<T>::contains(const Rect<T>& object) {
+	return !(this->findPath(object).empty());
 }
 
 template<typename T>
@@ -394,6 +400,67 @@ Rect<T> RTree<T>::getAABB(size_t idx, bool leaf) {
 	} else {
 		return this->m_nodes[idx].AABB;
 	}
+}
+
+template<typename T>
+std::vector<size_t> RTree<T>::intersect(size_t idx, const Rect<T>& object) {
+	std::vector<size_t> cnodes = {};
+	for (auto& cIdx : this->m_nodes[idx].children) {
+		if (object.Intersects(this->m_nodes[cIdx].AABB)) {
+			cnodes.emplace_back(cIdx);
+		}
+	}
+	return cnodes;
+}
+
+template<typename T>
+std::vector<size_t> RTree<T>::findPath(const Rect<T>& object) {
+	// Map of child -> parent ids
+	std::vector<std::unordered_map<size_t, size_t>> paths = {};
+	std::vector<size_t> current = {RT_ROOT_NODE};
+	std::vector<size_t> next = {};
+
+	// Find path from root to level 0 nodes
+	for (int level = this->m_nodes[RT_ROOT_NODE].level; level > 0; level--) {
+		paths.emplace_back();
+		next.clear();
+		for (const auto& idx : current) {
+			const std::vector<size_t>& tmp = this->intersect(idx, object);
+			for (const auto& id : tmp) {
+				paths.back()[id] = idx;
+				next.emplace_back(id);
+			}
+		}
+		current = next;
+		// If the path does not continue, return nothing
+		if (current.empty()) {
+			return current;
+		}
+	}
+	
+	// Find leaf which is equal to object
+	next.clear();
+	for (const auto& node : current) {
+		for (const auto& idx : this->m_nodes[node].children) {
+			if (this->m_elements[idx].AABB == object) {
+				next.emplace_back(idx);
+				next.emplace_back(node);
+				break;
+			}
+		}
+	}
+
+	// If no leaf was found, return nothing
+	if (next.empty()) {
+		return next;
+	}
+	
+	// Traverse back up to the root
+	for (auto pathit = paths.rbegin(); pathit != paths.rend(); pathit++) {
+		next.emplace_back((*pathit)[next.back()]);
+	}
+	
+	return next;
 }
 
 template class RTree<float>;

@@ -87,7 +87,7 @@ TEST_CASE("Test Insert with Split and Reinsert", "[RTree]") {
 	std::array<Rect<uint64_t>, 25> boxes = {{
 		{0, 0, 4, 4},     {1, 1, 4, 6},     {5, 5, 7, 8},     {10, 0, 15, 4},
 		{0, 10, 15, 14},  {12, 4, 16, 8},   {50, 0, 54, 6},   {3, 1, 9, 5},
-		{15, 3, 20, 4},   {10, 0, 15, 4},   {49, 64, 57, 76}, {57, 27, 71, 40},
+		{15, 3, 20, 4},   {10, 0, 16, 4},   {49, 64, 57, 76}, {57, 27, 71, 40},
 		{59, 11, 72, 24}, {33, 7, 44, 11},  {12, 60, 21, 76}, {60, 22, 61, 33},
 		{55, 63, 58, 67}, {39, 47, 48, 63}, {60, 25, 67, 33}, {25, 51, 41, 60},
 		{61, 1, 71, 15},  {5, 28, 6, 37},   {18, 54, 21, 66}, 
@@ -147,4 +147,32 @@ TEST_CASE("Insert Stress Test", "[RTree]") {
 	std::sort(collided.begin(), collided.end());
 
 	REQUIRE(collided == collision_vec);
+}
+
+TEST_CASE("Test Contains", "[RTree]") {
+	U64RTree tree(20);
+	std::array<Rect<uint64_t>, 25> boxes = {{
+		{0, 0, 4, 4},     {1, 1, 4, 6},     {5, 5, 7, 8},     {10, 0, 15, 4},
+		{0, 10, 15, 14},  {12, 4, 16, 8},   {50, 0, 54, 6},   {3, 1, 9, 5},
+		{15, 3, 20, 4},   {10, 0, 16, 4},   {49, 64, 57, 76}, {57, 27, 71, 40},
+		{59, 11, 72, 24}, {33, 7, 44, 11},  {12, 60, 21, 76}, {60, 22, 61, 33},
+		{55, 63, 58, 67}, {39, 47, 48, 63}, {60, 25, 67, 33}, {25, 51, 41, 60},
+		{61, 1, 71, 15},  {5, 28, 6, 37},   {18, 54, 21, 66}, 
+		{9, 38, 15, 54},  {53, 39, 59, 47}
+	}};
+	Rect<uint64_t> disjointBox = {99, 99, 100, 100};
+	Rect<uint64_t> boundingBox = {0, 0, 100, 100};
+	std::unordered_map<int, size_t> IDtoArrIndex = {};
+	bool success = true;
+	
+	for (size_t i = 0; (i < boxes.size()); i++) {
+		success = !(tree.contains(boxes[i]));
+		int id = tree.insert(boxes[i]);
+		success = success && tree.contains(boxes[i]) && (IDtoArrIndex.count(id) == 0);
+		REQUIRE(success);
+		IDtoArrIndex[id] = i;
+	}
+	
+	REQUIRE(!tree.contains(disjointBox));
+	REQUIRE(!tree.contains(boundingBox));
 }

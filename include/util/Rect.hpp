@@ -16,6 +16,11 @@ struct Rect{
 	VISITABLE(T, bottom);
 	END_VISITABLES;
 
+	bool operator==(const Rect<T>& other) {
+		return (other.left == left) && (other.right == right)
+			&& (other.top == top) && (other.bottom == bottom);
+	}
+
 	bool Contains(float x, float y) const{
 		return (((left - x)*(right - x) <= 0.f)&&((top - y)*(bottom - y) <= 0.f));
 	}
