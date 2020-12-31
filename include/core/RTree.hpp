@@ -41,11 +41,6 @@ struct RLeaf{
 	Rect<T> AABB = {};
 };
 
-struct RIndex{
-	size_t idx = 0;
-	bool leaf = false;
-};
-
 template<typename T>
 class RTree{
 public:
@@ -60,6 +55,7 @@ public:
 	std::vector<int> load(const std::vector<Rect<T>>& elements);
 	int     insert(const Rect<T>& object);
 	bool    contains(const Rect<T>& object);
+	int     erase(const Rect<T>& object);
 	size_t  height = 0;
 private:
 	void    omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);
@@ -78,6 +74,7 @@ private:
 	size_t  M;
 	std::vector<RNode<T>> m_nodes = {RNode<T>(0)};
 	std::vector<RLeaf<T>> m_elements = {};
+	std::unordered_map<Rect<T>, int> m_leaves = {};
 };
 
 using FloatRTree = RTree<float>;

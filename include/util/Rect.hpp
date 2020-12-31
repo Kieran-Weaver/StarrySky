@@ -16,7 +16,7 @@ struct Rect{
 	VISITABLE(T, bottom);
 	END_VISITABLES;
 
-	bool operator==(const Rect<T>& other) {
+	bool operator==(const Rect<T>& other) const {
 		return (other.left == left) && (other.right == right)
 			&& (other.top == top) && (other.bottom == bottom);
 	}
@@ -82,5 +82,20 @@ Rect<T> join(const Rect<T>& a, const Rect<T>& b){
 	T minY = std::min(a.top, b.top);
 	T maxY = std::max(a.bottom, b.bottom);
 	return {minX, minY, maxX, maxY};
+}
+
+namespace std
+{
+	template<typename T> struct hash<Rect<T>>
+	{
+		std::size_t operator()(const Rect<T>& s) const noexcept
+		{
+			std::size_t h1 = std::hash<T>{}(s.left);
+			std::size_t h2 = std::hash<T>{}(s.right);
+			std::size_t h3 = std::hash<T>{}(s.top);
+			std::size_t h4 = std::hash<T>{}(s.bottom);
+			return h1 ^ (h2 << 1) ^ (h3 << 2) ^ (h4 << 3);
+		}
+	};
 }
 #endif
