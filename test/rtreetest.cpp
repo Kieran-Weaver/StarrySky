@@ -2,7 +2,6 @@
 #include <util/PRNG.hpp>
 #include <catch2/catch.hpp>
 #include <unordered_set>
-#include <iostream>
 #define STRESS_N 65536
 
 struct AABBWrapper{

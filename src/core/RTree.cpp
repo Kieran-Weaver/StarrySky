@@ -2,10 +2,10 @@
 #include <util/RectCompare.hpp>
 #include <numeric>
 #include <cmath>
-#include <iostream>
-#include <cassert>
+#include <ostream>
+
 template<typename T>
-std::vector<int> RTree<T>::load(const std::vector<Rect<T>>& elements){
+std::vector<int> RTree<T>::load(const std::vector<Rect<T>>& elements) {
 	m_nodes = {};
 	m_elements = {};
 	std::vector<int> indices;
@@ -14,14 +14,13 @@ std::vector<int> RTree<T>::load(const std::vector<Rect<T>>& elements){
 		if (this->m_leaves.count(elements[idx]) == 1) {
 			indices.emplace_back(this->m_leaves[elements[idx]]);
 		} else {
+			size_t newid = alloc_leaf();
 			indices.emplace_back(idx);
-			RLeaf<T> tmp;
-			tmp.id = idx;
-			tmp.AABB = elements[idx];
-			m_elements.emplace_back(tmp);
+			m_elements[newid] = RLeaf<T>({static_cast<int>(idx), elements[idx]});
 			this->m_leaves[elements[idx]] = idx;
 		}
 	}
+	this->m_lastid = elements.size();
 
 	size_t N = m_elements.size();
 	size_t H = std::ceil(std::log2(N) / std::log2(M));
@@ -52,7 +51,7 @@ std::vector<int> RTree<T>::load(const std::vector<Rect<T>>& elements){
 }
 
 template<typename T>
-void RTree<T>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::iterator& iter){
+void RTree<T>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::iterator& iter) {
 	std::vector<Rect<T>> aabbs;
 	if (N < M){
 		RNode<T> leaf(N);
@@ -94,13 +93,13 @@ void RTree<T>::omt(int subroot, size_t N, size_t level, std::vector<size_t>::ite
 }
 
 template<typename T>
-void RTree<T>::print(std::ostream& os){
+void RTree<T>::print(std::ostream& os) const {
 	os << m_nodes.size() << std::endl;
 	printNode(0, os);
 }
 
 template<typename T>
-void RTree<T>::printNode(size_t _node, std::ostream& os){
+void RTree<T>::printNode(size_t _node, std::ostream& os) const {
 	const auto& node = m_nodes[_node];
 	os << "AABB: " << node.AABB.left << " " << node.AABB.top << " " << node.AABB.right << " " << node.AABB.bottom << std::endl;
 	if (node.level == 0){
@@ -122,7 +121,7 @@ void RTree<T>::printNode(size_t _node, std::ostream& os){
 }
 
 template<typename T>
-std::vector<int> RTree<T>::intersect(const Rect<T>& aabb){
+std::vector<int> RTree<T>::intersect(const Rect<T>& aabb) const {
 	std::vector<size_t> to_search;
 	std::vector<int> leaf_nodes = {};
 	to_search.emplace_back(0);
@@ -147,12 +146,12 @@ std::vector<int> RTree<T>::intersect(const Rect<T>& aabb){
 
 
 template<typename T>
-bool RTree<T>::contains(const Rect<T>& object) {
+bool RTree<T>::contains(const Rect<T>& object) const {
 	return (this->m_leaves.count(object) == 1);
 }
 
 template<typename T>
-T RTree<T>::overlapCost(size_t idx, const Rect<T>& object) {
+T RTree<T>::overlapCost(size_t idx, const Rect<T>& object) const {
 	if ((idx >= m_nodes.size()) || (m_nodes[idx].level == 0)) {
 		return 0;
 	} else {
@@ -167,7 +166,7 @@ T RTree<T>::overlapCost(size_t idx, const Rect<T>& object) {
 }
 
 template<typename T>
-T RTree<T>::areaCost(size_t idx, const Rect<T>& object) {
+T RTree<T>::areaCost(size_t idx, const Rect<T>& object) const {
 	if ((idx >= m_nodes.size()) || (m_nodes[idx].level == 0)) {
 		return 0;
 	} else {
@@ -180,7 +179,7 @@ T RTree<T>::areaCost(size_t idx, const Rect<T>& object) {
 }
 
 template<typename T>
-std::vector<size_t> RTree<T>::chooseSubTree(size_t idx, bool leaf) {
+std::vector<size_t> RTree<T>::chooseSubTree(size_t idx, bool leaf) const {
 	size_t curr = 0; // Start at the root
 	size_t level = this->getLevel(idx, leaf) + 1;
 	const Rect<T>& object = this->getAABB(idx, leaf);
@@ -221,17 +220,18 @@ std::vector<size_t> RTree<T>::chooseSubTree(size_t idx, bool leaf) {
 
 template<typename T>
 int RTree<T>::insert(const Rect<T>& object) {
-	int nodeID = static_cast<int>(this->m_elements.size());
 	if (!(this->contains(object))) {
-		this->m_elements.emplace_back(RLeaf<T>({nodeID, object}));
+		size_t idx = alloc_leaf();
+		int nodeID = this->m_lastid++;
+		this->m_elements[idx] = RLeaf<T>({nodeID, object});
 		this->m_leaves[object] = nodeID;
 		if (this->m_nodes[0].size() == 0) { // First node
-			this->m_nodes[0].children.emplace_back(nodeID);
+			this->m_nodes[0].children.emplace_back(idx);
 			this->m_nodes[0].AABB = object;
 		} else {
-			this->insertNode(nodeID, true);
+			this->insertNode(idx, true);
 		}
-		return nodeID;
+		return idx;
 	} else {
 		return this->m_leaves[object];
 	}
@@ -251,6 +251,8 @@ int RTree<T>::erase(const Rect<T>& object) {
 	}
 
 	// Remove E from L
+	this->m_leaves.erase(object);
+	this->free_leaf(m_nodes[path[1]].children[path[0]]);
 	m_nodes[path[1]].children.erase(m_nodes[path[1]].children.begin() + path[0]);
 	
 	// Condense tree
@@ -288,9 +290,7 @@ int RTree<T>::erase(const Rect<T>& object) {
 		std::swap(this->m_nodes[0], this->m_nodes[this->m_nodes[0].children[0]]);
 		this->height--;
 	}
-	
-	this->m_leaves.erase(object);
-	
+		
 	return 1;
 }
 
@@ -437,7 +437,7 @@ size_t RTree<T>::split(size_t nodeIdx) {
 }
 
 template<typename T>
-Rect<T> RTree<T>::makeBound(std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end, bool leaves) {
+Rect<T> RTree<T>::makeBound(std::vector<size_t>::const_iterator start, std::vector<size_t>::const_iterator end, bool leaves) const {
 	Rect<T> bounds = {	
 		std::numeric_limits<T>::max(), std::numeric_limits<T>::max(),
 		std::numeric_limits<T>::min(), std::numeric_limits<T>::min()
@@ -456,7 +456,7 @@ Rect<T> RTree<T>::makeBound(std::vector<size_t>::const_iterator start, std::vect
 }
 
 template<typename T>
-int RTree<T>::getLevel(size_t idx, bool leaf) {
+int RTree<T>::getLevel(size_t idx, bool leaf) const {
 	if (leaf) {
 		return -1;
 	} else {
@@ -465,7 +465,7 @@ int RTree<T>::getLevel(size_t idx, bool leaf) {
 }
 
 template<typename T>
-Rect<T> RTree<T>::getAABB(size_t idx, bool leaf) {
+Rect<T> RTree<T>::getAABB(size_t idx, bool leaf) const {
 	if (leaf) {
 		return this->m_elements[idx].AABB;
 	} else {
@@ -474,7 +474,7 @@ Rect<T> RTree<T>::getAABB(size_t idx, bool leaf) {
 }
 
 template<typename T>
-std::vector<size_t> RTree<T>::intersect(size_t idx, const Rect<T>& object) {
+std::vector<size_t> RTree<T>::intersect(size_t idx, const Rect<T>& object) const {
 	std::vector<size_t> cnodes = {};
 	for (auto& cIdx : this->m_nodes[idx].children) {
 		if (object.Intersects(this->m_nodes[cIdx].AABB)) {
@@ -485,7 +485,7 @@ std::vector<size_t> RTree<T>::intersect(size_t idx, const Rect<T>& object) {
 }
 
 template<typename T>
-std::vector<size_t> RTree<T>::findPath(const Rect<T>& object) {
+std::vector<size_t> RTree<T>::findPath(const Rect<T>& object) const {
 	// Map of child -> parent ids
 	std::vector<std::unordered_map<size_t, size_t>> paths = {};
 	std::vector<size_t> current = {RT_ROOT_NODE};
@@ -538,6 +538,33 @@ std::vector<size_t> RTree<T>::findPath(const Rect<T>& object) {
 	
 	return next;
 }
+
+template<typename T>
+size_t RTree<T>::alloc_leaf(void) {
+	size_t idx = this->m_free.size();
+	if (this->m_num_free > 0) {
+		auto it = std::find(this->m_free.begin(), this->m_free.end(), true);
+		*it = false;
+		this->m_num_free--;
+		return std::distance(this->m_free.begin(), it);
+	} else {
+		this->m_free.emplace_back(false);
+		this->m_elements.emplace_back();
+		return idx;
+	}
+}
+
+template<typename T>
+void RTree<T>::free_leaf(size_t idx) {
+	if (idx == (this->m_free.size() - 1)) {
+		this->m_free.erase(this->m_free.begin() + idx);
+		this->m_elements.erase(this->m_elements.begin() + idx);
+	} else if (idx < this->m_free.size()) {
+		this->m_num_free++;
+		this->m_free[idx] = true;
+	}
+}
+
 
 template class RTree<float>;
 template class RTree<int>;
