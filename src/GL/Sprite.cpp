@@ -4,12 +4,10 @@
 #include <GL/Sprite.hpp>
 #include <GL/Texture.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-void Sprite::setStencil(bool stencil_state){
+void Sprite::setStencil(bool stencil_state) {
 	this->uses_stencil = stencil_state;
 }
-void Sprite::setTexture(const Texture& tex){
-	this->m_changed = true;
-	this->m_cached = false;
+void Sprite::setTexture(const Texture& tex) {
 	if (this->m_subtexture.m_texture == 0) {
 		this->m_model = glm::mat2(1.f);
 	} else {
@@ -23,40 +21,43 @@ void Sprite::setTexture(const Texture& tex){
 	if (tex.rotated != 0){
 		this->m_model = this->m_model*RotMat(glm::radians(90.f));
 	}
+	this->renderAABB();
+	this->m_changed = true;
 }
-void Sprite::setPosition(const float& x, const float& y, const float& z){
+void Sprite::setPosition(const float& x, const float& y, const float& z) {
 	if ((x != center.x)||(y != center.y)){
 		this->center.x = x;
 		this->center.y = y;
+		this->renderAABB();
 		this->m_changed = true;
-		this->m_cached = false;
 	}
 	for (auto& i : this->cached_vtx_data){
 		i.vtxPos[2] = z;
 	}
 }
-void Sprite::setPosition(const glm::vec2& pos){
+void Sprite::flip(void) {
+	this->transform(glm::mat2(-1.f, 0.f, 0.f, 1.f));
+}
+void Sprite::setPosition(const glm::vec2& pos) {
 	this->setPosition(pos.x,pos.y);
 }
-void Sprite::setPosition(const glm::vec3& pos){
+void Sprite::setPosition(const glm::vec3& pos) {
 	this->setPosition(pos.x, pos.y, pos.z);
 }
-void Sprite::setColor(const std::array<uint8_t, 4> col){
+void Sprite::setColor(const std::array<uint8_t, 4> col) {
 	for (auto& i : this->cached_vtx_data){
 		i.sprColor = col;
 	}
 }
-void Sprite::rotate(const float& radians){
-	this->m_model = RotMat(radians)*this->m_model;
-	this->m_changed = true;
-	this->m_cached = false;
+void Sprite::rotate(const float& radians) {
+	this->transform(RotMat(radians));
 }
-void Sprite::transform(const glm::mat2& matrix){
+void Sprite::transform(const glm::mat2& matrix) {
 	this->m_model = matrix*this->m_model;
+	this->renderAABB();
 	this->m_changed = true;
-	this->m_cached = false;
 }
-const std::array<SpriteData, 4>& Sprite::render(){
+const std::array<SpriteData, 4>& Sprite::render() {
 	if (m_changed){
 		const Rect<uint16_t>& texrect = this->m_subtexture.m_rect;
 		uint16_t width = texrect.right - texrect.left;
@@ -74,16 +75,13 @@ const std::array<SpriteData, 4>& Sprite::render(){
 	}
 	return this->cached_vtx_data;
 }
-static bool compareX(const glm::vec2& lhs,const glm::vec2& rhs){
+static bool compareX(const glm::vec2& lhs,const glm::vec2& rhs) {
 	return lhs.x < rhs.x;
 }
-static bool compareY(const glm::vec2& lhs,const glm::vec2& rhs){
+static bool compareY(const glm::vec2& lhs,const glm::vec2& rhs) {
 	return lhs.y < rhs.y;
 }
-const Rect<float>& Sprite::getAABB(){
-	if (!m_cached){
-		this->renderAABB();
-	}
+const Rect<float>& Sprite::getAABB() const {
 	return cached_aabb;
 }
 void Sprite::renderAABB(){
@@ -95,10 +93,9 @@ void Sprite::renderAABB(){
 	auto xExtremes = std::minmax_element(vertices,vertices+4,compareX);
 	auto yExtremes = std::minmax_element(vertices,vertices+4,compareY);
 	this->cached_aabb = {xExtremes.first->x,yExtremes.first->y,xExtremes.second->x,yExtremes.second->y};
-	this->m_cached = true;
 }
 
-bool Sprite::PPCollidesWith(Sprite& Object2){
+bool Sprite::collides(const Sprite& Object2) const {
 	const Rect<float>& o1globalbounds = this->getAABB();
 	const Rect<float>& o2globalbounds = Object2.getAABB();
 	const auto _Intersection = o1globalbounds.RIntersects(o2globalbounds);

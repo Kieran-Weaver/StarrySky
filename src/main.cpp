@@ -13,17 +13,17 @@ int main(){
 	glm::mat4 m(1.0f);
 	TextureAtlas atlas("resources/data/atlas.json");
 	ObjMap map("resources/map.json",atlas);
-	Character player(300, 300, map, "player", "sword1", "sword2", atlas);
-	Enemy testEnemy(900, 300, map, "robot", "robot", 10, atlas);
-	std::vector<MovingEntity*> objects;
+	Character player(300, 300, "player", "sword1", "sword2", atlas);
+	Enemy testEnemy(900, 300, "robot", "robot", 10, atlas);
+	std::vector<PPCollider*> objects;
 	objects.push_back(&testEnemy);
 	SpriteBatch batch(atlas, "resources/data/shaders.json");
 	while (window.isOpen()){
 		window.startFrame();
 		window.makeCurrent();
 		map.Draw(batch);
-		player.Update(frametime,objects,window);
-		testEnemy.Update(frametime,&player);
+		player.Update(frametime, map, objects, window);
+		testEnemy.Update(frametime, map, player);
 		player.Draw(batch);
 		testEnemy.Draw(batch);
 		if (player.dead){

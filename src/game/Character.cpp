@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #define LASERW 25
 #define LASERH 10
-Character::Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas): MovingEntity(x, y, map), m_atlas(atlas) {
+Character::Character(float x, float y, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas): m_me(x, y), m_atlas(atlas) {
 	this->texs.reserve(4);
 	std::array<std::string,4> fnames= {mainsprite, swordsprite, sword2sprite, "shield"}; 
 	for (auto& i : fnames){
@@ -13,11 +13,11 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 	this->m_spr.setTexture(this->texs[0]);
 
 	Rect<float> tmpAABB = m_spr.getAABB();
-	this->setSize(tmpAABB.right - tmpAABB.left, tmpAABB.bottom - tmpAABB.top);
+	this->m_me.setSize(tmpAABB.right - tmpAABB.left, tmpAABB.bottom - tmpAABB.top);
 	this->m_spr2.setTexture(this->texs[1]);
 	this->m_shieldspr.setTexture(this->texs[3]);
 	this->m_spr.setStencil(true);
-	this->maxFallSpeed = 1300.f;
+	this->m_me.maxFallSpeed = 1300.f;
 
 	defaultcontrols.upkey = GLFW_KEY_UP;
 	defaultcontrols.downkey = GLFW_KEY_DOWN;
@@ -30,13 +30,16 @@ Character::Character(float x, float y, ObjMap& map, const std::string& mainsprit
 
 	controls = defaultcontrols;
 }
-void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Window& window) {
-	MovingEntity::Update(dt);
-	const MEState& state = this->getState();
+void Character::Update(float dt, const ObjMap& map, const std::vector<PPCollider*>& objects, Window& window) {
+	this->m_me.Update(dt, map);
+	const MEState& state = this->m_me.getState();
 	WindowState& ws = window.getWindowState();
 	bool onGround = state.atFloor;
-	float yspd = state.yspeed;
-	float xspd = state.xspeed;
+	float yspd  = state.yspeed;
+	float xspd  = state.xspeed;
+	float xpos  = state.centerX();
+	float ypos  = state.centerY();
+	float width = state.width();
 	
 	if (yspd == 0) {
 		onGround |= this->wasOnGround;
@@ -46,7 +49,7 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 		this->jumped = false;
 	}
 
-	this->dropFromOneWay = ws.keyboardState[controls.downkey];
+	this->m_me.dropFromOneWay = ws.keyboardState[controls.downkey];
 
 	if (swordtimer()){
 		swordout = false;
@@ -89,7 +92,7 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 	}else{
 		shieldout = false;
 		if (yspd > 0.f){
-			yspd = std::min(yspd, this->maxFallSpeed);
+			yspd = std::min(yspd, this->m_me.maxFallSpeed);
 		}else if (!ws.keyboardState[controls.jumpkey]){
 			yspd = std::max(yspd, this->lowJumpSpeed);
 		}
@@ -143,37 +146,38 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 	if (!isOnLedge){
 		if (ws.keyboardState[controls.leftkey]&&(!flipped)){
 			flipped = true;
-			this->m_spr.transform(this->flipped_mat);
-			this->m_spr2.transform(this->flipped_mat);
+			this->m_spr.flip();
+			this->m_spr2.flip();
 		}else if (ws.keyboardState[controls.rightkey]&&flipped){
 			flipped = false;
-			this->m_spr.transform(this->flipped_mat);
-			this->m_spr2.transform(this->flipped_mat);
+			this->m_spr.flip();
+			this->m_spr2.flip();
 		}
 	}
-	this->m_shieldspr.setPosition(this->xpos(), this->ypos());
-	int posx = this->xpos();
-	int posy = this->ypos();
+	this->m_shieldspr.setPosition(xpos, ypos);
+	int posx = xpos;
+	int posy = ypos;
 	Rect<float> tmp2 = m_spr2.getAABB();
 	if (flipped){
 		if (swordout){
 			posx = posx + 12 - (tmp2.right - tmp2.left);
 		}else{
-			posx = posx - this->width()/2 + ((tmp2.right - tmp2.left)/2);
+			posx = posx - width/2 + ((tmp2.right - tmp2.left)/2);
 			posy = posy - ((tmp2.bottom - tmp2.top)/2) + 12;
 		}
 	}else{
 		if (swordout){
-			posx = posx + this->width() - 20;
+			posx = posx + width - 20;
 		}else{
-			posx = posx + (this->width()/2) - ((tmp2.right - tmp2.left)/2) - 2;
+			posx = posx + (width/2) - ((tmp2.right - tmp2.left)/2) - 2;
 			posy = posy + 12 - (tmp2.bottom - tmp2.top)/2;
 		}
 	}
+	this->m_spr.setPosition(xpos, ypos);
 	this->m_spr2.setPosition(posx, posy);
 	if (invltimer()){
 		for (auto& i : objects){
-			if (this->m_spr.PPCollidesWith(i->m_spr)){
+			if (i->collides(this->m_spr)){
 				if (shieldout && !shieldbroken){
 					shieldmeter = shieldmeter - 200.f;
 					if (shieldmeter < 0.0f){
@@ -191,9 +195,22 @@ void Character::Update(float dt, const std::vector<MovingEntity*>& objects, Wind
 	}
 
 	this->wasOnGround = state.atFloor;
-	this->setSpeed(xspd, yspd);
+	this->m_me.setSpeed(xspd, yspd);
 //	ws.camera->ScrollTo({m_position.x - m_width/2.f, m_position.y - m_height/2.f, static_cast<float>(m_width), static_cast<float>(m_height)});
 }
+
+void Character::warpto(float x, float y) {
+	this->m_me.warpto(x, y);
+}
+
+const Rect<float>& Character::getAABB() const {
+	return this->m_me.getState().hitbox;
+}
+
+bool Character::collides(const Sprite& other) const {
+	return this->swordout && this->m_spr2.collides(other);
+}
+
 void Character::Draw(SpriteBatch& mframe) {
 	mframe.Draw(m_spr);
 	mframe.Draw(m_spr2);

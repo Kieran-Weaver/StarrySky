@@ -2,6 +2,7 @@
 #define CHARACTER_HPP
 #include <core/MovingEntity.hpp>
 #include <core/Timer.hpp>
+#include <GL/PPCollider.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/TextureAtlas.hpp>
@@ -17,18 +18,24 @@ struct Controls{
 	int shieldkey;
 	int ledgekey;
 };
-class Character : public MovingEntity {
+class Character : public PPCollider {
 public:
+	Character(const Character&) = delete;
+	Character& operator=(const Character&) = delete;
+	Character(float x, float y, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas);
+	void Update(float dt, const ObjMap& map, const std::vector<PPCollider *>& objects, Window& window);
+	void Draw(SpriteBatch& mframe);
+	void warpto(float x, float y);
+	bool collides(const Sprite& Object2) const override;
+	const Rect<float>& getAABB() const override;
+public:
+	bool dead = false;
+private:
+	MovingEntity m_me;
+	Sprite m_spr;
 	Sprite m_spr2;
 	Sprite m_shieldspr;
 	bool swordout = false;
-
-	Character(const Character&) = delete;
-	Character& operator=(const Character&) = delete;
-	Character(float x, float y, ObjMap& map, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas);
-	void Update(float dt, const std::vector<MovingEntity *>& objects, Window& window);
-	void Draw(SpriteBatch& mframe);
-private:
 	Controls defaultcontrols;
 	const float jumpSpeed = 1500.0f;
 	const float walkSpeed = 900.0f;

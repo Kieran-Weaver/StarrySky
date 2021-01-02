@@ -84,11 +84,11 @@ void ObjMap::SetPosition(float x, float y) {
 	tm_changed = true;
 }
 
-std::vector<std::reference_wrapper<const Surface>> ObjMap::collide(const Rect<float>& rect) {
+std::vector<std::reference_wrapper<const Surface>> ObjMap::collide(const Rect<float>& rect) const {
 	std::vector<int> ids = this->surfaces.intersect(rect);
 	std::vector<std::reference_wrapper<const Surface>> sr;
 	for (auto& id : ids) {
-		sr.emplace_back(std::cref(surfmap[id]));
+		sr.emplace_back(std::cref(surfmap.at(id)));
 	}
 	return sr;
 }

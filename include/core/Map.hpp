@@ -34,7 +34,7 @@ public:
 	uint32_t addSurface(const Surface& wall);
 	void addBGTexture(const glm::vec2& thisposition, const glm::mat2& transform, const std::string& fname);
 	void WriteToFile(const std::string& filename);
-	std::vector<std::reference_wrapper<const Surface>> collide(const Rect<float>& rect);
+	std::vector<std::reference_wrapper<const Surface>> collide(const Rect<float>& rect) const;
 	TileMap& getTM(const std::string& id);
 	glm::vec2 position;
 	FloatRTree surfaces;

@@ -1,6 +1,8 @@
 #include <core/MovingEntity.hpp>
-MovingEntity::MovingEntity(float x, float y, ObjMap& map): MovingEntity(x,y,0,0,map){}
-MovingEntity::MovingEntity(float x, float y, int w, int h, ObjMap& map) : m_map(map) {
+#include <core/Map.hpp>
+
+MovingEntity::MovingEntity(float x, float y): MovingEntity(x,y,0,0){}
+MovingEntity::MovingEntity(float x, float y, int w, int h) {
 	this->m_curr.hitbox = { x, y, x + w, y + h };
 	this->m_curr.xspeed = 0.f;
 	this->m_curr.yspeed = 0.f;
@@ -33,28 +35,13 @@ void MovingEntity::warpto(float x, float y) {
 	this->m_prev.atFloor = false;
 }
 
-void MEState::newFrame(float dt) {
-	this->hitbox.Translate(this->xspeed * dt, this->yspeed * dt);
-	this->atLeftWall  = false;
-	this->atRightWall = false;
-	this->atFloor     = false;
-	this->atCeiling   = false;
-	this->onOneWay    = false;
-}
-
-void MEState::setPosition(float x, float y) {
-	float width  = this->hitbox.right - this->hitbox.left;
-	float height = this->hitbox.bottom - this->hitbox.top;
-	this->hitbox = { x, y, x + width, y + height };
-}
-
-void MovingEntity::Update(float dt) {
+void MovingEntity::Update(float dt, const ObjMap& map) {
 // Save current touching info
 	this->m_prev = this->m_curr;
 	this->m_curr.newFrame(dt);
-	auto collisions = m_map.collide(this->m_curr.hitbox);
-	float width = this->width();
-	float height = this->height();
+	auto collisions = map.collide(this->m_curr.hitbox);
+	float width = this->m_curr.width();
+	float height = this->m_curr.height();
 	
 	for (auto& surf : collisions){
 		const auto& i = surf.get();
@@ -82,25 +69,7 @@ void MovingEntity::Update(float dt) {
 		}
 	}
 
-	if (this->m_curr.hitbox.top > (m_map.position.y + m_map.height)){
+	if (this->m_curr.hitbox.top > (map.position.y + map.height)){
 		this->dead = true;
 	}
-
-	m_spr.setPosition(m_curr.hitbox.left + (width/2), m_curr.hitbox.top + (height/2));
-}
-
-float MovingEntity::xpos(void) {
-	return (this->m_curr.hitbox.right + this->m_curr.hitbox.left) / 2.f;
-}
-
-float MovingEntity::ypos(void) {
-	return (this->m_curr.hitbox.bottom + this->m_curr.hitbox.top) / 2.f;
-}
-
-float MovingEntity::width(void) {
-	return this->m_curr.hitbox.right - this->m_curr.hitbox.left;
-}
-
-float MovingEntity::height(void) {
-	return this->m_curr.hitbox.bottom - this->m_curr.hitbox.top;
 }
