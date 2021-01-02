@@ -33,7 +33,7 @@ struct Rect{
 		T iTop = std::max(top, r.top);
 		T iRight = std::min(right, r.right);
 		T iBottom = std::min(bottom, r.bottom);
-		return ((iLeft < iRight) && (iTop < iBottom));
+		return ((iLeft <= iRight) && (iTop <= iBottom));
 	}
 
 	std::optional<Rect<T>> RIntersects(const Rect<T>& r) const{
@@ -41,11 +41,18 @@ struct Rect{
 		T iTop = std::max(top, r.top);
 		T iRight = std::min(right, r.right);
 		T iBottom = std::min(bottom, r.bottom);
-		if ((iLeft < iRight) && (iTop < iBottom)){
+		if ((iLeft <= iRight) && (iTop <= iBottom)){
 			return Rect<T>({iLeft, iTop, iRight, iBottom});
 		}else{
 			return {};
 		}
+	}
+
+	void Translate(T x, T y) {
+		this->left += x;
+		this->right += x;
+		this->top += y;
+		this->bottom += y;
 	}
 
 	T Area() const {

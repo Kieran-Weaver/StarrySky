@@ -231,7 +231,7 @@ int RTree<T>::insert(const Rect<T>& object) {
 		} else {
 			this->insertNode(idx, true);
 		}
-		return idx;
+		return nodeID;
 	} else {
 		return this->m_leaves[object];
 	}

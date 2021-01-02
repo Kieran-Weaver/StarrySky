@@ -39,6 +39,7 @@ private:
 	const float shieldmax = 600.f;
 	TextureAtlas& m_atlas;
 	std::vector<Texture> texs; //1,2,3,shield
+	bool wasOnGround = false;
 	bool isOnLedge = false;
 	bool jumped = false;
 	Timer swordtimer;

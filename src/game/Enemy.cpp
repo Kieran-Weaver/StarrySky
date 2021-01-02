@@ -13,8 +13,7 @@ Enemy::Enemy(float x, float y, ObjMap& map, const std::string& mainsprite, const
 	}
 	this->m_spr.setTexture(this->texs[0]);
 	Rect<float> tmpAABB = m_spr.getAABB();
-	this->m_width = tmpAABB.right - tmpAABB.left;
-	this->m_height = tmpAABB.bottom - tmpAABB.top;
+	this->setSize(tmpAABB.right - tmpAABB.left, tmpAABB.bottom - tmpAABB.top);
 	this->health = hlth;
 	this->ihealth = hlth;
 }
@@ -28,6 +27,10 @@ void Enemy::reset(){
 }
 void Enemy::Update(float dt, Character* player) {
 // Update states
+	const MEState& state = this->getState();
+	float yspd = std::min(state.yspeed + (GRAVITY * dt), maxFallSpeed);
+	float xspd = state.xspeed;
+
 	if (invltimer()){
 		bool hit = false;
 		if (player->swordout){
@@ -52,21 +55,22 @@ void Enemy::Update(float dt, Character* player) {
 			dead = true;
 		}
 	}
-	this->m_speed.y += GRAVITY * dt;
-	this->m_speed.y = std::min(this->m_speed.y, maxFallSpeed);
-	if (this->m_position.x > player->m_position.x){
-		this->m_speed.x = -walkSpeed;
+	
+	if (this->xpos() > player->xpos()){
+		xspd = -walkSpeed;
 		if (flipped){
 			flipped = false;
 			this->m_spr.transform(this->flipped_mat);
 		}
 	}else{
-		this->m_speed.x = walkSpeed;
+		xspd = walkSpeed;
 		if (!flipped){
 			flipped = true;
 			this->m_spr.transform(this->flipped_mat);
 		}
 	}
+
+	this->setSpeed(xspd, yspd);
 	MovingEntity::Update(dt);
 }
 void Enemy::Draw(SpriteBatch& frame) {
