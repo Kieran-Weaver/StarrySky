@@ -1,5 +1,5 @@
-#ifndef PPCOLLIDER_H
-#define PPCOLLIDER_H
+#ifndef STARRYSKY_PPCOLLIDER_HPP
+#define STARRYSKY_PPCOLLIDER_HPP
 class Sprite;
 template<typename T> class Rect;
 

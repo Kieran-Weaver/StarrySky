@@ -30,7 +30,7 @@ Character::Character(float x, float y, const std::string& mainsprite, const std:
 
 	controls = defaultcontrols;
 }
-void Character::Update(float dt, const ObjMap& map, const std::vector<PPCollider*>& objects, Window& window) {
+void Character::Update(float dt, const CMap& map, const std::vector<PPCollider*>& objects, Window& window) {
 	this->m_me.Update(dt, map);
 	const MEState& state = this->m_me.getState();
 	WindowState& ws = window.getWindowState();

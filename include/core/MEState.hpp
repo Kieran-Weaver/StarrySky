@@ -1,5 +1,5 @@
-#ifndef MESTATE_H
-#define MESTATE_H
+#ifndef STARRYSKY_MESTATE_HPP
+#define STARRYSKY_MESTATE_HPP
 #include <util/Rect.hpp>
 
 struct MEState {

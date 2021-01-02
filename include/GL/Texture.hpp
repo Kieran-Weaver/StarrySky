@@ -1,5 +1,5 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#ifndef STARRYSKY_TEXTURE_HPP
+#define STARRYSKY_TEXTURE_HPP
 #include <util/Rect.hpp>
 #include <util/Bitmask.hpp>
 struct Texture{

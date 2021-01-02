@@ -1,5 +1,5 @@
-#ifndef MAT2D_H
-#define MAT2D_H
+#ifndef STARRYSKY_MAT2D_HPP
+#define STARRYSKY_MAT2D_HPP
 #include <glm/ext/matrix_float2x2.hpp>
 #include <glm/ext/vector_float2.hpp>
 #include <array>

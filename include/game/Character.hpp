@@ -1,5 +1,6 @@
-#ifndef CHARACTER_HPP
-#define CHARACTER_HPP
+#ifndef STARRYSKY_CHARACTER_HPP
+#define STARRYSKY_CHARACTER_HPP
+#include <core/CMap.hpp>
 #include <core/MovingEntity.hpp>
 #include <core/Timer.hpp>
 #include <GL/PPCollider.hpp>
@@ -7,7 +8,6 @@
 #include <GL/SpriteBatch.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/Window.hpp>
-#include <core/Map.hpp>
 struct Controls{
 	int upkey;
 	int downkey;
@@ -23,7 +23,7 @@ public:
 	Character(const Character&) = delete;
 	Character& operator=(const Character&) = delete;
 	Character(float x, float y, const std::string& mainsprite, const std::string& swordsprite, const std::string& sword2sprite, TextureAtlas& atlas);
-	void Update(float dt, const ObjMap& map, const std::vector<PPCollider *>& objects, Window& window);
+	void Update(float dt, const CMap& map, const std::vector<PPCollider *>& objects, Window& window);
 	void Draw(SpriteBatch& mframe);
 	void warpto(float x, float y);
 	bool collides(const Sprite& Object2) const override;

@@ -1,5 +1,5 @@
-#ifndef CAMERA_H
-#define CAMERA_H
+#ifndef STARRYSKY_CAMERA_HPP
+#define STARRYSKY_CAMERA_HPP
 #include <glm/glm.hpp>
 #include <GL/Window.hpp>
 #include <util/Rect.hpp>

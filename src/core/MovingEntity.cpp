@@ -1,5 +1,5 @@
 #include <core/MovingEntity.hpp>
-#include <core/Map.hpp>
+#include <core/CMap.hpp>
 
 MovingEntity::MovingEntity(float x, float y): MovingEntity(x,y,0,0){}
 MovingEntity::MovingEntity(float x, float y, int w, int h) {
@@ -35,7 +35,7 @@ void MovingEntity::warpto(float x, float y) {
 	this->m_prev.atFloor = false;
 }
 
-void MovingEntity::Update(float dt, const ObjMap& map) {
+void MovingEntity::Update(float dt, const CMap& map) {
 // Save current touching info
 	this->m_prev = this->m_curr;
 	this->m_curr.newFrame(dt);
@@ -69,7 +69,7 @@ void MovingEntity::Update(float dt, const ObjMap& map) {
 		}
 	}
 
-	if (this->m_curr.hitbox.top > (map.position.y + map.height)){
+	if (!map.getbounds().Intersects(this->m_curr.hitbox)){
 		this->dead = true;
 	}
 }

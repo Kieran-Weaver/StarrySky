@@ -565,6 +565,10 @@ void RTree<T>::free_leaf(size_t idx) {
 	}
 }
 
+template<typename T>
+Rect<T> RTree<T>::getbounds(void) const {
+	return this->m_nodes[RT_ROOT_NODE].AABB;
+}
 
 template class RTree<float>;
 template class RTree<int>;

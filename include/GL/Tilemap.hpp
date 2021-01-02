@@ -1,5 +1,5 @@
-#ifndef STARRYSKY_TILEMAP_H
-#define STARRYSKY_TILEMAP_H
+#ifndef STARRYSKY_TILEMAP_HPP
+#define STARRYSKY_TILEMAP_HPP
 #include <cstdint>
 #include <vector>
 #include <array>

@@ -1,5 +1,5 @@
-#ifndef UTIL_CLIB_HPP
-#define UTIL_CLIB_HPP
+#ifndef STARRYSKY_CLIB_HPP
+#define STARRYSKY_CLIB_HPP
 #include <cstdint>
 template <typename T>
 int sgn(T val) {

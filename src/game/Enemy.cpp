@@ -25,7 +25,7 @@ void Enemy::reset(){
 	}
 	m_spr.setTexture(this->texs[0]);
 }
-void Enemy::Update(float dt, const ObjMap& map, const PPCollider& player) {
+void Enemy::Update(float dt, const CMap& map, const PPCollider& player) {
 // Update states
 	this->m_me.Update(dt, map);
 	const MEState& state = this->m_me.getState();

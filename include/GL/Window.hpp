@@ -1,5 +1,5 @@
-#ifndef STARRYSKY_WINDOW
-#define STARRYSKY_WINDOW
+#ifndef STARRYSKY_WINDOW_HPP
+#define STARRYSKY_WINDOW_HPP
 #include <string>
 #include <bitset>
 #include <memory>

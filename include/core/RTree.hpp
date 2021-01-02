@@ -1,5 +1,5 @@
-#ifndef STARRYSKY_RTREE_H
-#define STARRYSKY_RTREE_H
+#ifndef STARRYSKY_RTREE_HPP
+#define STARRYSKY_RTREE_HPP
 #include <vector>
 #include <array>
 #include <iosfwd>
@@ -56,6 +56,7 @@ public:
 	int     insert(const Rect<T>& object);
 	bool    contains(const Rect<T>& object) const;
 	int     erase(const Rect<T>& object);
+	Rect<T> getbounds(void) const;
 	size_t  height = 0;
 private:
 	void    omt(int subroot, size_t N, size_t H, std::vector<size_t>::iterator& iter);

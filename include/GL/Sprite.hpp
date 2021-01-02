@@ -1,5 +1,5 @@
-#ifndef SPRITE_H
-#define SPRITE_H
+#ifndef STARRYSKY_SPRITE_HPP
+#define STARRYSKY_SPRITE_HPP
 #include <GL/PPCollider.hpp>
 #include <GL/SpriteData.hpp>
 #include <GL/Texture.hpp>

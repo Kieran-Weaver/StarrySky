@@ -1,5 +1,5 @@
-#ifndef TIMER_HPP
-#define TIMER_HPP
+#ifndef STARRYSKY_TIMER_HPP
+#define STARRYSKY_TIMER_HPP
 class Timer{
 public:
 	bool operator()(){

@@ -1,10 +1,10 @@
 #include <game/Character.hpp>
 #include <game/Enemy.hpp>
+#include <game/ObjMap.hpp>
 #include <GL/Camera.hpp>
 #include <GL/TextureAtlas.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/Window.hpp>
-#include <core/Map.hpp>
 int main(){
 	const float frametime = 1.f/60.f;
 	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Starry Sky", false);
@@ -22,8 +22,8 @@ int main(){
 		window.startFrame();
 		window.makeCurrent();
 		map.Draw(batch);
-		player.Update(frametime, map, objects, window);
-		testEnemy.Update(frametime, map, player);
+		player.Update(frametime, map.getCollision(), objects, window);
+		testEnemy.Update(frametime, map.getCollision(), player);
 		player.Draw(batch);
 		testEnemy.Draw(batch);
 		if (player.dead){

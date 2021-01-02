@@ -1,5 +1,5 @@
-#ifndef STARRYSKY_RECTCOMPARE_H
-#define STARRYSKY_RECTCOMPARE_H
+#ifndef STARRYSKY_RECTCOMPARE_HPP
+#define STARRYSKY_RECTCOMPARE_HPP
 #include <util/Rect.hpp>
 #include <tuple>
 

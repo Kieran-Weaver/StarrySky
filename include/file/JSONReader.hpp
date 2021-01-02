@@ -2,6 +2,7 @@
 #define STARRYSKY_JSONREADER_HPP
 #include <rapidjson/fwd.h>
 #include <visit_struct/visit_struct.hpp>
+#include <string_view>
 #include <util/Traits.hpp>
 #include <unordered_map>
 #include <vector>

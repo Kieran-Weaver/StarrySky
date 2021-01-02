@@ -1,5 +1,5 @@
-#ifndef RECT_H
-#define RECT_H
+#ifndef STARRYSKY_RECT_HPP
+#define STARRYSKY_RECT_HPP
 #include <algorithm>
 #include <cstdint>
 #include <vector>

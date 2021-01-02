@@ -1,5 +1,5 @@
-#ifndef BITMASK_H
-#define BITMASK_H
+#ifndef STARRYSKY_BITMASK_HPP
+#define STARRYSKY_BITMASK_HPP
 #include <memory>
 struct Bitmask{
 	uint16_t width=0;

@@ -1,17 +1,18 @@
-#ifndef ENEMY_HPP
-#define ENEMY_HPP
+#ifndef STARRYSKY_ENEMY_HPP
+#define STARRYSKY_ENEMY_HPP
 #include <core/MovingEntity.hpp>
 #include <core/Timer.hpp>
 #include <GL/PPCollider.hpp>
 #include <GL/Sprite.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/TextureAtlas.hpp>
+class CMap;
 class Enemy : public PPCollider {
 public:
 	Enemy(const Enemy&) = delete;
 	Enemy& operator=(const Enemy&) = delete;
 	Enemy(float x, float y, const std::string& mainsprite, const std::string& hurtsprite, int hlth, TextureAtlas& atlas);
-	void Update(float dt, const ObjMap& map, const PPCollider& player);
+	void Update(float dt, const CMap& map, const PPCollider& player);
 	void Draw(SpriteBatch& frame);
 	void warpto(float x, float y);
 	void reset();

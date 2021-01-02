@@ -1,5 +1,5 @@
-#ifndef STARRYSKY_SPRITEDATA_H
-#define STARRYSKY_SPRITEDATA_H
+#ifndef STARRYSKY_SPRITEDATA_HPP
+#define STARRYSKY_SPRITEDATA_HPP
 #include <array>
 #include <cstdint>
 struct SpriteData{

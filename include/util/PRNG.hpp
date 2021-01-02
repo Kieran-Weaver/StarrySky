@@ -1,5 +1,5 @@
-#ifndef PRNG_HPP
-#define PRNG_HPP
+#ifndef STARRYSKY_PRNG_HPP
+#define STARRYSKY_PRNG_HPP
 #include <random>
 #include <functional>
 #include <algorithm>

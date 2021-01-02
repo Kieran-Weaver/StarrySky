@@ -1,5 +1,5 @@
-#ifndef TEXTUREATLAS_H
-#define TEXTUREATLAS_H
+#ifndef STARRYSKY_TEXTUREATLAS_HPP
+#define STARRYSKY_TEXTUREATLAS_HPP
 #include <vector>
 #include <string>
 #include <string_view>

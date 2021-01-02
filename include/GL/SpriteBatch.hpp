@@ -1,5 +1,5 @@
-#ifndef STARRYSKY_SPRITEBATCH_H
-#define STARRYSKY_SPRITEBATCH_H
+#ifndef STARRYSKY_SPRITEBATCH_HPP
+#define STARRYSKY_SPRITEBATCH_HPP
 #include <GL/TextureAtlas.hpp>
 #include <GL/Window.hpp>
 struct Sprite;
