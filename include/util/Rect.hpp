@@ -21,7 +21,7 @@ struct Rect{
 			&& (other.top == top) && (other.bottom == bottom);
 	}
 
-	bool Contains(float x, float y) const{
+	bool Contains(T x, T y) const{
 		return (((left - x)*(right - x) <= 0.f)&&((top - y)*(bottom - y) <= 0.f));
 	}
 	bool Contains(const Rect<T>& r) const{
