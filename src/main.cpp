@@ -5,10 +5,11 @@
 #include <GL/TextureAtlas.hpp>
 #include <GL/SpriteBatch.hpp>
 #include <GL/Window.hpp>
+
 int main(){
 	const float frametime = 1.f/60.f;
 	Window window(1280, 720, 3, 3, "resources/data/fonts/boxfont_round.ttf", "Starry Sky", false);
-	Camera camera({0.f,0.f,1400.f,800.f},{300.f,200.f,900.f,600.f}, window);
+	Camera camera({-2500.f,-2500.f,2400.f,2800.f},{300.f,100.f,900.f,600.f}, window);
 	window.getWindowState().camera = &camera;
 	glm::mat4 m(1.0f);
 	TextureAtlas atlas("resources/data/atlas.json");

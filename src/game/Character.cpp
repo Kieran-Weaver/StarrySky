@@ -196,7 +196,7 @@ void Character::Update(float dt, const CMap& map, const std::vector<PPCollider*>
 
 	this->wasOnGround = state.atFloor;
 	this->m_me.setSpeed(xspd, yspd);
-//	ws.camera->ScrollTo({m_position.x - m_width/2.f, m_position.y - m_height/2.f, static_cast<float>(m_width), static_cast<float>(m_height)});
+	ws.camera->ScrollTo(this->m_spr.getAABB());
 }
 
 void Character::warpto(float x, float y) {
