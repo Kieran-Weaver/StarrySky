@@ -4,9 +4,6 @@
 [submodule "imgui"]
 	path = submodules/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "galogen"]
-	path = submodules/galogen
-	url = https://github.com/google/galogen.git
 [submodule "rapidjson"]
 	path = submodules/rapidjson
 	url = https://github.com/Tencent/rapidjson/

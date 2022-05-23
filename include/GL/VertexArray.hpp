@@ -2,10 +2,15 @@
 #define STARRYSKY_VAO_HPP
 #include <cstdint>
 #include <utility>
+
+namespace gl {
+	enum class GLenum : unsigned int;
+};
+
 struct Attrib{
 	int32_t location;
 	uint32_t components;
-	uint32_t type;
+	gl::GLenum type;
 	bool normalized;
 	uint32_t start;
 	uint32_t stride;

@@ -16,7 +16,7 @@ TileMap& ObjMap::getTM(const std::string& id) {
 	return this->internal_tms[id];
 }
 
-ObjMap::ObjMap(const std::string& filename, TextureAtlas& atlas) : m_atlas(atlas) {
+ObjMap::ObjMap(const std::string_view filename, TextureAtlas& atlas) : m_atlas(atlas) {
 	this->rng = SeedRNG();
 	this->loadFromFile(filename);
 }
@@ -25,7 +25,7 @@ void ObjMap::loadTileMap(TileMap& tomodify, JSONParser tilemapNode) {
 	tomodify.load(tilemapNode, m_atlas);
 }
 
-void ObjMap::loadFromFile(const std::string& filename) {
+void ObjMap::loadFromFile(const std::string_view filename) {
 	ledges.clear();
 	sprs.clear();
 
@@ -57,7 +57,7 @@ void ObjMap::loadFromFile(const std::string& filename) {
 	tm_changed = true;
 }
 
-void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::mat2& sprTransform, const std::string& fname) {
+void ObjMap::addBGTexture(const glm::vec2& sprPosition, const glm::mat2& sprTransform, const std::string_view fname) {
 	uint32_t i;
 	do{
 		i = rng();
@@ -116,8 +116,8 @@ void JSONWriter::store<TMType>(const TMType& i) {
 	}
 }
 
-void ObjMap::WriteToFile(const std::string& filename) {
-	std::ofstream ofs(filename);
+void ObjMap::WriteToFile(const std::string_view filename) {
+	std::ofstream ofs{std::string(filename)};
 	JSONWriter writer;
 	writer.StartObject();
 	writer.Key("surfaces");

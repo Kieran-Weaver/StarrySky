@@ -5,6 +5,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <map>
 #include <unordered_map>
 #include <vector>
 #include <util/Traits.hpp>
@@ -69,9 +70,28 @@ public:
 		}
 		this->EndObject();
 	}
+	
+	template<typename T2>
+	void store(const std::map<std::string, T2, std::less<>>& data) {
+		this->StartObject();
+		for (const auto& elem : data){
+			this->Key(elem.first);
+			this->store(elem.second);
+		}
+		this->EndObject();
+	}
 
 	template<typename T2>
 	void store(const std::unordered_map<int,T2>& data){
+		this->StartArray();
+		for (const auto& elem : data){
+			this->store(elem.second);
+		}
+		this->EndArray();
+	}
+
+	template<typename T2>
+	void store(const std::map<int,T2>& data){
 		this->StartArray();
 		for (const auto& elem : data){
 			this->store(elem.second);

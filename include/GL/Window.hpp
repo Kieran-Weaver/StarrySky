@@ -3,6 +3,7 @@
 #include <string>
 #include <bitset>
 #include <memory>
+#include <functional>
 #include <GL/DrawCommand.hpp>
 #include <GL/Program.hpp>
 #define MAX_KEYCODE 1023

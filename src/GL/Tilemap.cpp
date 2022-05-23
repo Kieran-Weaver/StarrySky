@@ -1,6 +1,9 @@
 #include <string>
 #include <GL/Tilemap.hpp>
-#include <gl.h>
+#include <glbinding/gl/gl.h>
+
+using namespace gl;
+
 TileMap::TileMap(){
 	this->atlasTexture.type = GL_TEXTURE_2D;
 	this->tileBufferTBO.type = GL_TEXTURE_BUFFER;

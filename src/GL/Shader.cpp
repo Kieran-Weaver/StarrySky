@@ -1,4 +1,4 @@
-#include <gl.h>
+#include <glbinding/gl/gl.h>
 #include <GL/Shader.hpp>
 #include <file/PlainText.hpp>
 #include <string>
@@ -6,14 +6,28 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
-Shader::Shader(GLenum type, const std::string& filename) : m_type(type) {
-	m_handle = glCreateShader(this->m_type);
+
+using namespace gl;
+
+Shader::Shader(ShaderType type, const std::string& filename) : m_type(type) {
+	switch (type) {
+	case ShaderType::VERT:
+		m_handle = glCreateShader(GL_VERTEX_SHADER);
+		break;
+	case ShaderType::FRAG:
+		m_handle = glCreateShader(GL_FRAGMENT_SHADER);
+		break;
+	default:
+		return;
+		break;
+	}
+	
 	std::string contents = readWholeFile(filename);
 	const char* shader_contents = contents.c_str();
 	glShaderSource(m_handle,1,&shader_contents,nullptr);
 	glCompileShader(m_handle);
 #ifndef NDEBUG
-	GLint success = 0;
+	GLboolean success = 0;
 	glGetShaderiv(m_handle, GL_COMPILE_STATUS, &success);
 	if (success == GL_FALSE){
 		std::cerr << "Shader compilation failed: " << filename << std::endl;

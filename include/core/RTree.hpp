@@ -3,6 +3,7 @@
 #include <vector>
 #include <array>
 #include <iosfwd>
+#include <unordered_map>
 #include <util/Rect.hpp>
 /*
  * 2D R-Tree Implementation

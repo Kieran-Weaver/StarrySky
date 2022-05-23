@@ -4,17 +4,28 @@
 #include <variant>
 #include <array>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <GL/Buffer.hpp>
 #include <GL/Texture.hpp>
 #include <GL/Program.hpp>
 #include <GL/VertexArray.hpp>
 #include <util/Rect.hpp>
+
+namespace gl {
+	enum class GLenum : unsigned int;
+};
+
 class ImDrawData;
 template<typename T, size_t N>
 using gl_attrib = std::optional<std::array<T, N>>;
 template<typename T, size_t N>
 using glMatrix = std::array<std::array<T, N>, N>;
+struct gl_sfunc {
+	gl::GLenum func;
+	int ref;
+	unsigned int mask;
+};
+
 namespace Draw{
 
 	enum Primitive{
@@ -66,17 +77,17 @@ struct DrawCommand{
 };
 
 struct ConfCommand{
-	std::unordered_map<uint32_t, bool> 		enable_flags;
-	gl_attrib<uint32_t, 2> 					blend_func;
-	std::optional<uint32_t>					blend_equation;
-	std::optional<uint32_t> 				cull_face;
-	std::optional<uint32_t> 				depth_func;
+	std::map<gl::GLenum, bool>			 	enable_flags;
+	gl_attrib<gl::GLenum, 2>				blend_func;
+	std::optional<gl::GLenum>				blend_equation;
+	std::optional<gl::GLenum> 				cull_face;
+	std::optional<gl::GLenum> 				depth_func;
 	gl_attrib<double, 2> 					depth_range;
-	std::optional<uint32_t> 				logic_op;
+	std::optional<gl::GLenum> 				logic_op;
 	std::optional<float> 					line_width;
-	gl_attrib<uint32_t, 2> 					sample_mask;
-	gl_attrib<uint32_t, 3> 					stencil_func;
-	gl_attrib<uint32_t, 3> 					stencil_op;
+	gl_attrib<uint32_t, 2>					sample_mask;
+	std::optional<gl_sfunc>					stencil_func;
+	gl_attrib<gl::GLenum, 3>				stencil_op;
 	std::optional<std::pair<float, bool>> 	sample_coverage;
 	gl_attrib<float, 2> 					polygon_offset;
 	std::optional<uint32_t> 				primitive_restart;

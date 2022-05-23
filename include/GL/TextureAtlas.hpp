@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <util/Rect.hpp>
 #include <util/Bitmask.hpp>
 #include <GL/Texture.hpp>

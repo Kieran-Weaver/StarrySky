@@ -3,7 +3,7 @@
 #include <GL/Sprite.hpp>
 #include <file/PlainText.hpp>
 #include <util/Mat2D.hpp>
-#include <gl.h>
+#include <glbinding/gl/gl.h>
 #ifndef NO_IMGUI
 #include <imgui/imgui.h>
 #endif
@@ -12,6 +12,9 @@
 #include <iostream>
 #endif
 #include <numeric>
+
+using namespace gl;
+
 // Generates an index buffer for drawing n quads
 template<typename T>
 void genBufImpl(Buffer& IBO, uint16_t n){
@@ -93,7 +96,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 	glBindTexture(GL_TEXTURE_2D, glPrograms[OVERLAY].extra_data[0]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	std::array<GLint, 4> RASwizzle = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
+	std::array<GLenum, 4> RASwizzle = { GL_ONE, GL_ONE, GL_ONE, GL_RED };
 	glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, RASwizzle.data());
 #ifdef GL_UNPACK_ROW_LENGTH
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -142,13 +145,12 @@ void SpriteBatchImpl::setAttrib(GLProgram& currentProgram, JSONParser node, GLui
 	Attrib attr;
 	std::string input_name = node["name"];
 	attr.components = node["components"];
-	attr.type = node["type"];
 	attr.normalized = node["norm"];
 	attr.location = node["location"];
 	attr.start = start;
 	attr.stride = stride;
 
-	switch (attr.type){
+	switch (static_cast<uint32_t>(node["type"])){
 	case 0:
 		attr.type = GL_FLOAT;
 		break;

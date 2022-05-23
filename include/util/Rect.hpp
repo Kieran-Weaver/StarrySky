@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 #include <optional>
+#include <limits>
 #include <visit_struct/visit_struct_intrusive.hpp>
 template<typename T>
 struct Rect{

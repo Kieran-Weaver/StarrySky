@@ -2,8 +2,11 @@
 #include <file/PlainText.hpp>
 #include <file/JSON.hpp>
 #include <zlib.h>
-#include <gl.h>
+#include <glbinding/gl/gl.h>
 #include <fstream>
+
+using namespace gl;
+
 template<>
 JSONParser::operator Texture() const{
 	Texture data;
@@ -60,7 +63,7 @@ TextureAtlas::TextureAtlas(const std::string_view file_path){
 	}
 }
 TextureAtlas::~TextureAtlas(){
-		glDeleteTextures(m_texture_handles.size(),m_texture_handles.data());
+	glDeleteTextures(m_texture_handles.size(),m_texture_handles.data());
 }
 bool TextureAtlas::loadDDSgz(const std::string_view path,Atlas& atlas){
 	glActiveTexture(GL_TEXTURE0);
@@ -86,14 +89,14 @@ bool TextureAtlas::loadDDSgz(const std::string_view path,Atlas& atlas){
 			uint32_t size = ((width + 3)/4)*((height + 3)/4)*blockSize;
 			switch(fourCC){
 				case 0x31545844: // DXT1
-					atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT;
+					atlas.format = static_cast<uint32_t>(GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT);
 					blockSize = 8;
 					break;
 				case 0x33545844: // DXT3
-					atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT;
+					atlas.format = static_cast<uint32_t>(GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT);
 					break;
 				case 0x35545844: // DXT5
-					atlas.format = GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT;
+					atlas.format = static_cast<uint32_t>(GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT);
 					break;
 				default:
 					atlas.format = 0;
@@ -107,7 +110,7 @@ bool TextureAtlas::loadDDSgz(const std::string_view path,Atlas& atlas){
 						return_code = false;
 						break;
 					}else{
-						glCompressedTexImage2D(GL_TEXTURE_2D,level,atlas.format,width,height,0,size,data);
+						glCompressedTexImage2D(GL_TEXTURE_2D,level,static_cast<gl::GLenum>(atlas.format),width,height,0,size,data);
 						width = std::max(width/2, 1U);
 						height = std::max(height/2,1U);
 						size = ((width + 3)/4)*((height + 3)/4)*blockSize;

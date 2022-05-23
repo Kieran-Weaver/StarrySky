@@ -1,11 +1,14 @@
 #include <GL/Program.hpp>
 #include <GL/Shader.hpp>
 #include <file/JSONReader.hpp>
-#include <gl.h>
+#include <glbinding/gl/gl.h>
 #include <vector>
 #ifndef NDEBUG
 #include <iostream>
 #endif
+
+using namespace gl;
+
 Program& Program::operator=(Program&& other){
 	this->m_handle = other.m_handle;
 	this->m_camera = other.m_camera;
@@ -24,14 +27,10 @@ void Program::load(const JSONParser& data){
 	if (loaded){
 		glDeleteProgram(this->m_handle);
 	}
-	Shader vtx(GL_VERTEX_SHADER, data["vxFile"]), geom, frag(GL_FRAGMENT_SHADER, data["fgFile"]);
+	Shader vtx(ShaderType::VERT, data["vxFile"]), frag(ShaderType::FRAG, data["fgFile"]);
 	std::string output = data["output"];
 	this->m_handle = glCreateProgram();
 	glAttachShader(this->m_handle, vtx.m_handle);
-	if (data["usesGS"]){
-		geom = Shader(GL_GEOMETRY_SHADER, data["gsFile"]);
-		glAttachShader(this->m_handle, geom.m_handle);
-	}
 	glAttachShader(this->m_handle, frag.m_handle);
 	glBindFragDataLocation(this->m_handle,0,output.c_str());
 	for (int i = 0; i < data["layout"].size(); i++){
@@ -40,7 +39,7 @@ void Program::load(const JSONParser& data){
 	}
 	glLinkProgram(this->m_handle);
 #ifndef NDEBUG
-	GLint isLinked = 0;
+	GLboolean isLinked = 0;
 	glGetProgramiv(this->m_handle, GL_LINK_STATUS, &isLinked);
 	if (isLinked == GL_FALSE){
 		GLint maxLength = 0;

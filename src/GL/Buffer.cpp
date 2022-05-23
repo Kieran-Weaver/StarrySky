@@ -1,25 +1,29 @@
 #include <GL/Buffer.hpp>
 #include <util/Clib.hpp>
-#include <gl.h>
-Buffer::Buffer(uint32_t type_) : type(type_){
+#include <glbinding/gl/gl.h>
+
+using namespace gl;
+
+Buffer::Buffer(gl::GLenum type_) : type(type_){
 	glGenBuffers(1, &handle);
 }
 Buffer& Buffer::operator=(Buffer&& other){
 	this->handle = std::move(other.handle);
 	this->size = std::move(other.size);
 	this->type = std::move(other.type);
-	other.type = 0;
+	other.type = static_cast<gl::GLenum>(0);
 	other.size = 0;
 	other.handle = 0;
 	return *this;
 }
 Buffer::~Buffer(){
-	glDeleteBuffers(1, &handle);
+	if (static_cast<bool>(this->type))
+		glDeleteBuffers(1, &handle);
 }
 void Buffer::bind() const{
 	glBindBuffer(this->type, this->handle);
 }
-void Buffer::bind(uint32_t texType){
+void Buffer::bind(gl::GLenum texType){
 	this->texType = texType;
 	this->bind();
 	glTexBuffer(this->type, texType, this->handle);
@@ -50,5 +54,5 @@ void Buffer::update(const void* data, uint64_t size, uint64_t position){
 		glBufferData(GL_COPY_WRITE_BUFFER, size + position, nullptr, GL_DYNAMIC_DRAW);
 	}
 	this->bind();
-	glBufferSubData(this->type, position, size, data);
+	glBufferSubData(static_cast<GLenum>(this->type), position, size, data);
 }

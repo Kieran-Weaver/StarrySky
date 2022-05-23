@@ -1,5 +1,8 @@
 #include <GL/VertexArray.hpp>
-#include <gl.h>
+#include <glbinding/gl/gl.h>
+
+using namespace gl;
+
 VertexArray::VertexArray(){
 	glGenVertexArrays(1, &handle);
 }
@@ -17,9 +20,13 @@ void VertexArray::bind(){
 void VertexArray::setAttrib(const Attrib& attr){
 	this->bind();
 	glEnableVertexAttribArray(attr.location);
-	if (attr.type == GL_FLOAT || attr.normalized){
-		glVertexAttribPointer(attr.location,attr.components,attr.type,attr.normalized,attr.stride,reinterpret_cast<void*>(attr.start));
+	
+	gl::GLenum type = static_cast<GLenum>(attr.type);
+	void* start = reinterpret_cast<void*>(attr.start);
+	
+	if (type == GL_FLOAT || attr.normalized){
+		glVertexAttribPointer(attr.location,attr.components,type,attr.normalized,attr.stride,start);
 	}else{
-		glVertexAttribIPointer(attr.location,attr.components,attr.type,attr.stride,reinterpret_cast<void*>(attr.start));
+		glVertexAttribIPointer(attr.location,attr.components,type,attr.stride,start);
 	}
 }

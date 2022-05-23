@@ -1,12 +1,16 @@
 #include <GL/Window.hpp>
 #include <GL/Camera.hpp>
-#include <gl.h>
+#include <glbinding/gl/gl.h>
 #include <GLFW/glfw3.h>
 #include <GL/SpriteBatch.hpp>
+#include <glbinding/glbinding.h>
 #ifndef NO_IMGUI
 #include "imgui/imgui.h"
 #include "imgui/examples/imgui_impl_glfw.h"
 #endif
+
+using namespace gl;
+
 template<typename T, typename U=T, typename V=T>
 void callAttrib(const gl_attrib<T, 3>& attrib, void (*func)(T, U, V)){
 	if (attrib){
@@ -96,6 +100,7 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 		std::exit(0);
 	}
 	this->makeCurrent();
+	glbinding::initialize(glfwGetProcAddress);
 	glfwSwapInterval(1);
 #ifndef NO_IMGUI
 	ImGui::CreateContext();
@@ -129,7 +134,7 @@ void Window::startFrame() const{
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 #endif
-	glClearColor(0.0f,0.0f,0.0f,1.0f);
+	gl::glClearColor(0.0f,0.0f,0.0f,1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 void Window::makeCurrent() const{
@@ -163,29 +168,28 @@ void Window::Draw(const DrawList& dlist) const{
 		}
 	}
 }
-void Window::Configure(const ConfCommand& confcomm) const{
-	for (const auto& fpair : confcomm.enable_flags){
+void Window::Configure(const ConfCommand& cmd) const{
+	for (const auto& fpair : cmd.enable_flags){
 		if (fpair.second){
 			glEnable(fpair.first);
 		} else {
 			glDisable(fpair.first);
 		}
 	}
-	callAttrib(confcomm.blend_func, glBlendFunc);
-	callAttrib(confcomm.blend_equation, glBlendEquation);
-	callAttrib(confcomm.cull_face, glCullFace);
-	callAttrib(confcomm.depth_func, glDepthFunc);
-	callAttrib(confcomm.depth_range, glDepthRange);
-	callAttrib(confcomm.logic_op, glLogicOp);
-	callAttrib(confcomm.line_width, glLineWidth);
-	callAttrib(confcomm.sample_mask, glSampleMaski);
-	callAttrib(confcomm.stencil_func, glStencilFunc);
-	callAttrib(confcomm.stencil_op, glStencilOp);
-	callAttrib(confcomm.polygon_offset, glPolygonOffset);
-	callAttrib(confcomm.primitive_restart, glPrimitiveRestartIndex);
-	if (confcomm.sample_coverage){
-		glSampleCoverage(confcomm.sample_coverage.value().first, confcomm.sample_coverage.value().second);
-	}
+	if (cmd.blend_func) gl::glBlendFunc(cmd.blend_func.value()[0], cmd.blend_func.value()[1]);
+	if (cmd.blend_equation) gl::glBlendEquation(cmd.blend_equation.value());
+	if (cmd.cull_face) gl::glCullFace(cmd.cull_face.value());
+	if (cmd.depth_func) gl::glDepthFunc(cmd.depth_func.value());
+	if (cmd.depth_range) gl::glDepthRange(cmd.depth_range.value()[0], cmd.depth_range.value()[1]);
+	if (cmd.logic_op) gl::glLogicOp(cmd.logic_op.value());
+	if (cmd.line_width) gl::glLineWidth(cmd.line_width.value());
+	if (cmd.sample_mask) gl::glSampleMaski(cmd.sample_mask.value()[0], cmd.sample_mask.value()[1]);
+	if (cmd.stencil_func)
+		gl::glStencilFunc(cmd.stencil_func.value().func, cmd.stencil_func.value().ref, cmd.stencil_func.value().mask);
+	if (cmd.stencil_op) gl::glStencilOp(cmd.stencil_op.value()[0], cmd.stencil_op.value()[1], cmd.stencil_op.value()[2]);
+	if (cmd.polygon_offset) gl::glPolygonOffset(cmd.polygon_offset.value()[0], cmd.polygon_offset.value()[1]);
+	if (cmd.primitive_restart) gl::glPrimitiveRestartIndex(cmd.primitive_restart.value());
+	if (cmd.sample_coverage) gl::glSampleCoverage(cmd.sample_coverage.value().first, cmd.sample_coverage.value().second);
 }
 void Window::Draw(const DrawCommand& drawcomm) const{
 	drawcomm.program->bind();
@@ -201,7 +205,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 	} else {
 		this->setCamera(&(this->getWindowState().camera->getVP()[0][0]), drawcomm.program->getCameraIdx());
 	}
-	std::unordered_map<Draw::Primitive, GLenum> modes = { 
+	std::unordered_map<Draw::Primitive, int> modes = { 
 		{Draw::Points, GL_POINTS},
 		{Draw::Lines, GL_LINES},
 		{Draw::LineStrip, GL_LINE_STRIP},
@@ -210,7 +214,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 		{Draw::TriangleStrip, GL_TRIANGLE_STRIP},
 		{Draw::TriangleFan, GL_TRIANGLE_FAN}
 	};
-	std::unordered_map<Draw::IdxType, GLenum> idxtypes = {
+	std::unordered_map<Draw::IdxType, int> idxtypes = {
 		{Draw::Byte, GL_UNSIGNED_BYTE},
 		{Draw::Short, GL_UNSIGNED_SHORT},
 		{Draw::Int, GL_UNSIGNED_INT}
@@ -221,9 +225,11 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 		} else {
 			bool instanced = (dcall.instances >= 0);
 			bool indexed = (dcall.idxType != Draw::None);
+			gl::GLenum dtype = static_cast<gl::GLenum>(modes[dcall.type]);
+			gl::GLenum itype = static_cast<gl::GLenum>(idxtypes[dcall.idxType]);
 			if (dcall.clip_rect){
 				const Rect<int>& cliprect = dcall.clip_rect.value();
-				glScissor(cliprect.left, cliprect.top, cliprect.right - cliprect.left, cliprect.bottom - cliprect.top);
+				gl::glScissor(cliprect.left, cliprect.top, cliprect.right - cliprect.left, cliprect.bottom - cliprect.top);
 			}
 			for (size_t i = 0; i < dcall.textures.size(); i++){
 				glActiveTexture(GL_TEXTURE0 + i);
@@ -231,20 +237,20 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 			}
 			if (indexed && instanced) {
 				if (dcall.baseVertex > 0){
-					glDrawElementsInstancedBaseVertex(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset), dcall.instances, dcall.baseVertex);
+					glDrawElementsInstancedBaseVertex(dtype, dcall.vtxCount, itype, reinterpret_cast<const void*>(dcall.idxOffset), dcall.instances, dcall.baseVertex);
 				} else {
-					glDrawElementsInstanced(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset), dcall.instances);
+					glDrawElementsInstanced(dtype, dcall.vtxCount, itype, reinterpret_cast<const void*>(dcall.idxOffset), dcall.instances);
 				}
 			} else if (instanced) {
-				glDrawArraysInstanced(modes[dcall.type], dcall.vtxOffset, dcall.vtxCount, dcall.instances);
+				glDrawArraysInstanced(dtype, dcall.vtxOffset, dcall.vtxCount, dcall.instances);
 			} else if (indexed){
 				if (dcall.baseVertex > 0){
-					glDrawElementsBaseVertex(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset), dcall.baseVertex);
+					glDrawElementsBaseVertex(dtype, dcall.vtxCount, itype, reinterpret_cast<const void*>(dcall.idxOffset), dcall.baseVertex);
 				} else {
-					glDrawElements(modes[dcall.type], dcall.vtxCount, idxtypes[dcall.idxType], reinterpret_cast<const void*>(dcall.idxOffset));
+					glDrawElements(dtype, dcall.vtxCount, itype, reinterpret_cast<const void*>(dcall.idxOffset));
 				}
 			} else {
-				glDrawArrays(modes[dcall.type], dcall.vtxOffset, dcall.vtxCount);
+				glDrawArrays(dtype, dcall.vtxOffset, dcall.vtxCount);
 			}
 		}
 	}
@@ -252,7 +258,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 
 void Window::setCamera(const float* data, int32_t position) const{
 	if (position < 0){
-		glBufferSubData(GL_UNIFORM_BUFFER, -1 - position, sizeof(float) * 16, data);  
+		glBufferSubData(static_cast<gl::GLenum>(GL_UNIFORM_BUFFER), -1 - position, sizeof(float) * 16, data);  
 	} else {
 		glUniformMatrix4fv(position, 1, false, data);
 	}

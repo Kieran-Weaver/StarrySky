@@ -8,7 +8,10 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
+#include <string_view>
 #include <random>
+#include <map>
+
 class SpriteBatch;
 
 struct MapSprite{
@@ -19,12 +22,12 @@ struct MapSprite{
 
 class ObjMap {
 public:
-	ObjMap(const std::string& filename, TextureAtlas& atlas);
-	void loadFromFile(const std::string& filename);
+	ObjMap(const std::string_view filename, TextureAtlas& atlas);
+	void loadFromFile(const std::string_view filename);
 	void SetPosition(float x, float y);
 	void Draw(SpriteBatch& frame);
-	void addBGTexture(const glm::vec2& thisposition, const glm::mat2& transform, const std::string& fname);
-	void WriteToFile(const std::string& filename);
+	void addBGTexture(const glm::vec2& thisposition, const glm::mat2& transform, const std::string_view fname);
+	void WriteToFile(const std::string_view filename);
 	TileMap& getTM(const std::string& id);
 	const CMap& getCollision(void);
 	glm::vec2 position;
@@ -36,8 +39,8 @@ public:
 	float ledgeheight = 8.f;
 	
 private:
-	std::unordered_map<std::string, TileMap> internal_tms;
-	std::unordered_map<int, MapSprite> sprs;
+	std::map<std::string, TileMap, std::less<>> internal_tms;
+	std::map<int, MapSprite> sprs;
 	bool tm_changed = false;
 	TextureAtlas& m_atlas;
 	CMap m_cmap;
