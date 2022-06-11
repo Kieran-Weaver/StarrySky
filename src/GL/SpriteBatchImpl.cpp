@@ -12,6 +12,7 @@
 #include <iostream>
 #endif
 #include <numeric>
+#include <cassert>
 
 using namespace gl;
 
@@ -49,9 +50,7 @@ SpriteBatchImpl::SpriteBatchImpl(TextureAtlas& atlas, const std::string& shaderf
 		std::exit(1);
 	}
 
-	for (auto& tex : m_atlas.m_texture_handles){
-		this->m_texData[tex] = TextureData();
-	}
+	this->m_texData[m_atlas.handle()] = TextureData();
 	
 	for (auto& i : glPrograms){
 		i.handle.bind();
@@ -130,6 +129,7 @@ SpriteBatchImpl::~SpriteBatchImpl(){
 
 void SpriteBatchImpl::Draw(Sprite& spr){
 	GLuint& m_tex = spr.m_subtexture.m_texture;
+	assert(m_tex == m_atlas.handle());
 	const auto& data = spr.render();
 	if (spr.uses_stencil){
 		auto& vec = m_texData[m_tex].stencilSprites;
@@ -244,7 +244,7 @@ void SpriteBatchImpl::drawSprites(DrawCommand& drawComm, bool stencil){
 			DrawCall& dc = drawComm.calls.emplace_back();
 			Texture& tx = dc.textures.emplace_back();
 			tx.m_texture = texturepair.first;
-			tx.type = GL_TEXTURE_2D;
+			tx.type = GL_TEXTURE_2D_ARRAY;
 			dc.type = Draw::Triangles;
 			dc.baseVertex = baseVertex;
 			dc.vtxCount = (sprites->size() / 4) * 6;

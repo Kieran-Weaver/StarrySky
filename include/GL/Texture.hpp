@@ -9,6 +9,7 @@ namespace gl {
 
 struct Texture{
 	uint32_t m_texture = 0;
+	uint32_t layer = 0;
 	Rect<uint16_t> m_rect = {0,0,0xFFFF,0xFFFF};
 	uint16_t width=0;
 	uint16_t height=0;

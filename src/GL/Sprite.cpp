@@ -67,6 +67,7 @@ const std::array<SpriteData, 4>& Sprite::render() {
 		for (int i = 0 ; i < 4 ; i++){
 			this->cached_vtx_data[i].texpos[0] = texrect.left + (i > 1) * width;
 			this->cached_vtx_data[i].texpos[1] = texrect.top + ((i == 0) || (i == 3)) * height;
+			this->cached_vtx_data[i].texpos[2] = this->m_subtexture.layer;
 			glm::vec2 vert = this->center + (this->m_model * sprVertices[i]);
 			this->cached_vtx_data[i].vtxPos[0] = vert.x;
 			this->cached_vtx_data[i].vtxPos[1] = vert.y;

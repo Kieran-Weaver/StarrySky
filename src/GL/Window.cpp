@@ -1,3 +1,4 @@
+#define GLFW_INCLUDE_NONE
 #include <GL/Window.hpp>
 #include <GL/Camera.hpp>
 #include <glbinding/gl/gl.h>
@@ -11,27 +12,10 @@
 
 using namespace gl;
 
-template<typename T, typename U=T, typename V=T>
-void callAttrib(const gl_attrib<T, 3>& attrib, void (*func)(T, U, V)){
-	if (attrib){
-		func(attrib.value()[0], attrib.value()[1], attrib.value()[2]);
-	}
-}
-template<typename T, typename U=T>
-void callAttrib(const gl_attrib<T, 2>& attrib, void (*func)(T, U)){
-	if (attrib){
-		func(attrib.value()[0], attrib.value()[1]);
-	}
-}
-template<typename T>
-void callAttrib(const std::optional<T>& attrib, void (*func)(T)){
-	if (attrib){
-		func(attrib.value());
-	}
-}
 void GLFWwindowDeleter::operator()(GLFWwindow* ptr){
 	glfwDestroyWindow(ptr);
 }
+
 void MouseEnterCB(GLFWwindow* window, int entered){
 	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(window));
 	if (entered){
@@ -205,7 +189,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 	} else {
 		this->setCamera(&(this->getWindowState().camera->getVP()[0][0]), drawcomm.program->getCameraIdx());
 	}
-	std::unordered_map<Draw::Primitive, int> modes = { 
+	std::unordered_map<Draw::Primitive, gl::GLenum> modes = { 
 		{Draw::Points, GL_POINTS},
 		{Draw::Lines, GL_LINES},
 		{Draw::LineStrip, GL_LINE_STRIP},
@@ -214,7 +198,7 @@ void Window::Draw(const DrawCommand& drawcomm) const{
 		{Draw::TriangleStrip, GL_TRIANGLE_STRIP},
 		{Draw::TriangleFan, GL_TRIANGLE_FAN}
 	};
-	std::unordered_map<Draw::IdxType, int> idxtypes = {
+	std::unordered_map<Draw::IdxType, gl::GLenum> idxtypes = {
 		{Draw::Byte, GL_UNSIGNED_BYTE},
 		{Draw::Short, GL_UNSIGNED_SHORT},
 		{Draw::Int, GL_UNSIGNED_INT}

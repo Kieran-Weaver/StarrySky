@@ -12,7 +12,7 @@ int main(){
 	Camera camera({-2500.f,-2500.f,2400.f,2800.f},{300.f,100.f,900.f,600.f}, window);
 	window.getWindowState().camera = &camera;
 	glm::mat4 m(1.0f);
-	TextureAtlas atlas("resources/data/atlas.json");
+	TextureAtlas atlas("resources/data/atlas.bin");
 	ObjMap map("resources/map.json",atlas);
 	Character player(300, 300, "player", "sword1", "sword2", atlas);
 	Enemy testEnemy(900, 300, "robot", "robot", 10, atlas);

@@ -9,10 +9,10 @@
         {
           "name" : "texpos",
           "location" : 0,
-          "components" : 2,
+          "components" : 3,
           "type" : 1,
           "norm" : true,
-          "stride" : 20,
+          "stride" : 22,
           "start" : 0
         },
         {
@@ -21,8 +21,8 @@
           "components" : 3,
           "type" : 0,
           "norm" : false,
-          "stride" : 20,
-          "start" : 4
+          "stride" : 22,
+          "start" : 6
         },
         {
           "name" : "color",
@@ -30,8 +30,8 @@
           "components": 4,
           "type" : 3,
           "norm" : true,
-          "stride" : 20,
-          "start" : 16
+          "stride" : 22,
+          "start" : 18
         }
       ],
       "camera" : 0,
