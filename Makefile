@@ -34,7 +34,7 @@ endif
 all: build $(TARGET)
 build:
 	mkdir -p build
-$(TARGET): $(OBJS)  ./build/libSSGL.a
+$(TARGET): $(OBJS) $(LIB_OBJS)
 	$(CXX) $^ -o $(TARGET) $(GL_FLAGS) $(LDFLAGS)
 
 ./build/%.o : ./%.cpp

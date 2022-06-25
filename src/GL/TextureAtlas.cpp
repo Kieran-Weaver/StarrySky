@@ -3,7 +3,7 @@
 #include <zlib.h>
 #include <glbinding/gl/gl.h>
 #include <fstream>
-#include <iostream>
+#include <map>
 
 using namespace gl;
 
@@ -18,6 +18,10 @@ struct __attribute__((packed)) tex {
 TextureAtlas::TextureAtlas(const std::string_view file_path){
 	MMAPFile fmap(file_path);
 	const char* ptr = fmap.getString().data();
+	std::map<std::string, size_t> temp_names;
+	std::vector<uint16_t> temp_layers;
+	std::vector<tex> temp_in_texs;
+	std::vector<tex> temp_out_texs;
 	
 	uint16_t num_layers, num_images;
 	
@@ -68,24 +72,13 @@ TextureAtlas::TextureAtlas(const std::string_view file_path){
 		ptr += read(ptr, num_images);
 		for (uint16_t image = 0; image < num_images; image++) {
 			std::string_view name;
-			ptr += read(ptr, name);
-			
-			id_t id = new_id();
-			size_t idx = names.size();
-
-			std::string tmp_name(name);
-			names[tmp_name] = id;
-			id_map[id] = idx;
-			
 			tex in, out;
+
+			ptr += read(ptr, name);
 			ptr += read(ptr, in);
 
-			layers.push_back(layer);
-			rotated.push_back(in.rotated);
 			out.x = static_cast<uint16_t>((in.x * 65536.f) / width);
 			out.y = static_cast<uint16_t>((in.y * 65536.f) / height);			
-			sizes.push_back(in.w);
-			sizes.push_back(in.h);
 
 			if (in.rotated) {
 				out.w = static_cast<uint16_t>((in.h * 65536.f) / width);
@@ -94,13 +87,35 @@ TextureAtlas::TextureAtlas(const std::string_view file_path){
 				out.w = static_cast<uint16_t>((in.w * 65536.f) / width);
 				out.h = static_cast<uint16_t>((in.h * 65536.f) / height);
 			}
-			
-			uvs.push_back(out.x);
-			uvs.push_back(out.y);
-			uvs.push_back(out.x + out.w);
-			uvs.push_back(out.y + out.h);
+
+			size_t idx = temp_names.size();
+			std::string temp_name(name);
+
+			temp_names[temp_name] = idx;
+			temp_layers.push_back(layer);
+			temp_in_texs.push_back(in);
+			temp_out_texs.push_back(out);
 		}
 	}	
+
+	/* Sort by name */
+	names_interned = {};
+	for (const auto& [name, idx] : temp_names) {
+		const auto& in = temp_in_texs[idx];
+		const auto& out = temp_out_texs[idx];
+		const auto  name_start = names_interned.size();
+
+		names_interned.append(name);
+		names.emplace_back(name_start, name.length());
+		layers.push_back(temp_layers[idx]);
+		rotated.push_back(in.rotated);
+		sizes.push_back(in.w);
+		sizes.push_back(in.h);
+		uvs.push_back(out.x);
+		uvs.push_back(out.y);
+		uvs.push_back(out.x + out.w);
+		uvs.push_back(out.y + out.h);
+	}
 }
 
 TextureAtlas::~TextureAtlas(){
@@ -207,11 +222,14 @@ bool TextureAtlas::loadBINgz(const std::string_view path, Bitmask& maskwrapper){
 // Returns a valid Texture if found in the TextureAtlas, otherwise returns a null Texture.
 const Texture TextureAtlas::findSubTexture(const std::string_view name) const{
 	Texture texture;
-	auto it = this->names.find(name);
+	auto it = std::lower_bound(names.begin(), names.end(), name, [&](const auto& a, const auto& b) {
+		const std::string_view view(names_interned.data() + a.first, a.second);
+		return view < b;
+	});
+
 	if (it == names.end()) return texture;
 	
-	id_t id = it->second;
-	size_t idx = this->id_map.at(id);
+	size_t idx = std::distance(names.begin(), it);
 	
 	texture.m_texture = handle_;
 	texture.m_rect = {
@@ -224,8 +242,6 @@ const Texture TextureAtlas::findSubTexture(const std::string_view name) const{
 	texture.layer = layers[idx];
 	texture.m_bitmask = masks[layers[idx]];
 	texture.type = GL_TEXTURE_2D_ARRAY;
-	
-	std::cout << name << " " << texture.width << " " << texture.height << " " << texture.rotated << std::endl;
 
 	return texture;
 }
@@ -235,7 +251,9 @@ const Texture TextureAtlas::findSubTexture(const std::string_view name) const{
 std::vector<std::string> TextureAtlas::getSubTextureNames() const{
 	std::vector<std::string> name_vec;
 
-	std::transform(names.begin(), names.end(), std::back_inserter(name_vec), [](const auto& itr){ return itr.first; });
+	std::transform(names.begin(), names.end(), std::back_inserter(name_vec), [&](const auto& itr){
+		return names_interned.substr(itr.first, itr.second);
+	});
 
 	return name_vec;
 }
