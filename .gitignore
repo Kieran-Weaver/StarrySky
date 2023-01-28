@@ -12,6 +12,10 @@
 
 # Build files
 build/*
+.ccls*
+*.cpython*
+*.egg-info
+compile_commands.json
 
 # Executable on Linux
 Platformer*

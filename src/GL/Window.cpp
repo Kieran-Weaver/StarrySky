@@ -7,7 +7,8 @@
 #include <glbinding/glbinding.h>
 #ifndef NO_IMGUI
 #include "imgui/imgui.h"
-#include "imgui/examples/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
 #endif
 
 using namespace gl;
@@ -91,6 +92,8 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(windowImpl.get(),true);
+	const char* glsl_version = "#version 130";
+	ImGui_ImplOpenGL3_Init(glsl_version);
 	io.Fonts->AddFontFromFileTTF(fontfile.c_str(),20.f);
 #endif
 	glfwSetWindowUserPointer(windowImpl.get(), &internal_state);
@@ -106,6 +109,7 @@ Window::~Window(){
 		this->close();
 	}
 #ifndef NO_IMGUI
+	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 #endif
@@ -115,6 +119,7 @@ void Window::startFrame() const{
 	this->makeCurrent();
 	glfwPollEvents();
 #ifndef NO_IMGUI
+	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 #endif
@@ -126,6 +131,9 @@ void Window::makeCurrent() const{
 }
 void Window::endFrame() const{
 	this->makeCurrent();
+#ifndef NO_IMGUI
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
 	glfwSwapBuffers(windowImpl.get());
 }
 void Window::close() const{

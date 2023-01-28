@@ -5,7 +5,7 @@ INC_FLAGS := -iquote submodules/imgui -I include -I build
 CFLAGS := -Og -g -march=native
 CXXFLAGS := -Og -g -march=native -fno-rtti -std=c++17
 CPPFLAGS = $(INC_FLAGS) -MT $@ -MMD -MP -MF build/$*.d
-IMGUI_SRCS := submodules/imgui/examples/imgui_impl_glfw.cpp $(shell find submodules/imgui -path "submodules/imgui/imgui*.cpp")
+IMGUI_SRCS := submodules/imgui/backends/imgui_impl_glfw.cpp submodules/imgui/backends/imgui_impl_opengl3.cpp $(shell find submodules/imgui -path "submodules/imgui/imgui*.cpp")
 SRCS := $(shell find src/core -path "*.cpp") $(shell find src/game -path "*.cpp") src/main.cpp
 OBJS := $(patsubst %.cpp, ./build/%.o, $(SRCS))
 LIB_SRCS := $(shell find src/GL -path "*.cpp") $(shell find src/util -path "*.cpp") $(shell find src/file -path "*.cpp") $(IMGUI_SRCS)
@@ -48,19 +48,10 @@ $(TARGET): $(OBJS) $(LIB_OBJS)
 clean:
 	rm -fr $(TARGET) build $(TEST_TARGET) $(TOOLS_TARGETS) offscreen.png tools/editor
 
-build/gl.c: build/gl.h
-build/gl.h: build/galogen_exe
-	cd build && ./galogen_exe ../submodules/galogen/third_party/gl.xml --api gl --ver 4.6 --profile core --exts EXT_texture_compression_s3tc,EXT_texture_sRGB,EXT_texture_filter_anisotropic --filename gl 
-
 build/libSSGL.a: lib
 
 lib: $(LIB_OBJS)
 	ar rcs build/libSSGL.a $(LIB_OBJS)
-
-build/galogen_exe:
-	mkdir -p build
-	cd build && mkdir -p build src/core tools src/game src/GL src/util src/file submodules/imgui/examples test test/noimgui
-	$(CXX) $(CXXFLAGS) submodules/galogen/galogen.cpp submodules/galogen/third_party/tinyxml2.cpp -o build/galogen_exe $(LDFLAGS)
 
 test: $(TEST_TARGET)
 	./$(TEST_TARGET)

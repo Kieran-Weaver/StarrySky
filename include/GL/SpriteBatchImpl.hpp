@@ -13,7 +13,6 @@
 // Rendering Modes
 #define SPRITE2D 0
 #define TILEMAP 1
-#define OVERLAY 2
 #define SPRITE3D 3
 // This SpriteBatchImpl implementation requires OpenGL 3.3+
 struct Sprite;
@@ -42,7 +41,6 @@ private:
 	void setStencil(bool new_state);
 	void drawSprites(DrawCommand& drawComm, bool stencil);
 	void drawTileMap(TileMap& tilemap, Buffer& UBOHandle);
-	void drawImData(const ImDrawData* drawdata);
 	void setAttrib(GLProgram& currentProgram, JSONParser node, uint32_t start, uint32_t stride);
 	void setAttrib(GLProgram& currentProgram, JSONParser node);
 	DrawList m_drawlist;
