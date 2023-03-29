@@ -15,7 +15,7 @@ TEST_OBJS := $(patsubst %.cpp, ./build/%.o, $(TEST_SRCS)) build/src/util/Mat2D.o
 build/src/file/PlainText.o build/src/core/RTree.o
 TEST_TARGET := tests
 TOOLS_TARGETS := tools/collisiondemo tools/debugcollision tools/packingtest
-TOOLS_COMMON_OBJS := build/src/core/Map.o build/src/file/PlainText.o \
+TOOLS_COMMON_OBJS := build/src/file/PlainText.o \
 build/src/util/Mat2D.o build/src/GL/Shader.o build/src/GL/Camera.o build/src/GL/TextureAtlas.o \
 build/src/GL/Sprite.o build/src/GL/Buffer.o build/src/GL/VertexArray.o build/src/GL/Program.o build/src/GL/Tilemap.o \
 build/src/file/JSONReader.o build/src/file/JSONWriter.o build/src/core/RTree.o build/src/util/Clib.o

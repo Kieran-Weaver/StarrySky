@@ -35,7 +35,6 @@ public:
 	void close() const;
 	bool isOpen() const;
 private:
-	WindowState internal_state;
 	std::unique_ptr<GLFWwindow, GLFWwindowDeleter> windowImpl;
 	void Draw(const DrawCommand& drawcomm) const;
 	void Configure(const ConfCommand& confcomm) const;

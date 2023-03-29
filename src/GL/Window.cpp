@@ -14,6 +14,8 @@
 using namespace gl;
 
 void GLFWwindowDeleter::operator()(GLFWwindow* ptr){
+	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(ptr));
+	delete ws;
 	glfwDestroyWindow(ptr);
 }
 
@@ -24,6 +26,9 @@ void MouseEnterCB(GLFWwindow* window, int entered){
 	} else {
 		ws->mouseOn = false;
 	}
+#ifndef NO_IMGUI
+	ImGui_ImplGlfw_CursorEnterCallback(window, entered);
+#endif
 }
 
 void MousePosCB(GLFWwindow* window, double xpos, double ypos){
@@ -31,6 +36,9 @@ void MousePosCB(GLFWwindow* window, double xpos, double ypos){
 	if (ws->mouseOn && ws->cursorCB){
 		ws->cursorCB(xpos, ypos);
 	}
+#ifndef NO_IMGUI
+	ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+#endif
 }
 
 void MouseButtonCB(GLFWwindow* window, int button, int action, int mods){
@@ -38,6 +46,9 @@ void MouseButtonCB(GLFWwindow* window, int button, int action, int mods){
 	if (ws->mouseOn && ws->mouseCB){
 		ws->mouseCB(button, action, mods);
 	}
+#ifndef NO_IMGUI
+	ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+#endif
 }
 	
 void MouseScrollCB(GLFWwindow* window, double xoff, double yoff){
@@ -45,6 +56,9 @@ void MouseScrollCB(GLFWwindow* window, double xoff, double yoff){
 	if (ws->mouseOn && ws->scrollCB){
 		ws->scrollCB(xoff, yoff);
 	}
+#ifndef NO_IMGUI
+	ImGui_ImplGlfw_ScrollCallback(window, xoff, yoff);
+#endif
 }
 
 void KeyboardCB(GLFWwindow* window, int key, int scancode, int action, int mods){
@@ -61,6 +75,7 @@ void KeyboardCB(GLFWwindow* window, int key, int scancode, int action, int mods)
 	ImGui_ImplGlfw_KeyCallback(window,key,scancode,action,mods);
 #endif
 }
+
 Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfile, const std::string& windowname, bool offscreen){
 	if (glfwInit() != GLFW_TRUE){
 		std::exit(0);
@@ -87,20 +102,21 @@ Window::Window(int w, int h, int GLMajor, int GLMinor, const std::string& fontfi
 	this->makeCurrent();
 	glbinding::initialize(glfwGetProcAddress);
 	glfwSwapInterval(1);
+	WindowState* internal_state = new WindowState;
+	glfwSetWindowUserPointer(windowImpl.get(), internal_state);
+
 #ifndef NO_IMGUI
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	ImGui::StyleColorsDark();
-	ImGui_ImplGlfw_InitForOpenGL(windowImpl.get(),true);
+	ImGui_ImplGlfw_InitForOpenGL(windowImpl.get(),false);
 	const char* glsl_version = "#version 130";
 	ImGui_ImplOpenGL3_Init(glsl_version);
 	io.Fonts->AddFontFromFileTTF(fontfile.c_str(),20.f);
 #endif
-	glfwSetWindowUserPointer(windowImpl.get(), &internal_state);
-
-	glfwSetKeyCallback(windowImpl.get(), KeyboardCB);	
+	glfwSetKeyCallback(windowImpl.get(), KeyboardCB);
 	glfwSetCursorEnterCallback(windowImpl.get(), MouseEnterCB);
-	glfwSetCursorPosCallback(windowImpl.get(), MousePosCB);	
+	glfwSetCursorPosCallback(windowImpl.get(), MousePosCB);
 	glfwSetMouseButtonCallback(windowImpl.get(), MouseButtonCB);
 	glfwSetScrollCallback(windowImpl.get(), MouseScrollCB);
 }
@@ -143,10 +159,12 @@ bool Window::isOpen() const{
 	return (glfwWindowShouldClose(windowImpl.get()) == GLFW_FALSE);
 }
 WindowState& Window::getWindowState() {
-	return internal_state;
+	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(windowImpl.get()));
+	return *ws;
 }
 const WindowState& Window::getWindowState() const{
-	return internal_state;
+	auto* ws = static_cast<WindowState*>(glfwGetWindowUserPointer(windowImpl.get()));
+	return *ws;
 }
 void Window::getWindowSize(int& width, int& height) const{
 	glfwGetFramebufferSize(windowImpl.get(), &width, &height);

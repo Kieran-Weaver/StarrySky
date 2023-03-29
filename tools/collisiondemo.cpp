@@ -12,7 +12,7 @@ int main(int, char const**) {
 	Camera camera({-2000.f,-2000.f,4000.f,4000.f},{0.f,0.f,800.f,400.f}, window);
 	bool paused = false;
 	window.getWindowState().camera = &camera;
-	TextureAtlas atlas("resources/data/atlas.json");
+	TextureAtlas atlas("resources/data/atlas.bin");
 	SpriteBatch batch(atlas, "resources/data/shaders.json");
 	Texture t = atlas.findSubTexture("test1");
 	Texture t2 = atlas.findSubTexture("test2");
@@ -32,7 +32,7 @@ int main(int, char const**) {
 			s2.rotate(-0.1f);
 			s.rotate(0.1f);
 		}
-		bool collided = s.PPCollidesWith(s2);
+		bool collided = s.collides(s2);
 		std::string colstr = "no";
 		if (collided){
 			colstr = "yes";
